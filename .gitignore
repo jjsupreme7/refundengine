@@ -1,0 +1,55 @@
+# Environment and secrets
+.env
+
+# Database files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+
+# Client data (contains sensitive information)
+/client_documents/*
+!/client_documents/.gitkeep
+
+# Outputs (generated reports)
+/outputs/*
+!/outputs/reports/.gitkeep
+!/outputs/dor_filings/.gitkeep
+!/outputs/analysis/.gitkeep
+
+# Logs
+/logs/*
+!/logs/.gitkeep
+*.log
+
+# Vector database
+/vector_db/chroma/*
+!/vector_db/chroma/.gitkeep
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
