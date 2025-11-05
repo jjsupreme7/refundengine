@@ -190,11 +190,19 @@ CLIENT DOCUMENTS:
   * Describes services to be performed
   * Scope of work, deliverables
   * Service contracts
+  * Usually references a master agreement
+
+- master_agreement: Master service agreement/framework agreement
+  * Overarching agreement establishing terms
+  * Has "Master Agreement", "Framework Agreement", "MSA"
+  * Covers general terms, pricing structure, overall relationship
+  * SOWs and POs typically reference this agreement
+  * Usually longer-term (multi-year)
 
 - contract: General contract/agreement
   * Legal agreement language
   * Terms and conditions
-  * Not specifically an SOW or invoice
+  * Not specifically an SOW, MA, or invoice
 
 - receipt: Payment receipt
   * Proof of payment

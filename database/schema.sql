@@ -120,6 +120,24 @@ CREATE TABLE statements_of_work (
     service_description TEXT,
     is_primarily_human_effort BOOLEAN,
     total_contract_value DECIMAL(10,2),
+    master_agreement_reference TEXT,
+    FOREIGN KEY (client_id) REFERENCES clients(id),
+    FOREIGN KEY (client_document_id) REFERENCES client_documents(id)
+);
+
+CREATE TABLE master_agreements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    client_document_id INTEGER,
+    agreement_number TEXT,
+    agreement_title TEXT,
+    agreement_date DATE,
+    effective_date DATE,
+    expiration_date DATE,
+    vendor_name TEXT,
+    total_contract_value DECIMAL(10,2),
+    agreement_type TEXT,
+    scope_description TEXT,
     FOREIGN KEY (client_id) REFERENCES clients(id),
     FOREIGN KEY (client_document_id) REFERENCES client_documents(id)
 );
@@ -206,6 +224,25 @@ CREATE INDEX idx_legal_docs_date ON legal_documents(document_date);
 CREATE INDEX idx_chunks_document ON document_chunks(document_id);
 CREATE INDEX idx_client_docs_type ON client_documents(document_type);
 CREATE INDEX idx_client_docs_client ON client_documents(client_id);
+
+CREATE TABLE document_relationships (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_document_id INTEGER NOT NULL,
+    source_document_type TEXT NOT NULL,
+    target_document_id INTEGER NOT NULL,
+    target_document_type TEXT NOT NULL,
+    relationship_type TEXT NOT NULL,
+    confidence_score INTEGER,
+    matched_reference TEXT,
+    matching_method TEXT,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (source_document_id) REFERENCES client_documents(id),
+    FOREIGN KEY (target_document_id) REFERENCES client_documents(id)
+);
+
+CREATE INDEX idx_relationships_source ON document_relationships(source_document_id);
+CREATE INDEX idx_relationships_target ON document_relationships(target_document_id);
+CREATE INDEX idx_relationships_type ON document_relationships(relationship_type);
 
 -- Seed data: Test client
 INSERT INTO clients (client_name, business_entity_type, ubi_number, contact_email, industry_classification)

@@ -68,18 +68,32 @@ def run_full_pipeline(client_id, invoice_folder_path=None):
 
     print(f"\n✅ Found {len(invoice_ids)} invoices to process")
 
-    # STEP 2: Identify products
+    conn.close()
+
+    # STEP 2: Link documents
     print("\n" + "🔹"*35)
-    print("STEP 2: IDENTIFYING PRODUCTS")
+    print("STEP 2: LINKING RELATED DOCUMENTS")
     print("🔹"*35 + "\n")
+
+    from link_documents import link_all_documents_for_client
+    conn = get_database_connection()
+    link_all_documents_for_client(client_id, conn)
+    conn.close()
+
+    # STEP 3: Identify products
+    print("\n" + "🔹"*35)
+    print("STEP 3: IDENTIFYING PRODUCTS")
+    print("🔹"*35 + "\n")
+
+    conn = get_database_connection()
 
     for invoice_id in invoice_ids:
         print(f"\n📦 Processing Invoice ID {invoice_id}...")
         batch_identify_products(invoice_id, conn)
 
-    # STEP 3: Analyze refunds
+    # STEP 4: Analyze refunds
     print("\n" + "🔹"*35)
-    print("STEP 3: ANALYZING REFUND ELIGIBILITY")
+    print("STEP 4: ANALYZING REFUND ELIGIBILITY")
     print("🔹"*35 + "\n")
 
     for invoice_id in invoice_ids:
@@ -88,9 +102,9 @@ def run_full_pipeline(client_id, invoice_folder_path=None):
 
     conn.close()
 
-    # STEP 4: Generate reports
+    # STEP 5: Generate reports
     print("\n" + "🔹"*35)
-    print("STEP 4: GENERATING REPORTS")
+    print("STEP 5: GENERATING REPORTS")
     print("🔹"*35 + "\n")
 
     print("\n1️⃣  Generating Client Report...")

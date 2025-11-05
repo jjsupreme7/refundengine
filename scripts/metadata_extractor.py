@@ -319,6 +319,7 @@ Extract these fields:
 - human_effort_analysis: Explanation of your determination
 - total_contract_value: Total contract amount
 - deliverables: Array of key deliverables
+- master_agreement_reference: Any reference to master agreement (number, title, etc.)
 
 Return ONLY valid JSON (no markdown, no backticks):
 {{
@@ -330,6 +331,7 @@ Return ONLY valid JSON (no markdown, no backticks):
   "human_effort_analysis": "explanation of determination",
   "total_contract_value": number or null,
   "deliverables": ["array", "of", "deliverables"],
+  "master_agreement_reference": "string or null",
   "confidence_score": 0-100
 }}"""
 
@@ -356,6 +358,65 @@ Return ONLY valid JSON (no markdown, no backticks):
         print(f"  ❌ Extraction failed: {e}")
         return {'sow_title': None, 'confidence_score': 0, 'error': str(e)}
 
+def extract_master_agreement_metadata(file_path, document_text):
+    """
+    Extract metadata from master agreements.
+    """
+    print(f"\n📄 Extracting master agreement metadata...")
+
+    prompt = f"""You are an expert in analyzing master service agreements and framework agreements.
+
+MASTER AGREEMENT TEXT:
+{document_text[:6000]}
+
+TASK: Extract structured data from this master agreement.
+
+Extract these fields:
+- agreement_number: Agreement number or ID
+- agreement_title: Title or name of agreement
+- agreement_date: YYYY-MM-DD format (signing date)
+- effective_date: YYYY-MM-DD format (when it takes effect)
+- expiration_date: YYYY-MM-DD format (when it expires)
+- vendor_name: Service provider/vendor name
+- total_contract_value: Total contract value (if stated)
+- agreement_type: Type (e.g., "Master Service Agreement", "Framework Agreement")
+- scope_description: High-level scope of what's covered
+
+Return ONLY valid JSON (no markdown, no backticks):
+{{
+  "agreement_number": "string or null",
+  "agreement_title": "string or null",
+  "agreement_date": "YYYY-MM-DD or null",
+  "effective_date": "YYYY-MM-DD or null",
+  "expiration_date": "YYYY-MM-DD or null",
+  "vendor_name": "string or null",
+  "total_contract_value": number or null,
+  "agreement_type": "string or null",
+  "scope_description": "brief description",
+  "confidence_score": 0-100
+}}"""
+
+    try:
+        client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=2000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        result_text = response.content[0].text.strip()
+        metadata = json.loads(result_text)
+
+        print(f"  ✅ Agreement: {metadata.get('agreement_title', 'Not found')}")
+        print(f"  ✅ Vendor: {metadata.get('vendor_name', 'Not found')}")
+        print(f"  ✅ Confidence: {metadata.get('confidence_score', 0)}%")
+
+        return metadata
+
+    except Exception as e:
+        print(f"  ❌ Extraction failed: {e}")
+        return {'agreement_number': None, 'confidence_score': 0, 'error': str(e)}
+
 def main():
     """Main CLI function."""
     parser = argparse.ArgumentParser(
@@ -365,7 +426,7 @@ def main():
     parser.add_argument(
         '--type',
         required=True,
-        choices=['legal', 'invoice', 'purchase_order', 'sow'],
+        choices=['legal', 'invoice', 'purchase_order', 'sow', 'master_agreement'],
         help="Document type"
     )
     parser.add_argument(
@@ -405,6 +466,8 @@ def main():
         metadata = extract_purchase_order_metadata(args.file, document_text)
     elif args.type == 'sow':
         metadata = extract_sow_metadata(args.file, document_text)
+    elif args.type == 'master_agreement':
+        metadata = extract_master_agreement_metadata(args.file, document_text)
     else:
         print(f"❌ Unknown type: {args.type}")
         return 1

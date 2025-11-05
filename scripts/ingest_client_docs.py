@@ -24,7 +24,8 @@ from document_classifier import extract_text_preview, get_file_metadata, detect_
 from metadata_extractor import (
     extract_invoice_metadata,
     extract_purchase_order_metadata,
-    extract_sow_metadata
+    extract_sow_metadata,
+    extract_master_agreement_metadata
 )
 
 from dotenv import load_dotenv
@@ -45,6 +46,7 @@ def get_organized_folder(document_type, client_name):
         'invoice': base / "invoices" / client_name,
         'purchase_order': base / "purchase_orders" / client_name,
         'statement_of_work': base / "statements_of_work" / client_name,
+        'master_agreement': base / "master_agreements" / client_name,
         'contract': base / "supporting_docs" / client_name / "contracts",
         'receipt': base / "supporting_docs" / client_name / "receipts",
         'other': base / "supporting_docs" / client_name / "other"
@@ -187,8 +189,8 @@ def process_sow(client_document_id, file_path, text, client_id, conn):
             INSERT INTO statements_of_work (
                 client_id, client_document_id, sow_title, sow_date,
                 vendor_name, service_description, is_primarily_human_effort,
-                total_contract_value
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                total_contract_value, master_agreement_reference
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             client_id,
             client_document_id,
@@ -197,7 +199,8 @@ def process_sow(client_document_id, file_path, text, client_id, conn):
             metadata.get('vendor_name'),
             metadata.get('service_description'),
             metadata.get('is_primarily_human_effort'),
-            metadata.get('total_contract_value')
+            metadata.get('total_contract_value'),
+            metadata.get('master_agreement_reference')
         ))
 
         sow_id = cursor.lastrowid
@@ -207,6 +210,47 @@ def process_sow(client_document_id, file_path, text, client_id, conn):
             'success': True,
             'sow_id': sow_id,
             'primarily_human_effort': metadata.get('is_primarily_human_effort')
+        }
+
+    except Exception as e:
+        conn.rollback()
+        return {
+            'success': False,
+            'reason': str(e)
+        }
+
+def process_master_agreement(client_document_id, file_path, text, client_id, conn):
+    """Process master agreement and insert into database."""
+    try:
+        metadata = extract_master_agreement_metadata(file_path, text)
+
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO master_agreements (
+                client_id, client_document_id, agreement_number, agreement_title,
+                agreement_date, effective_date, expiration_date, vendor_name,
+                total_contract_value, agreement_type, scope_description
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            client_id,
+            client_document_id,
+            metadata.get('agreement_number'),
+            metadata.get('agreement_title'),
+            metadata.get('agreement_date'),
+            metadata.get('effective_date'),
+            metadata.get('expiration_date'),
+            metadata.get('vendor_name'),
+            metadata.get('total_contract_value'),
+            metadata.get('agreement_type'),
+            metadata.get('scope_description')
+        ))
+
+        ma_id = cursor.lastrowid
+        conn.commit()
+
+        return {
+            'success': True,
+            'master_agreement_id': ma_id
         }
 
     except Exception as e:
@@ -294,6 +338,8 @@ def process_client_document(file_path, client_id, conn):
             handler_result = process_purchase_order(client_document_id, file_path, text, client_id, conn)
         elif doc_type == 'statement_of_work':
             handler_result = process_sow(client_document_id, file_path, text, client_id, conn)
+        elif doc_type == 'master_agreement':
+            handler_result = process_master_agreement(client_document_id, file_path, text, client_id, conn)
         # contract, receipt, other - just keep in client_documents
 
         if handler_result['success']:
@@ -396,6 +442,7 @@ def batch_process_uploads(folder_path, client_id):
         'invoices': [],
         'purchase_orders': [],
         'statements_of_work': [],
+        'master_agreements': [],
         'other': [],
         'failed': []
     }
@@ -413,6 +460,8 @@ def batch_process_uploads(folder_path, client_id):
                 results['purchase_orders'].append(result)
             elif doc_type == 'statement_of_work':
                 results['statements_of_work'].append(result)
+            elif doc_type == 'master_agreement':
+                results['master_agreements'].append(result)
             else:
                 results['other'].append(result)
         else:
@@ -429,6 +478,7 @@ def batch_process_uploads(folder_path, client_id):
     print(f"  📄 Invoices: {len(results['invoices'])}")
     print(f"  📋 Purchase Orders: {len(results['purchase_orders'])}")
     print(f"  📝 Statements of Work: {len(results['statements_of_work'])}")
+    print(f"  📜 Master Agreements: {len(results['master_agreements'])}")
     print(f"  📁 Other Documents: {len(results['other'])}")
     print(f"  ❌ Failed: {len(results['failed'])}")
 

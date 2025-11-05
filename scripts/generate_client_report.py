@@ -141,14 +141,131 @@ def generate_client_refund_report(client_id):
 
     xl.auto_adjust_columns(ws3)
 
-    # SHEET 4: Legal References
-    ws4 = wb.create_sheet("Legal References")
-    xl.add_header_row(ws4, ["Citation", "Description"])
+    # SHEET 4: Document Relationships (4-Level Hierarchy)
+    ws4 = wb.create_sheet("Document Relationships")
+    xl.add_header_row(ws4, ["Master Agreement", "SOW/PO", "Invoice", "Relationship Type", "Confidence", "Reference"])
 
-    ws4.cell(2, 1, "RCW 82.08.02565")
-    ws4.cell(2, 2, "Manufacturing equipment exemption")
+    # Get all relationships to build hierarchy
+    cursor.execute("""
+        SELECT
+            dr.source_document_id,
+            dr.target_document_id,
+            dr.relationship_type,
+            dr.confidence_score,
+            dr.matched_reference,
+            src_doc.filename as source_file,
+            src_doc.document_type as source_type,
+            tgt_doc.filename as target_file,
+            tgt_doc.document_type as target_type
+        FROM document_relationships dr
+        JOIN client_documents src_doc ON dr.source_document_id = src_doc.id
+        JOIN client_documents tgt_doc ON dr.target_document_id = tgt_doc.id
+        WHERE src_doc.client_id = ?
+        ORDER BY dr.relationship_type, dr.created_date
+    """, (client_id,))
 
-    xl.auto_adjust_columns(ws4)
+    all_relationships = cursor.fetchall()
+
+    if not all_relationships:
+        ws4.cell(2, 1, "No document relationships found")
+        ws4.cell(2, 2, "Run link_documents.py to create relationships")
+        xl.auto_adjust_columns(ws4)
+    else:
+        # Build relationship maps
+        ma_to_sow = {}  # Master Agreement ID -> [SOW IDs]
+        sow_to_invoice = {}  # SOW ID -> [Invoice IDs]
+        po_to_invoice = {}  # PO ID -> [Invoice IDs]
+
+        doc_names = {}  # Document ID -> Filename
+
+        for rel in all_relationships:
+            src_id, tgt_id, rel_type, conf, ref, src_file, src_type, tgt_file, tgt_type = rel
+            doc_names[src_id] = src_file
+            doc_names[tgt_id] = tgt_file
+
+            if rel_type == 'sow_under_master_agreement':
+                if tgt_id not in ma_to_sow:
+                    ma_to_sow[tgt_id] = []
+                ma_to_sow[tgt_id].append((src_id, conf, ref))
+            elif rel_type == 'invoice_bills_sow':
+                if tgt_id not in sow_to_invoice:
+                    sow_to_invoice[tgt_id] = []
+                sow_to_invoice[tgt_id].append((src_id, conf, ref))
+            elif rel_type == 'invoice_references_po':
+                if tgt_id not in po_to_invoice:
+                    po_to_invoice[tgt_id] = []
+                po_to_invoice[tgt_id].append((src_id, conf, ref))
+
+        row = 2
+
+        # Display Master Agreement → SOW → Invoice chains
+        for ma_id, sows in ma_to_sow.items():
+            ma_name = doc_names.get(ma_id, "Unknown MA")
+
+            for sow_id, sow_conf, sow_ref in sows:
+                sow_name = doc_names.get(sow_id, "Unknown SOW")
+
+                # Check if this SOW has invoices
+                if sow_id in sow_to_invoice:
+                    for inv_id, inv_conf, inv_ref in sow_to_invoice[sow_id]:
+                        inv_name = doc_names.get(inv_id, "Unknown Invoice")
+                        ws4.cell(row, 1, ma_name)
+                        ws4.cell(row, 2, sow_name)
+                        ws4.cell(row, 3, inv_name)
+                        ws4.cell(row, 4, "MA → SOW → Invoice")
+                        ws4.cell(row, 5, f"{sow_conf}% (MA-SOW), {inv_conf}% (SOW-Inv)")
+                        ws4.cell(row, 6, f"MA: {sow_ref[:30] if sow_ref else 'N/A'}; SOW: {inv_ref[:30] if inv_ref else 'N/A'}")
+                        row += 1
+                else:
+                    # SOW with no invoices yet
+                    ws4.cell(row, 1, ma_name)
+                    ws4.cell(row, 2, sow_name)
+                    ws4.cell(row, 3, "No invoices")
+                    ws4.cell(row, 4, "MA → SOW")
+                    ws4.cell(row, 5, f"{sow_conf}%")
+                    ws4.cell(row, 6, sow_ref[:50] if sow_ref else "")
+                    row += 1
+
+        # Display standalone Invoice → SOW relationships (SOWs not under MA)
+        for sow_id, invoices in sow_to_invoice.items():
+            # Check if this SOW is under an MA
+            under_ma = any(sow_id in [s[0] for s in sows_list] for sows_list in ma_to_sow.values())
+
+            if not under_ma:
+                sow_name = doc_names.get(sow_id, "Unknown SOW")
+                for inv_id, inv_conf, inv_ref in invoices:
+                    inv_name = doc_names.get(inv_id, "Unknown Invoice")
+                    ws4.cell(row, 1, "No MA")
+                    ws4.cell(row, 2, sow_name)
+                    ws4.cell(row, 3, inv_name)
+                    ws4.cell(row, 4, "SOW → Invoice")
+                    ws4.cell(row, 5, f"{inv_conf}%")
+                    ws4.cell(row, 6, inv_ref[:50] if inv_ref else "")
+                    row += 1
+
+        # Display Invoice → PO relationships
+        for po_id, invoices in po_to_invoice.items():
+            po_name = doc_names.get(po_id, "Unknown PO")
+            for inv_id, inv_conf, inv_ref in invoices:
+                inv_name = doc_names.get(inv_id, "Unknown Invoice")
+                ws4.cell(row, 1, "N/A")
+                ws4.cell(row, 2, po_name)
+                ws4.cell(row, 3, inv_name)
+                ws4.cell(row, 4, "PO → Invoice")
+                ws4.cell(row, 5, f"{inv_conf}%")
+                ws4.cell(row, 6, inv_ref[:50] if inv_ref else "")
+                row += 1
+
+        xl.auto_adjust_columns(ws4)
+
+    # SHEET 5: Legal References
+    ws5 = wb.create_sheet("Legal References")
+    xl.add_header_row(ws5, ["Citation", "Description"])
+
+    ws5.cell(2, 1, "RCW 82.08.02565")
+    ws5.cell(2, 2, "Manufacturing equipment exemption")
+
+    xl.auto_adjust_columns(ws5)
 
     # Save file
     project_root = Path(__file__).parent.parent
