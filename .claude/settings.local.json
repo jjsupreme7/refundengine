@@ -1,7 +1,35 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(python scripts/process_pipeline.py:*)",
+      "Bash(sqlite3:*)",
+      "Bash(python scripts/db_setup.py:*)",
+      "Bash(python scripts/ingest_legal_docs.py:*)",
+      "Bash(pdftotext:*)",
+      "Bash(python scripts/ingest_client_docs.py:*)",
+      "Bash(python scripts/import_use_tax.py:*)",
+      "Bash(python scripts/analyze_refund.py:*)",
+      "Bash(python:*)",
+      "Bash(pac --version:*)",
+      "Bash(brew tap:*)",
+      "Bash(brew install:*)",
+      "Bash(echo:*)",
+      "Bash(__NEW_LINE__ which dotnet)",
+      "Bash(chmod:*)",
+      "Bash(dotnet --version:*)",
+      "Bash(export PATH=\"$PATH:/Users/jacoballen/.dotnet/tools\")",
+      "Bash(/Users/jacoballen/.dotnet/tools/pac --version)",
+      "Bash(/Users/jacoballen/.dotnet/tools/pac auth create --environment https://org4f531c4b.crm.dynamics.com)",
+      "Bash(./dataverse_deployment.sh:*)",
+      "Bash(tee:*)",
+      "Bash(psql:*)",
+      "Bash(curl:*)",
+      "WebSearch",
+      "Bash(python3:*)",
+      "Bash(cat:*)",
+      "Bash(xargs:*)",
+      "Bash(=0.47.0)"
     ],
     "deny": [],
     "ask": []

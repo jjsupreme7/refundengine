@@ -1,5 +1,14 @@
 # Environment and secrets
 .env
+email_config.json
+
+# Downloaded emails (may contain sensitive data)
+/email_downloads/*
+!/email_downloads/.gitkeep
+
+# Test documents
+/test_documents/*
+!/test_documents/.gitkeep
 
 # Database files
 *.db
