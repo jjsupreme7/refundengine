@@ -19,6 +19,7 @@ Options:
 
 import os
 import sys
+import re
 import argparse
 from pathlib import Path
 import pdfplumber
@@ -155,24 +156,192 @@ def review_and_confirm_metadata(pdf_path: str, suggested_metadata: Dict) -> Dict
         return suggested_metadata
 
 
-def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 100) -> List[Dict]:
+def split_by_sections(text: str) -> List[tuple[str, str]]:
     """
-    Split text into overlapping chunks for embeddings
-    Returns list of {chunk_text, chunk_index}
+    Split legal document by sections, preserving section identifiers
+    Returns list of (section_identifier, section_text) tuples
     """
-    words = text.split()
+    # Patterns for legal section markers
+    patterns = [
+        # RCW/WAC style: "82.08.0259" or "458-20-101"
+        r'(?:^|\n)(\d+[-\.]\d+[-\.]\d+[A-Za-z]?)\s*[:\.\s]',
+        # Section headings: "Section 1.", "SEC. 2."
+        r'(?:^|\n)((?:Section|SEC\.|Sec\.)\s+\d+[A-Za-z]?)\s*[\.\:]',
+        # Subsection numbering: "(1)", "(2)", "(a)", "(b)"
+        r'(?:^|\n)(\(\d+\)|\([a-z]\)|\([ivx]+\))\s+',
+        # Numbered headings: "1.1", "2.3.4"
+        r'(?:^|\n)(\d+(?:\.\d+)*)\s+[A-Z]',
+    ]
+    
+    sections = []
+    combined_pattern = '|'.join(patterns)
+    
+    # Find all section markers
+    matches = list(re.finditer(combined_pattern, text, re.MULTILINE))
+    
+    if not matches:
+        # No sections found, return whole text
+        return [("", text)]
+    
+    # Extract sections between markers
+    for i, match in enumerate(matches):
+        section_id = match.group(0).strip()
+        start = match.start()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        section_text = text[start:end].strip()
+        sections.append((section_id, section_text))
+    
+    return sections
+
+
+def split_by_paragraphs(text: str) -> List[str]:
+    """
+    Split text by paragraphs (double newlines or single newlines with clear breaks)
+    """
+    # Split on double newlines or newline followed by significant whitespace
+    paragraphs = re.split(r'\n\s*\n+|\n(?=\s{4,})', text)
+    
+    # Clean and filter empty paragraphs
+    paragraphs = [p.strip() for p in paragraphs if p.strip()]
+    
+    return paragraphs
+
+
+def split_by_sentences(text: str) -> List[str]:
+    """
+    Split text by sentences using basic sentence boundary detection
+    """
+    # Basic sentence splitting (handles common legal abbreviations)
+    # Negative lookbehind for common abbreviations
+    sentence_pattern = r'(?<!\bRCW|\bWAC|\bCf|\bSec|\bNo|\bVol|\bEd|\bInc|\bLtd|\bMr|\bMrs|\bDr|\bvs|\bv)[.!?]+\s+'
+    sentences = re.split(sentence_pattern, text)
+    
+    sentences = [s.strip() for s in sentences if s.strip()]
+    
+    return sentences
+
+
+def smart_chunk_legal_document(text: str, max_chunk_words: int = 1500, min_chunk_words: int = 100) -> List[Dict]:
+    """
+    Intelligently chunk legal documents preserving hierarchical structure
+    
+    Strategy:
+    1. Try to identify and preserve sections
+    2. If section too large, split by paragraphs
+    3. If paragraph too large, split by sentences and recombine
+    4. Always preserve semantic units when possible
+    
+    Returns list of {chunk_text, chunk_index, section_id}
+    """
     chunks = []
     chunk_index = 0
-
-    for i in range(0, len(words), chunk_size - overlap):
-        chunk = ' '.join(words[i:i + chunk_size])
-        if chunk:
+    
+    # Step 1: Try to split by sections
+    sections = split_by_sections(text)
+    
+    for section_id, section_text in sections:
+        word_count = len(section_text.split())
+        
+        # If section is reasonably sized, keep it whole
+        if min_chunk_words <= word_count <= max_chunk_words:
             chunks.append({
-                'chunk_text': chunk,
-                'chunk_index': chunk_index
+                'chunk_text': section_text,
+                'chunk_index': chunk_index,
+                'section_id': section_id
             })
             chunk_index += 1
-
+        
+        # If section is too large, split by paragraphs
+        elif word_count > max_chunk_words:
+            paragraphs = split_by_paragraphs(section_text)
+            
+            # Try to combine small paragraphs into reasonable chunks
+            current_chunk = []
+            current_word_count = 0
+            
+            for para in paragraphs:
+                para_words = len(para.split())
+                
+                # If single paragraph is too large, split by sentences
+                if para_words > max_chunk_words:
+                    # Save current chunk if exists
+                    if current_chunk:
+                        chunks.append({
+                            'chunk_text': '\n\n'.join(current_chunk),
+                            'chunk_index': chunk_index,
+                            'section_id': section_id
+                        })
+                        chunk_index += 1
+                        current_chunk = []
+                        current_word_count = 0
+                    
+                    # Split large paragraph by sentences
+                    sentences = split_by_sentences(para)
+                    sent_chunk = []
+                    sent_word_count = 0
+                    
+                    for sent in sentences:
+                        sent_words = len(sent.split())
+                        
+                        if sent_word_count + sent_words > max_chunk_words and sent_chunk:
+                            chunks.append({
+                                'chunk_text': ' '.join(sent_chunk),
+                                'chunk_index': chunk_index,
+                                'section_id': section_id
+                            })
+                            chunk_index += 1
+                            sent_chunk = [sent]
+                            sent_word_count = sent_words
+                        else:
+                            sent_chunk.append(sent)
+                            sent_word_count += sent_words
+                    
+                    # Save remaining sentences
+                    if sent_chunk:
+                        chunks.append({
+                            'chunk_text': ' '.join(sent_chunk),
+                            'chunk_index': chunk_index,
+                            'section_id': section_id
+                        })
+                        chunk_index += 1
+                
+                # Try to combine paragraph with current chunk
+                elif current_word_count + para_words <= max_chunk_words:
+                    current_chunk.append(para)
+                    current_word_count += para_words
+                
+                # Current chunk is full, save it and start new one
+                else:
+                    if current_chunk:
+                        chunks.append({
+                            'chunk_text': '\n\n'.join(current_chunk),
+                            'chunk_index': chunk_index,
+                            'section_id': section_id
+                        })
+                        chunk_index += 1
+                    current_chunk = [para]
+                    current_word_count = para_words
+            
+            # Save any remaining content
+            if current_chunk:
+                chunks.append({
+                    'chunk_text': '\n\n'.join(current_chunk),
+                    'chunk_index': chunk_index,
+                    'section_id': section_id
+                })
+                chunk_index += 1
+        
+        # If section is too small, try to combine with next (handled in next iteration)
+        else:
+            # For now, just include small sections as-is
+            # Could optimize later to combine tiny sections
+            chunks.append({
+                'chunk_text': section_text,
+                'chunk_index': chunk_index,
+                'section_id': section_id
+            })
+            chunk_index += 1
+    
     return chunks
 
 
@@ -276,10 +445,10 @@ def ingest_document(pdf_path: str, auto_approve: bool = False):
     except Exception as e:
         print(f"❌ Failed to store metadata: {e}")
 
-    # Step 7: Chunk text
-    print("✂️  Chunking text...")
-    chunks = chunk_text(full_text, chunk_size=800, overlap=100)
-    print(f"✅ Created {len(chunks)} chunks")
+    # Step 7: Smart chunk text (preserving sections/paragraphs)
+    print("✂️  Chunking text intelligently...")
+    chunks = smart_chunk_legal_document(full_text, max_chunk_words=1500, min_chunk_words=100)
+    print(f"✅ Created {len(chunks)} chunks (preserving document structure)")
 
     # Step 8: Generate embeddings and store chunks
     print("🧠 Generating embeddings and storing chunks...")
@@ -296,7 +465,8 @@ def ingest_document(pdf_path: str, auto_approve: bool = False):
                     "document_id": document_id,
                     "chunk_index": chunk['chunk_index'],
                     "chunk_text": chunk['chunk_text'],
-                    "embedding": embedding
+                    "embedding": embedding,
+                    "section_heading": chunk.get('section_id', '')  # Store section ID for better citations
                 }
 
                 supabase.table('document_chunks').insert(chunk_data).execute()
