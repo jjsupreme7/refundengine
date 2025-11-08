@@ -40,6 +40,9 @@ build/
 !/outputs/reports/.gitkeep
 !/outputs/dor_filings/.gitkeep
 !/outputs/analysis/.gitkeep
+!/outputs/README.md
+!/outputs/WA_Tax_Law.xlsx
+!/outputs/metadata.xlsx
 
 # Logs
 /logs/*
