@@ -183,11 +183,16 @@ class ExcelMetadataImporter:
         return response in ['y', 'yes']
 
     def apply_changes(self, changes: List[Dict]) -> Tuple[int, int]:
-        """Apply changes to Supabase"""
+        """Apply changes to Supabase with cascading updates to chunks"""
         print("\n🔄 Applying changes to Supabase...")
 
         success_count = 0
         error_count = 0
+        cascade_count = 0
+
+        # Fields that should cascade from documents to chunks
+        CASCADE_FIELDS = ['citation', 'law_category', 'topic_tags', 'tax_types',
+                         'industries', 'referenced_statutes', 'vendor_name', 'vendor_category']
 
         for change in changes:
             record_id = change['id']
@@ -207,6 +212,28 @@ class ExcelMetadataImporter:
                     success_count += 1
                     display_name = change['excel_row'].get('title') or change['excel_row'].get('citation') or record_id[:8]
                     print(f"  ✅ Updated: {display_name}")
+
+                    # CASCADE: If this is a document change, update its chunks too
+                    if table == 'knowledge_documents':
+                        cascade_fields = {k: v for k, v in update_data.items() if k in CASCADE_FIELDS}
+
+                        if cascade_fields:
+                            # Determine chunk table based on document type
+                            doc_type = change['excel_row'].get('document_type')
+                            chunk_table = 'tax_law_chunks' if doc_type == 'tax_law' else 'vendor_background_chunks'
+
+                            try:
+                                # Update all chunks for this document
+                                chunk_result = self.supabase.table(chunk_table).update(cascade_fields).eq('document_id', record_id).execute()
+
+                                if chunk_result.data:
+                                    num_chunks = len(chunk_result.data)
+                                    cascade_count += num_chunks
+                                    print(f"    ↳ Cascaded to {num_chunks} chunks")
+
+                            except Exception as e:
+                                print(f"    ⚠️  Could not cascade to chunks: {e}")
+
                 else:
                     error_count += 1
                     print(f"  ❌ Failed to update: {record_id}")
@@ -214,6 +241,9 @@ class ExcelMetadataImporter:
             except Exception as e:
                 error_count += 1
                 print(f"  ❌ Error updating {record_id}: {e}")
+
+        if cascade_count > 0:
+            print(f"\n  🔄 Cascaded changes to {cascade_count} chunks")
 
         return success_count, error_count
 

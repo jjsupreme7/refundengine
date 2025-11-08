@@ -45,6 +45,7 @@ from datetime import datetime
 # Import canonical chunking and cost tracker
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.chunking import chunk_legal_document, get_chunking_stats
+from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
 
 # Try to import cost tracker, create simple fallback if not available
 try:
@@ -460,10 +461,20 @@ def import_metadata_from_excel(excel_path: str):
 
             # Add type-specific metadata
             if document_type == 'tax_law':
+                # Helper function to parse comma-separated strings to arrays
+                def parse_array(value):
+                    if pd.isna(value) or value == '':
+                        return []
+                    return [x.strip() for x in str(value).split(',') if x.strip()]
+
                 doc_data.update({
                     'citation': row.get('citation', ''),
                     'law_category': row.get('law_category', 'general'),
-                    'effective_date': row.get('effective_date') if pd.notna(row.get('effective_date')) else None
+                    'effective_date': row.get('effective_date') if pd.notna(row.get('effective_date')) else None,
+                    'topic_tags': parse_array(row.get('topic_tags', '')),
+                    'tax_types': parse_array(row.get('tax_types', '')),
+                    'industries': parse_array(row.get('industries', '')),
+                    'referenced_statutes': parse_array(row.get('referenced_statutes', ''))
                 })
             else:  # vendor
                 doc_data.update({
@@ -477,18 +488,17 @@ def import_metadata_from_excel(excel_path: str):
             document_id = result.data[0]['id']
             print(f"✅ Document stored (ID: {document_id})")
 
-            # Smart chunk text using canonical chunking
-            print("✂️  Chunking text intelligently (using canonical chunking)...")
-            chunks = chunk_legal_document(
-                full_text,
+            # Smart chunk text using canonical chunking WITH PAGE NUMBERS
+            print("✂️  Chunking text intelligently (with page number tracking)...")
+            chunks, total_pages_processed = chunk_document_with_pages(
+                pdf_path,
                 target_words=800,
                 max_words=1500,
-                min_words=150,
-                preserve_sections=True
+                min_words=150
             )
 
             stats = get_chunking_stats(chunks)
-            print(f"✅ Created {len(chunks)} chunks")
+            print(f"✅ Created {len(chunks)} chunks from {total_pages_processed} pages")
             print(f"   Average: {stats['avg_words']:.0f} words, Range: {stats['min_words']}-{stats['max_words']} words")
 
             # Update total_chunks
@@ -516,10 +526,25 @@ def import_metadata_from_excel(excel_path: str):
 
                         # Add type-specific fields
                         if document_type == 'tax_law':
+                            # Parse array fields (use same helper function)
+                            def parse_array(value):
+                                if pd.isna(value) or value == '':
+                                    return []
+                                return [x.strip() for x in str(value).split(',') if x.strip()]
+
+                            # Combine section_id with page_reference for section_title
+                            section_id = chunk.get('section_id', '')
+                            page_ref = chunk.get('page_reference', '')
+                            combined_section_title = format_section_with_page(section_id, page_ref)
+
                             chunk_data.update({
                                 'citation': row.get('citation', ''),
                                 'law_category': row.get('law_category', 'general'),
-                                'section_title': chunk.get('section_id', '')
+                                'section_title': combined_section_title,  # Now includes page numbers!
+                                'topic_tags': parse_array(row.get('topic_tags', '')),
+                                'tax_types': parse_array(row.get('tax_types', '')),
+                                'industries': parse_array(row.get('industries', '')),
+                                'referenced_statutes': parse_array(row.get('referenced_statutes', ''))
                             })
                         else:  # vendor
                             chunk_data.update({
