@@ -142,6 +142,17 @@ class ExcelMetadataImporter:
         if hasattr(value, 'date'):
             return str(value.date())
 
+        # Handle arrays - convert both database arrays and Excel strings to sorted comma-separated strings
+        if isinstance(value, list):
+            # Database array: ['sales tax', 'use tax'] → 'sales tax, use tax'
+            return ', '.join(sorted(value)) if value else None
+
+        # Excel string might already be comma-separated
+        if isinstance(value, str) and ',' in value:
+            # Normalize: split, strip, sort, rejoin
+            items = [item.strip() for item in value.split(',') if item.strip()]
+            return ', '.join(sorted(items)) if items else None
+
         return str(value).strip()
 
     def show_diff(self, changes: List[Dict]):

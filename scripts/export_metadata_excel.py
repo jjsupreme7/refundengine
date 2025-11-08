@@ -81,7 +81,7 @@ def export_to_excel(output_path: Path):
             'id', 'document_type', 'title', 'citation', 'law_category',
             'effective_date', 'topic_tags', 'tax_types', 'industries',
             'referenced_statutes', 'vendor_name', 'vendor_category',
-            'source_file', 'total_chunks', 'processing_status', 'created_at'
+            'source_file', 'total_chunks', 'processing_status', 'created_at', 'updated_at'
         ]
         ws_docs.append(headers)
 
