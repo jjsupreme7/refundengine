@@ -76,17 +76,24 @@ def export_to_excel(output_path: Path):
     if docs_result.data:
         ws_docs = wb.create_sheet("Documents")
 
-        # Headers
+        # Headers (includes new metadata fields)
         headers = [
             'id', 'document_type', 'title', 'citation', 'law_category',
-            'effective_date', 'vendor_name', 'vendor_category', 'source_file',
-            'total_chunks', 'processing_status', 'created_at'
+            'effective_date', 'topic_tags', 'tax_types', 'industries',
+            'referenced_statutes', 'vendor_name', 'vendor_category',
+            'source_file', 'total_chunks', 'processing_status', 'created_at'
         ]
         ws_docs.append(headers)
 
         # Data
         for doc in docs_result.data:
-            row = [doc.get(h) for h in headers]
+            row = []
+            for h in headers:
+                value = doc.get(h)
+                # Convert arrays to comma-separated strings
+                if isinstance(value, list):
+                    value = ', '.join(value) if value else ''
+                row.append(value)
             ws_docs.append(row)
 
         # Style
@@ -106,19 +113,25 @@ def export_to_excel(output_path: Path):
     print("\n📥 Fetching tax law chunks...")
     try:
         chunks_result = supabase.table('tax_law_chunks').select(
-            'id, document_id, chunk_number, citation, section_title, law_category'
+            'id, document_id, chunk_number, citation, section_title, law_category, topic_tags, tax_types, industries, referenced_statutes'
         ).order('document_id, chunk_number').execute()
 
         if chunks_result.data:
             ws_chunks = wb.create_sheet("Tax Law Chunks")
 
-            # Headers
-            headers = ['id', 'document_id', 'chunk_number', 'citation', 'section_title', 'law_category']
+            # Headers (includes new metadata fields)
+            headers = ['id', 'document_id', 'chunk_number', 'citation', 'section_title', 'law_category', 'topic_tags', 'tax_types', 'industries', 'referenced_statutes']
             ws_chunks.append(headers)
 
             # Data
             for chunk in chunks_result.data:
-                row = [chunk.get(h) for h in headers]
+                row = []
+                for h in headers:
+                    value = chunk.get(h)
+                    # Convert arrays to comma-separated strings
+                    if isinstance(value, list):
+                        value = ', '.join(value) if value else ''
+                    row.append(value)
                 ws_chunks.append(row)
 
             # Style
@@ -150,7 +163,13 @@ def export_to_excel(output_path: Path):
 
             # Data
             for chunk in vendor_result.data:
-                row = [chunk.get(h) for h in headers]
+                row = []
+                for h in headers:
+                    value = chunk.get(h)
+                    # Convert arrays to comma-separated strings
+                    if isinstance(value, list):
+                        value = ', '.join(value) if value else ''
+                    row.append(value)
                 ws_vendor.append(row)
 
             # Style
@@ -185,6 +204,10 @@ def export_to_excel(output_path: Path):
         ["  • citation - Legal citation (e.g., WAC 458-20-15502)"],
         ["  • law_category - Category tag (software, digital_goods, manufacturing, etc.)"],
         ["  • effective_date - When the law became effective (YYYY-MM-DD)"],
+        ["  • topic_tags - Comma-separated topics (e.g., 'digital products, exemptions')"],
+        ["  • tax_types - Comma-separated types (e.g., 'sales tax, use tax')"],
+        ["  • industries - Comma-separated industries (e.g., 'retail, technology')"],
+        ["  • referenced_statutes - Comma-separated laws (e.g., 'RCW 82.04.215')"],
         ["  • vendor_name - For vendor documents only"],
         ["  • vendor_category - Type of vendor"],
         [""],
@@ -192,6 +215,8 @@ def export_to_excel(output_path: Path):
         ["  • citation - Chunk-specific citation"],
         ["  • section_title - Section name or page number"],
         ["  • law_category - Category tag for filtering"],
+        ["  • topic_tags, tax_types, industries, referenced_statutes - Same as Documents sheet"],
+        ["  • Note: Editing Documents sheet will cascade changes to all chunks!"],
         [""],
         ["SUGGESTED CATEGORIES"],
         ["  • software - Computer software taxation"],
