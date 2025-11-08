@@ -26,6 +26,7 @@ from typing import List
 # Import canonical chunking
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.chunking import chunk_legal_document, get_chunking_stats
+from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
 
 # Load environment
 load_dotenv()
@@ -140,18 +141,17 @@ def ingest_large_document(
         print(f"❌ Failed to store document: {e}")
         return False
 
-    # Step 3: Smart chunk text using canonical chunking
-    print("\n[3/5] Chunking text intelligently (using canonical chunking)...")
-    chunks = chunk_legal_document(
-        full_text,
+    # Step 3: Smart chunk text using canonical chunking WITH PAGE NUMBERS
+    print("\n[3/5] Chunking text intelligently (with page number tracking)...")
+    chunks, total_pages_processed = chunk_document_with_pages(
+        pdf_path,
         target_words=800,
         max_words=1500,
-        min_words=150,
-        preserve_sections=True
+        min_words=150
     )
 
     stats = get_chunking_stats(chunks)
-    print(f"✅ Created {len(chunks)} chunks")
+    print(f"✅ Created {len(chunks)} chunks from {total_pages_processed} pages")
     print(f"   Average: {stats['avg_words']:.0f} words, Range: {stats['min_words']}-{stats['max_words']} words")
 
     # Update total_chunks
@@ -179,10 +179,15 @@ def ingest_large_document(
 
                 # Add type-specific fields
                 if document_type == 'tax_law':
+                    # Combine section_id with page_reference for section_title
+                    section_id = chunk.get('section_id', '')
+                    page_ref = chunk.get('page_reference', '')
+                    combined_section_title = format_section_with_page(section_id, page_ref)
+
                     chunk_data.update({
                         'citation': citation or title,
                         'law_category': law_category,
-                        'section_title': chunk.get('section_id', '')
+                        'section_title': combined_section_title  # Now includes page numbers!
                     })
                 else:  # vendor
                     chunk_data.update({
