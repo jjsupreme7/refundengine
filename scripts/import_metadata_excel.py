@@ -193,6 +193,23 @@ class ExcelMetadataImporter:
         response = input("\n❓ Apply these changes to Supabase? [y/N]: ").strip().lower()
         return response in ['y', 'yes']
 
+    def _prepare_value_for_db(self, field_name: str, value: Any) -> Any:
+        """Convert Excel values to database format"""
+        # Array fields that need to be converted from strings to arrays
+        ARRAY_FIELDS = ['topic_tags', 'tax_types', 'industries', 'referenced_statutes']
+
+        if field_name in ARRAY_FIELDS:
+            if isinstance(value, str):
+                # Convert comma-separated string to array
+                items = [item.strip() for item in value.split(',') if item.strip()]
+                return items if items else []
+            elif isinstance(value, list):
+                return value
+            else:
+                return []
+
+        return value
+
     def apply_changes(self, changes: List[Dict]) -> Tuple[int, int]:
         """Apply changes to Supabase with cascading updates to chunks"""
         print("\n🔄 Applying changes to Supabase...")
@@ -210,8 +227,10 @@ class ExcelMetadataImporter:
             table = change['table']
             changed_fields = change['changed_fields']
 
-            # Build update dict with only changed fields
-            update_data = {field: values['new'] for field, values in changed_fields.items()}
+            # Build update dict with only changed fields - convert to DB format
+            update_data = {}
+            for field, values in changed_fields.items():
+                update_data[field] = self._prepare_value_for_db(field, values['new'])
 
             # Add updated_at timestamp
             update_data['updated_at'] = datetime.now().isoformat()
