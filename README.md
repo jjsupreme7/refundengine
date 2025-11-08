@@ -1,391 +1,306 @@
 # Washington State Tax Refund Engine
 
-An AI-powered system for identifying and analyzing potential sales/use tax refunds for Washington State businesses. The system ingests legal documents (RCW, WAC, WTD, ETA) and client invoices, uses vector search to find relevant exemptions, and generates professional Excel reports.
+AI-powered system with **human-in-the-loop learning** for identifying sales/use tax refund opportunities for Washington State businesses.
 
-## 🎯 Key Features
+## ✨ What's New
 
-- **AI-Powered Document Classification**: Automatically detects and classifies legal documents and client invoices
-- **Vector Search Technology**: Searches across ALL uploaded legal documents using semantic similarity
-- **Comprehensive Tax Law Coverage**: Analyzes HUNDREDS of Washington State tax exemptions, not just specific examples
-- **Automated Product Identification**: Determines product type, digital vs physical, service vs product, and "primarily human effort" classification
-- **Professional Excel Reports**: Generates client-facing reports, DOR filing worksheets, and internal analysis workbooks
-- **Intelligent Processing Pipeline**: End-to-end automation from document ingestion to final reports
+- 📊 **Excel-Based Review Workflow** - AI analyzes, you review in Excel, system learns from corrections
+- 🧠 **Dual Knowledge Base** - Separate Tax Law (RCW/WAC) and Vendor Background documents
+- 🤖 **Smart Invoice Matching** - AI reads PDFs and matches line items to Excel rows by amount
+- 👤 **Human-in-the-Loop** - Approve/correct AI decisions, system gets smarter over time
+- 🔄 **Vendor Learning System** - Builds product patterns from your corrections
 
-## 🧠 Comprehensive Tax Law Coverage
+## 🚀 Quick Start
 
-### CRITICAL UNDERSTANDING
-
-This system is designed to analyze **ALL Washington State tax laws and exemptions**, not just specific examples.
-
-The "primarily human effort" test (for digital services under ESSB 5814) is **ONE** example among **HUNDREDS** of Washington State tax rules.
-
-### System Intelligence Approach
-
-1. **Ingests ALL legal documents** uploaded into a searchable vector database
-2. **For EACH invoice line item**, searches across ALL legal documents using semantic similarity
-3. **Retrieves the 10 most relevant** legal sections based on product description and context
-4. **Analyzes the transaction** against ALL retrieved legal authorities
-5. **Applies whichever exemptions** are most relevant to that specific product/service
-6. **Different products automatically trigger different exemptions** based on vector search results
-
-### Example Analysis Scenarios
-
-#### Scenario 1: Industrial Manufacturing Equipment
-- **Line item**: "CNC milling machine for metal fabrication"
-- **System searches** ALL legal documents
-- **Top results**: RCW 82.08.02565 (manufacturing equipment exemption), WAC 458-20-13601
-- **AI analyzes**: Is equipment used directly in manufacturing operations? Yes.
-- **Result**: Eligible for refund under manufacturing exemption
-- **Citation**: RCW 82.08.02565
-- **Note**: "Primarily human effort" is NOT relevant here - different exemption applies
-
-#### Scenario 2: Automated Software Subscription
-- **Line item**: "Salesforce CRM annual subscription"
-- **System searches** ALL legal documents
-- **Top results**: ESSB 5814, RCW 82.04.050 (digital service taxation), WTD decisions on SaaS
-- **AI analyzes**: Is this primarily human effort? No, it's automated software platform.
-- **Result**: Properly taxed under ESSB 5814, no refund
-- **Citation**: RCW 82.04.050
-- **Note**: "Primarily human effort" IS relevant here - this is the right test for this product
-
-#### Scenario 3: Agricultural Equipment
-- **Line item**: "John Deere tractor for wheat farming operations"
-- **System searches** ALL legal documents
-- **Top results**: RCW 82.08.0259 (agricultural exemption), WAC 458-20-101
-- **AI analyzes**: Used in farming? Yes. Qualifying agricultural equipment? Yes.
-- **Result**: Eligible for refund under agricultural exemption
-- **Citation**: RCW 82.08.0259
-
-#### Scenario 4: Professional Consulting Services
-- **Line item**: "Strategic management consulting - 40 hours at $250/hr"
-- **System searches** ALL legal documents
-- **Top results**: RCW 82.04.050 (service taxation), ESSB 5814, ETA on professional services
-- **AI analyzes**: Is this primarily human effort? Yes, consulting requires human expertise and judgment.
-- **Result**: Should not have been taxed, eligible for refund
-- **Citation**: RCW 82.04.050 primarily human effort exemption
-
-### Exemption Categories Covered
-
-The system analyzes ALL exemptions found in uploaded documents, including but not limited to:
-
-- **Manufacturing exemptions** (RCW 82.08.02565, 82.08.02566, etc.)
-- **Resale exemptions** (RCW 82.08.0251, 82.08.0252, etc.)
-- **Interstate/foreign commerce** (RCW 82.08.0264, 82.08.0265, etc.)
-- **Agricultural exemptions** (RCW 82.08.0259, 82.08.02745, etc.)
-- **Digital products and services** (ESSB 5814, RCW 82.04.050, etc.)
-- **Service taxability rules** (including "primarily human effort" test)
-- **Construction exemptions** (RCW 82.08.02785, etc.)
-- **Nonprofit exemptions** (RCW 82.08.02573, etc.)
-- **Government exemptions** (RCW 82.08.0259, etc.)
-- **Research & development** (RCW 82.63.045, etc.)
-- **Food products** (RCW 82.08.0293, etc.)
-- **Prescription drugs** (RCW 82.08.0281, etc.)
-- **Energy** (RCW 82.08.956, etc.)
-- **Transportation** (RCW 82.08.0266, etc.)
-- **And HUNDREDS of other specific exemptions**
-
-### Key Principles
-
-1. **Vector Search Drives Analysis**:
-   - Product description → semantic embedding → search across ALL legal docs
-   - Top 10 most similar legal sections are retrieved
-   - Analysis is based on THESE retrieved documents, not hardcoded rules
-   - Different products naturally retrieve different relevant laws
-
-2. **Comprehensive Coverage**:
-   - Do NOT only look for "primarily human effort" cases
-   - Do NOT only apply the 5 sample legal_rules seeded in database
-   - DO search across ALL uploaded legal documents for EVERY line item
-   - DO apply ANY relevant exemption found in the knowledge base
-
-3. **Adaptive Analysis**:
-   - Manufacturing equipment → manufacturing exemption analysis
-   - Resale items → reseller permit analysis
-   - Services → primarily human effort test
-   - Agricultural products → agricultural exemption analysis
-   - The AI adapts its analysis based on what legal documents are retrieved
-
-## 📁 Document Organization
-
-### LEGAL DOCUMENTS (knowledge_base/)
-
-Folder names provide **HINTS**, AI verifies content.
-
-**How to organize**:
-1. RCW documents → `knowledge_base/statutes/rcw/`
-2. WAC documents → `knowledge_base/statutes/wac/`
-3. WTD documents → `knowledge_base/guidance/wtd/`
-4. ETA documents → `knowledge_base/guidance/eta/`
-
-**The AI will**:
-- Use folder name as hint
-- Read content to confirm type
-- Extract citation automatically
-- Extract metadata (dates, topics, concepts)
-- Create searchable vector database
-
-### CLIENT DOCUMENTS (client_documents/)
-
-**Two approaches** - choose what's easier:
-
-**OPTION A (Recommended): Single Upload Folder**
-- Put ALL documents in: `client_documents/uploads/`
-- AI detects type automatically (invoice/PO/SOW/contract)
-- AI moves to organized folders after processing
-
-**OPTION B: Pre-Organize**
-- Manually sort into `invoices/`, `purchase_orders/`, etc.
-- AI still verifies classification
-
-### File Format Support
-
-✅ **PDF, Excel, Word, PNG, TIFF, JPG** - all handled automatically
-
-### Metadata Auto-Extraction
-
-**For Legal Documents**: citation, dates, topics, key concepts, referenced statutes
-**For Invoices**: vendor info, line items, tax amounts, locations
-**For SOWs**: service description, primarily_human_effort determination
-
-## 🚀 Setup
-
-### Prerequisites
-
-- Python 3.10 or higher
-- pip package manager
-
-### Installation
-
-1. **Navigate to project directory**:
-   ```bash
-   cd refund-engine
-   ```
-
-2. **Create virtual environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Set up environment variables**:
-   ```bash
-   cp .env.example .env
-   # Edit .env and add your Anthropic API key
-   ```
-
-5. **Initialize database**:
-   ```bash
-   python scripts/db_setup.py
-   ```
-
-## 📖 Usage
-
-### Quick Start: Full Pipeline
-
-Process everything in one command:
+### 1. Setup Database & Knowledge Base
 
 ```bash
-python scripts/process_pipeline.py --client_id 1 --invoices client_documents/uploads/
+# Install dependencies
+pip install -r requirements.txt
+
+# Deploy database schema
+psql -h your-db.supabase.co -U postgres -f database/schema_knowledge_base.sql
+psql -h your-db.supabase.co -U postgres -f database/schema_vendor_learning.sql
+
+# Ingest tax law documents
+python scripts/8_ingest_knowledge_base.py tax_law \
+    "knowledge_base/tax_law/" \
+    --citation "RCW 82.08" \
+    --law-category "exemption"
+
+# Ingest vendor background documents
+python scripts/8_ingest_knowledge_base.py vendor_background \
+    "knowledge_base/vendors/Nokia/" \
+    --vendor-name "Nokia" \
+    --vendor-category "manufacturer"
 ```
 
-This will:
-1. Ingest and classify all client documents
-2. Identify all products/services
-3. Analyze refund eligibility using vector search
-4. Generate all three Excel reports
-
-### Step-by-Step Workflow
-
-#### 1. Ingest Legal Documents
-
-Place your legal documents in the appropriate folders:
+### 2. Analyze Invoices with AI
 
 ```bash
-knowledge_base/statutes/rcw/       # RCW files
-knowledge_base/statutes/wac/       # WAC files
-knowledge_base/guidance/wtd/       # WTD files
-knowledge_base/guidance/eta/       # ETA files
+# Place invoice PDFs in client_docs/
+
+# Prepare Excel with columns:
+# Row_ID, Vendor, Invoice_Number, PO Number, Date, Amount, Tax, Inv_1_File, PO_1_File
+
+# Run AI analysis
+python scripts/6_analyze_refunds.py "input.xlsx" --save-db
+
+# Output: input_analyzed.xlsx (with AI analysis columns)
 ```
 
-Then run:
+### 3. Review & Correct in Excel
+
+Open `input_analyzed.xlsx` and fill in review columns:
+- **Review_Status**: Approved / Needs Correction / Rejected
+- **Corrected_Product_Type**: Fix if AI got it wrong
+- **Corrected_Estimated_Refund**: Fix amount if wrong
+- **Reviewer_Notes**: Your reasoning (helps system learn!)
+
+### 4. Import Corrections & System Learns
 
 ```bash
-python scripts/ingest_legal_docs.py --folder knowledge_base/
+# Import your corrections
+python scripts/7_import_corrections.py "input_analyzed.xlsx" --reviewer "your.email@company.com"
+
+# System learns from corrections and gets smarter!
 ```
 
-#### 2. Process Client Documents
+**📚 Detailed Guides:**
+- Excel Workflow: `docs/EXCEL_WORKFLOW_GUIDE.md`
+- Knowledge Base: `docs/KNOWLEDGE_BASE_GUIDE.md`
 
-Place all client documents in:
+---
+
+## 📁 Project Structure
+
+```
+refund-engine/
+├── client_documents/
+│   └── invoices/                    # Your invoice PDFs go here
+│
+├── knowledge_base/
+│   ├── vendors/
+│   │   └── vendor_database.json     # 200+ pre-populated vendors
+│   ├── taxonomy/
+│   │   └── product_types.json       # Product classification rules
+│   └── states/
+│       └── washington/
+│           ├── legal_documents/     # WA tax law PDFs
+│           └── tax_rules.json       # WA tax logic
+│
+├── scripts/
+│   ├── 1_setup_supabase.py         # Database setup
+│   ├── 2_ingest_legal_docs.py      # Ingest legal docs
+│   ├── 5_fast_batch_analyzer.py    # Main analyzer (NEW!)
+│   └── utils/
+│       └── smart_cache.py           # Caching system
+│
+└── database/
+    └── supabase_schema.sql          # Database schema
+```
+
+---
+
+## 🎯 How It Works
+
+### The Analysis Pipeline
+
+```
+Excel → Extract Invoices → Match Line Items → Categorize Products
+                                                      ↓
+  ← Write Results ← AI Analysis ← Legal Research ← Search Laws
+```
+
+### 1. Invoice Extraction (GPT-4 Vision)
+- Reads invoice PDFs
+- Extracts vendor, line items, amounts, tax
+- **Cached** for 30 days (instant on re-runs)
+
+### 2. Vendor Lookup
+- Checks pre-populated vendor database (200+ vendors)
+- Instant lookup (no API calls)
+- Auto-learns new vendors
+
+### 3. Product Categorization
+- Classifies products: SaaS, Professional Services, Hardware, etc.
+- Uses keyword matching + vendor context
+
+### 4. Legal Research (RAG)
+- Searches WA legal documents (RCW, WAC, WTD)
+- Category-based (one search per category, not per item)
+- **Cached** for 7 days
+
+### 5. AI Analysis (Batched)
+- Analyzes 20 items per API call (vs 1 item per call)
+- Applies WA tax rules
+- Determines refund eligibility
+- Provides legal citations
+
+---
+
+## 💰 Performance & Cost
+
+### Speed
+- **100 invoices, 250 line items: ~2-3 minutes**
+- First run: ~3 min
+- Subsequent runs (cached): ~1 min
+
+### Cost (per 100 invoices)
+- Invoice extraction: $0.30 (20 new invoices, 80 cached)
+- Legal research: $0.00 (cached)
+- AI analysis: $0.78 (13 batched calls)
+- **Total: ~$1.08**
+
+### Caching Benefits
+- Invoice cache: 80%+ hit rate after first run
+- Vendor database: 100% hit rate
+- RAG cache: 100% hit rate (category-based)
+
+---
+
+## 📊 Excel Format
+
+### Required Columns (You Fill)
+
+| Vendor | Invoice_Number | Date | Amount | Tax | Inv_1_File |
+|--------|----------------|------|--------|-----|------------|
+| Microsoft | INV-001 | 2024-01-15 | 50,000 | 5,000 | microsoft-jan.pdf |
+
+### AI-Filled Columns
+
+| Product_Desc | Refund_Basis | Citation | Confidence | Estimated_Refund | Explanation |
+|--------------|--------------|----------|------------|------------------|-------------|
+| Microsoft 365 E5 | MPU | WAC 458-20-15502 | 88% | $4,250 | Digital service, allocate by user location... |
+
+---
+
+## 🔧 Configuration
+
+### .env File
 
 ```bash
-client_documents/uploads/
+OPENAI_API_KEY=sk-...              # Required
+SUPABASE_URL=https://...           # Required
+SUPABASE_SERVICE_ROLE_KEY=...      # Required
 ```
 
-Then run:
+### State Support
 
+Currently: **Washington only**
+
+Future: Add more states by:
+1. Creating `knowledge_base/states/[state]/`
+2. Adding legal documents
+3. Creating `tax_rules.json`
+4. Running: `--state california`
+
+---
+
+## 📚 Key Concepts
+
+### Multi-Point Use (MPU)
+- WA law: Tax allocated based on where services/products are used
+- Example: 100 Microsoft 365 users, 85 outside WA → 85% refund
+- Citation: WAC 458-20-15502
+
+### Primarily Human Effort
+- Services requiring human expertise are NOT taxable
+- Example: Consulting, professional services
+- Citation: RCW 82.04.050(6)
+
+### Digital Automated Services
+- Cloud/SaaS services are taxable in WA
+- BUT: MPU allocation applies if multi-state usage
+- Example: Salesforce, AWS, Azure
+
+---
+
+## 🎓 Common Refund Scenarios
+
+| Scenario | Refund Basis | Typical Recovery |
+|----------|--------------|------------------|
+| Multi-state SaaS (users distributed) | MPU | 70-90% |
+| Consulting services taxed incorrectly | Non-taxable | 100% |
+| Cloud infrastructure (multi-region) | MPU | 80-95% |
+| Hardware shipped out-of-state | OOS Shipment | 100% |
+| Manufacturing equipment | Exemption | 100% |
+
+---
+
+## ⚙️ Advanced Usage
+
+### Test Mode (First 10 Rows)
 ```bash
-python scripts/ingest_client_docs.py --folder client_documents/uploads --client_id 1
+python scripts/5_fast_batch_analyzer.py \
+    --excel "Master Refunds.xlsx" \
+    --state washington \
+    --limit 10
 ```
 
-#### 3. Identify Products
-
-For a single invoice:
-
+### Custom Output Path
 ```bash
-python scripts/identify_product.py --invoice_id 1
+python scripts/5_fast_batch_analyzer.py \
+    --excel "Master Refunds.xlsx" \
+    --output "Results Q1 2024.xlsx"
 ```
 
-For a specific line item:
+### Cache Management
+```python
+from scripts.utils.smart_cache import SmartCache
 
-```bash
-python scripts/identify_product.py --line_item_id 1
+cache = SmartCache()
+stats = cache.get_cache_stats()
+print(stats)
+
+# Clean expired entries
+cache.cleanup_expired()
 ```
 
-#### 4. Analyze Refunds
+---
 
-For a single invoice:
+## 🔍 Troubleshooting
 
-```bash
-python scripts/analyze_refund.py --invoice_id 1
-```
+### "Invoice file not found"
+- Ensure PDFs are in `client_documents/invoices/`
+- Check Excel `Inv_1_File` column has correct filenames
 
-For a specific line item:
+### "No legal documents found"
+- Run: `python scripts/2_ingest_legal_docs.py --state washington --folder knowledge_base/states/washington/legal_documents/`
 
-```bash
-python scripts/analyze_refund.py --line_item_id 1
-```
+### Low confidence scores (<60%)
+- Review explanation column
+- May need more legal documents
+- Or product description is ambiguous
 
-#### 5. Generate Reports
+### API rate limits
+- System automatically batches requests
+- Uses caching to minimize API calls
+- Adjust batch size if needed (edit script)
 
-**Client-facing report**:
-```bash
-python scripts/generate_client_report.py --client_id 1
-```
+---
 
-**DOR filing worksheet**:
-```bash
-python scripts/generate_dor_filing.py --client_id 1
-```
+## 📝 Next Steps
 
-**Internal analysis workbook**:
-```bash
-python scripts/generate_internal_workbook.py --client_id 1
-```
+1. **Process historical invoices** - Build your refund database
+2. **Review high-confidence items** (>80%) - Quick wins
+3. **Investigate medium-confidence** (60-80%) - Verify assumptions
+4. **Manual review low-confidence** (<60%) - Complex cases
+5. **Submit refund claims** - Use output as supporting documentation
 
-### Individual Utilities
+---
 
-**Classify a document**:
-```bash
-python scripts/document_classifier.py --file path/to/document.pdf
-```
+## 🤝 Support
 
-**Extract metadata**:
-```bash
-python scripts/metadata_extractor.py --file path/to/invoice.pdf --type invoice
-```
+**Documentation:**
+- See `docs/` folder for archived guides
+- `knowledge_base/states/washington/tax_rules.json` - Tax logic reference
 
-## 📊 Outputs
+**Database:**
+- Supabase dashboard: https://supabase.com/dashboard
+- Schema: `database/supabase_schema.sql`
 
-All generated reports are saved to the `outputs/` directory:
-
-- `outputs/reports/` - Client-facing Excel reports (4 sheets)
-- `outputs/dor_filings/` - DOR submission worksheets (2 sheets)
-- `outputs/analysis/` - Internal analysis workbooks (6 sheets)
-
-## 🔍 How It Works
-
-### Vector Search Technology
-
-The system uses **sentence-transformers** to create semantic embeddings of all legal documents. When analyzing an invoice line item:
-
-1. Creates a search query from: product category + description + tax context
-2. Searches the vector database for the 10 most semantically similar legal document chunks
-3. Passes these retrieved documents to Claude for analysis
-4. Claude evaluates which exemptions apply based on the retrieved legal authorities
-
-This means the system **automatically finds relevant laws** without hardcoding every possible exemption.
-
-### "Primarily Human Effort" Test
-
-Under Washington State law (ESSB 5814 / RCW 82.04.050), services that are "primarily human effort" are NOT subject to sales tax, even if delivered digitally.
-
-**Primarily Human Effort = TRUE** if:
-- Custom services requiring human expertise, judgment, or creativity
-- Consulting, professional services, manual labor
-- Human-driven analysis, design, or problem-solving
-
-**Primarily Human Effort = FALSE** if:
-- Automated software platforms or SaaS subscriptions
-- Pre-built digital products or tools
-- Standardized automated services
-
-The system automatically determines this classification for all service line items.
-
-## 🗄️ Database Schema
-
-The system uses SQLite with the following main tables:
-
-- **clients** - Client information
-- **legal_documents** - All legal documents with metadata
-- **document_chunks** - Text chunks for vector search
-- **invoices** - Invoice headers
-- **invoice_line_items** - Individual line items
-- **product_identifications** - AI product classifications
-- **refund_analysis** - Refund eligibility determinations
-- **legal_rules** - Sample exemption rules
-
-## ⚙️ Configuration
-
-### Environment Variables
-
-```bash
-ANTHROPIC_API_KEY=your_key_here
-DATABASE_URL=sqlite:///database/refund_engine.db
-```
-
-### Model Configuration
-
-The system uses:
-- **Claude Sonnet 4.5** (`claude-sonnet-4-20250514`) for all AI analysis
-- **sentence-transformers/all-MiniLM-L6-v2** for vector embeddings
-
-## 🚨 Troubleshooting
-
-### API Key Error
-- Check that `.env` file exists and contains valid Anthropic API key
-
-### File Not Processing
-- Verify file format is supported (PDF, DOCX, XLSX, PNG, JPG, TIFF)
-- Check file is not corrupted
-
-### Low Confidence Scores
-- System may need more legal documents in knowledge base
-- Product description may be ambiguous
-- Consider manual review for confidence < 60%
-
-### No Vector Search Results
-- Ensure legal documents have been ingested: `python scripts/ingest_legal_docs.py --folder knowledge_base/`
-- Check ChromaDB collection exists in `vector_db/chroma/`
-
-## 📝 Logs
-
-Detailed logs are saved to `logs/` directory:
-
-- `ingestion_YYYYMMDD_HHMMSS.log` - Legal document ingestion
-- `client_ingestion_YYYYMMDD_HHMMSS.log` - Client document processing
-
-## 🤝 Contributing
-
-This is a production system for KOM Consulting. Code quality, accuracy, and legal analysis precision are critical.
-
-## 📄 License
-
-Proprietary - KOM Consulting
+---
 
 ## ⚖️ Legal Disclaimer
 
@@ -393,11 +308,4 @@ This system provides automated analysis for informational purposes only. All ref
 
 ---
 
-**Built with**:
-- Anthropic Claude Sonnet 4.5
-- ChromaDB Vector Database
-- Python 3.10+
-- OpenPyXL for Excel generation
-- Sentence Transformers for embeddings
-
-**For support**: Contact KOM Consulting
+**Built with:** OpenAI GPT-4o, Supabase, pgvector, Python

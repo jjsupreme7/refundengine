@@ -1,0 +1,271 @@
+{
+  "state": "washington",
+  "state_code": "WA",
+  "state_name": "Washington",
+  "tax_type": "sales_and_use_tax",
+  "base_rate": 0.065,
+  "local_rates_vary": true,
+  "effective_date": "2025-01-01",
+
+  "product_type_rules": {
+    "saas_subscription": {
+      "taxable": true,
+      "tax_classification": "digital_automated_service",
+      "legal_basis": ["RCW 82.04.050", "WAC 458-20-15502"],
+      "description": "SaaS and cloud-based subscriptions are taxable as digital automated services",
+
+      "exemptions": [
+        {
+          "type": "primarily_human_effort",
+          "description": "Services primarily requiring human effort are exempt",
+          "citation": "RCW 82.04.050(6)",
+          "test": "Is the service primarily dependent on human effort rather than automation?",
+          "keywords": ["custom", "consulting", "professional", "advisory", "manual"]
+        },
+        {
+          "type": "multi_point_use",
+          "description": "Tax should be apportioned based on usage location",
+          "citation": "WAC 458-20-15502",
+          "calculation": "Allocate based on user location or resource deployment",
+          "keywords": ["multi-state", "distributed", "users in multiple locations"]
+        }
+      ],
+
+      "refund_scenarios": [
+        {
+          "scenario": "Multi-state SaaS usage",
+          "refund_basis": "MPU",
+          "methodology": "Allocate by user location",
+          "typical_recovery": "70-90% if users mostly out-of-state",
+          "documentation_needed": ["User location data", "License assignments", "Login analytics"]
+        },
+        {
+          "scenario": "Custom professional services misclassified as SaaS",
+          "refund_basis": "Non-taxable",
+          "methodology": "Primarily human effort test",
+          "typical_recovery": "100% if properly classified",
+          "documentation_needed": ["SOW", "Service descriptions", "Human vs automated breakdown"]
+        }
+      ]
+    },
+
+    "iaas_paas": {
+      "taxable": true,
+      "tax_classification": "digital_automated_service",
+      "legal_basis": ["RCW 82.04.050", "WAC 458-20-15502"],
+      "description": "Cloud infrastructure and platform services are taxable",
+
+      "exemptions": [
+        {
+          "type": "multi_point_use",
+          "description": "Tax allocated based on resource deployment location",
+          "citation": "WAC 458-20-15502",
+          "calculation": "Allocate based on where cloud resources are deployed",
+          "keywords": ["multi-region", "distributed infrastructure", "global deployment"]
+        },
+        {
+          "type": "out_of_state_use",
+          "description": "Resources deployed outside Washington may be exempt",
+          "citation": "RCW 82.08.0264",
+          "test": "Are cloud resources deployed in regions outside Washington?",
+          "keywords": ["east region", "west region", "eu", "international"]
+        }
+      ],
+
+      "refund_scenarios": [
+        {
+          "scenario": "Multi-region cloud deployment",
+          "refund_basis": "MPU",
+          "methodology": "Allocate by resource location (region/data center)",
+          "typical_recovery": "80-95% if resources mostly out-of-state",
+          "documentation_needed": ["Resource deployment logs", "Regional billing breakdown", "Data center locations"]
+        }
+      ]
+    },
+
+    "professional_services": {
+      "taxable": false,
+      "tax_classification": "service_primarily_human_effort",
+      "legal_basis": ["RCW 82.04.050(6)"],
+      "description": "Professional services requiring human expertise are not taxable",
+
+      "exemptions": [
+        {
+          "type": "primarily_human_effort",
+          "description": "Services requiring professional judgment, creativity, or expertise",
+          "citation": "RCW 82.04.050(6)",
+          "test": "Does the service require human professional judgment and cannot be fully automated?",
+          "keywords": ["consulting", "advisory", "expert", "professional", "custom"]
+        }
+      ],
+
+      "refund_scenarios": [
+        {
+          "scenario": "Consulting services incorrectly taxed",
+          "refund_basis": "Non-taxable",
+          "methodology": "Full refund - primarily human effort",
+          "typical_recovery": "100%",
+          "documentation_needed": ["SOW", "Service descriptions", "Proof of human delivery"]
+        },
+        {
+          "scenario": "Out-of-state professional services",
+          "refund_basis": "OOS Services",
+          "methodology": "Services performed outside Washington",
+          "typical_recovery": "100%",
+          "documentation_needed": ["Service location", "Where work was performed"]
+        }
+      ]
+    },
+
+    "software_license": {
+      "taxable": true,
+      "tax_classification": "prewritten_software",
+      "legal_basis": ["RCW 82.04.050", "WAC 458-20-15502"],
+      "description": "Prewritten software is generally taxable",
+
+      "exemptions": [
+        {
+          "type": "custom_software",
+          "description": "Custom software developed for specific client may be exempt",
+          "citation": "WAC 458-20-15502",
+          "test": "Was software custom-developed for this specific client?",
+          "keywords": ["custom", "bespoke", "developed for", "tailored"]
+        },
+        {
+          "type": "multi_point_use",
+          "description": "Software used in multiple locations may be allocated",
+          "citation": "WAC 458-20-15502",
+          "calculation": "Allocate based on usage location"
+        }
+      ],
+
+      "refund_scenarios": [
+        {
+          "scenario": "Multi-location software deployment",
+          "refund_basis": "MPU",
+          "methodology": "Allocate by installation/usage location",
+          "typical_recovery": "Varies based on deployment",
+          "documentation_needed": ["Installation locations", "License deployment records"]
+        }
+      ]
+    },
+
+    "tangible_personal_property": {
+      "taxable": true,
+      "tax_classification": "tangible_personal_property",
+      "legal_basis": ["RCW 82.08.020"],
+      "description": "Physical goods are generally taxable",
+
+      "exemptions": [
+        {
+          "type": "out_of_state_delivery",
+          "description": "Goods delivered outside Washington are exempt",
+          "citation": "RCW 82.08.0264",
+          "test": "Was the property delivered to a location outside Washington?",
+          "keywords": ["shipped to", "delivered to", "out of state"]
+        },
+        {
+          "type": "resale",
+          "description": "Items purchased for resale are exempt",
+          "citation": "RCW 82.08.0251",
+          "test": "Was the item purchased for resale?",
+          "keywords": ["resale", "reseller", "for resale"]
+        },
+        {
+          "type": "manufacturing",
+          "description": "Equipment used directly in manufacturing",
+          "citation": "RCW 82.08.02565",
+          "test": "Is equipment used directly in manufacturing process?",
+          "keywords": ["manufacturing", "production", "fabrication"]
+        }
+      ],
+
+      "refund_scenarios": [
+        {
+          "scenario": "Hardware shipped out of state",
+          "refund_basis": "OOS Shipment",
+          "methodology": "Full refund for out-of-state delivery",
+          "typical_recovery": "100%",
+          "documentation_needed": ["Shipping records", "Delivery address", "Bill of lading"]
+        },
+        {
+          "scenario": "Manufacturing equipment",
+          "refund_basis": "Manufacturing Exemption",
+          "methodology": "Full refund if qualifies",
+          "typical_recovery": "100%",
+          "documentation_needed": ["Equipment usage", "Manufacturing process documentation"]
+        }
+      ]
+    }
+  },
+
+  "allocation_methodologies": {
+    "multi_point_use": {
+      "name": "Multi-Point Use Allocation",
+      "citation": "WAC 458-20-15502",
+      "description": "Method for allocating tax when services/products are used in multiple states",
+
+      "methods": [
+        {
+          "method": "user_location",
+          "applies_to": ["saas_subscription", "software_license"],
+          "description": "Allocate based on where users are located",
+          "data_required": ["User addresses", "License assignments", "Login locations"],
+          "calculation": "Percentage of users in WA vs. out-of-state"
+        },
+        {
+          "method": "resource_location",
+          "applies_to": ["iaas_paas"],
+          "description": "Allocate based on where resources are deployed",
+          "data_required": ["Server locations", "Data center regions", "Resource deployment logs"],
+          "calculation": "Percentage of resources in WA vs. other regions"
+        },
+        {
+          "method": "usage_location",
+          "applies_to": ["saas_subscription", "telecommunications"],
+          "description": "Allocate based on where service is actually used",
+          "data_required": ["Usage logs", "Access locations", "Consumption data"],
+          "calculation": "Percentage of usage in WA vs. out-of-state"
+        }
+      ]
+    }
+  },
+
+  "documentation_requirements": {
+    "mpu_claims": [
+      "Detailed user/resource location data",
+      "Allocation methodology explanation",
+      "Supporting analytics or logs",
+      "Reasonable estimation if exact data unavailable"
+    ],
+    "primarily_human_effort": [
+      "Statement of Work (SOW)",
+      "Service description",
+      "Breakdown of human vs automated components",
+      "Professional qualifications of service providers"
+    ],
+    "out_of_state": [
+      "Shipping/delivery records",
+      "Service performance location",
+      "Customer location documentation"
+    ]
+  },
+
+  "common_mistakes": [
+    {
+      "mistake": "Assuming all cloud services are 100% WA taxable",
+      "correction": "Apply MPU allocation based on actual usage/resource location",
+      "potential_recovery": "High"
+    },
+    {
+      "mistake": "Treating custom professional services as taxable digital services",
+      "correction": "Apply primarily human effort test",
+      "potential_recovery": "Very High (100% refund)"
+    },
+    {
+      "mistake": "Not allocating multi-state software/SaaS subscriptions",
+      "correction": "Track user locations and apply MPU",
+      "potential_recovery": "High"
+    }
+  ]
+}

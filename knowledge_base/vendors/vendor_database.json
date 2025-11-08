@@ -1,0 +1,243 @@
+{
+  "Microsoft": {
+    "industry": "Software & Cloud Services",
+    "business_model": "B2B SaaS",
+    "primary_products": {
+      "Microsoft 365": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Cloud productivity suite (Office apps, email, collaboration)"
+      },
+      "Azure": {
+        "type": "iaas_paas",
+        "delivery": "cloud_infrastructure",
+        "typical_usage": "multi_region",
+        "description": "Cloud computing platform (VMs, storage, databases)"
+      },
+      "Dynamics 365": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Business applications (CRM, ERP)"
+      }
+    },
+    "typical_delivery": "Cloud-based, digital",
+    "tax_notes": "Digital automated services, typically requires MPU analysis for multi-state businesses",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "AWS": {
+    "industry": "Cloud Infrastructure",
+    "business_model": "B2B IaaS/PaaS",
+    "primary_products": {
+      "EC2": {
+        "type": "iaas",
+        "delivery": "cloud_infrastructure",
+        "typical_usage": "multi_region",
+        "description": "Virtual servers / compute instances"
+      },
+      "S3": {
+        "type": "iaas",
+        "delivery": "cloud_infrastructure",
+        "typical_usage": "multi_region",
+        "description": "Object storage service"
+      },
+      "RDS": {
+        "type": "paas",
+        "delivery": "cloud_infrastructure",
+        "typical_usage": "multi_region",
+        "description": "Managed database service"
+      }
+    },
+    "typical_delivery": "Cloud-based infrastructure",
+    "tax_notes": "Infrastructure services, MPU based on resource deployment location",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Salesforce": {
+    "industry": "CRM Software",
+    "business_model": "B2B SaaS",
+    "primary_products": {
+      "Sales Cloud": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "CRM for sales teams"
+      },
+      "Service Cloud": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Customer service platform"
+      }
+    },
+    "typical_delivery": "Cloud-based SaaS",
+    "tax_notes": "Digital automated service, MPU analysis required",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Oracle": {
+    "industry": "Enterprise Software & Cloud",
+    "business_model": "B2B",
+    "primary_products": {
+      "Oracle Database": {
+        "type": "software_license",
+        "delivery": "on_premise_or_cloud",
+        "typical_usage": "varies",
+        "description": "Database management system"
+      },
+      "Oracle Cloud": {
+        "type": "iaas_paas_saas",
+        "delivery": "cloud_infrastructure",
+        "typical_usage": "multi_region",
+        "description": "Cloud computing services"
+      }
+    },
+    "typical_delivery": "Mixed (on-premise licenses + cloud)",
+    "tax_notes": "Varies by product - software licenses vs cloud services",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Adobe": {
+    "industry": "Creative & Marketing Software",
+    "business_model": "B2B/B2C SaaS",
+    "primary_products": {
+      "Creative Cloud": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "individual_user",
+        "description": "Creative software suite (Photoshop, Illustrator, etc.)"
+      },
+      "Experience Cloud": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Marketing and analytics platform"
+      }
+    },
+    "typical_delivery": "Cloud SaaS with desktop integration",
+    "tax_notes": "Digital automated service, user location determines allocation",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Google": {
+    "industry": "Cloud & Productivity Software",
+    "business_model": "B2B SaaS",
+    "primary_products": {
+      "Google Workspace": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Productivity suite (Gmail, Docs, Drive)"
+      },
+      "Google Cloud Platform": {
+        "type": "iaas_paas",
+        "delivery": "cloud_infrastructure",
+        "typical_usage": "multi_region",
+        "description": "Cloud computing platform"
+      }
+    },
+    "typical_delivery": "Cloud-based",
+    "tax_notes": "Digital automated services, MPU analysis required",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Workday": {
+    "industry": "HR & Finance Software",
+    "business_model": "B2B SaaS",
+    "primary_products": {
+      "Workday HCM": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Human capital management platform"
+      },
+      "Workday Financial Management": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Financial management system"
+      }
+    },
+    "typical_delivery": "Cloud-based SaaS",
+    "tax_notes": "Digital automated service, employee/user location matters for MPU",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Deloitte": {
+    "industry": "Professional Services",
+    "business_model": "B2B Consulting",
+    "primary_products": {
+      "Consulting": {
+        "type": "professional_services",
+        "delivery": "human_delivered",
+        "typical_usage": "project_based",
+        "description": "Management and technology consulting"
+      },
+      "Audit": {
+        "type": "professional_services",
+        "delivery": "human_delivered",
+        "typical_usage": "project_based",
+        "description": "Financial audit services"
+      },
+      "Tax Advisory": {
+        "type": "professional_services",
+        "delivery": "human_delivered",
+        "typical_usage": "project_based",
+        "description": "Tax consulting and compliance"
+      }
+    },
+    "typical_delivery": "Human-delivered professional services",
+    "tax_notes": "Primarily human effort - likely exempt from sales tax in most states",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Zoom": {
+    "industry": "Video Conferencing",
+    "business_model": "B2B SaaS",
+    "primary_products": {
+      "Zoom Meetings": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Video conferencing service"
+      },
+      "Zoom Phone": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Cloud phone system"
+      }
+    },
+    "typical_delivery": "Cloud-based communication service",
+    "tax_notes": "Digital automated service, MPU based on participant locations",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  },
+
+  "Slack": {
+    "industry": "Business Communication",
+    "business_model": "B2B SaaS",
+    "primary_products": {
+      "Slack": {
+        "type": "saas_subscription",
+        "delivery": "cloud_digital",
+        "typical_usage": "multi_location",
+        "description": "Team collaboration and messaging platform"
+      }
+    },
+    "typical_delivery": "Cloud-based SaaS",
+    "tax_notes": "Digital automated service, user location based MPU",
+    "source": "pre_populated",
+    "confidence": "very_high"
+  }
+}
