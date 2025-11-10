@@ -131,7 +131,14 @@ def suggest_metadata_simple(pdf_path: str, total_pages: int, document_type: str)
             "document_category": "general",
             "product_types": [],
             "industries": [],
-            "keywords": []
+            "keywords": [],
+            "industry": None,
+            "business_model": None,
+            "primary_products": [],
+            "typical_delivery": None,
+            "tax_notes": None,
+            "confidence_score": 50.0,
+            "data_source": "filename"
         })
 
     return metadata
@@ -189,7 +196,13 @@ Return JSON with these fields:
   "product_types": ["software", "hardware", "services"],
   "industries": ["retail", "manufacturing"],
   "keywords": ["key", "terms"],
-  "document_summary": "1-2 sentence summary"
+  "document_summary": "1-2 sentence summary",
+  "industry": "Primary industry sector (e.g., Technology, Professional Services, Manufacturing)",
+  "business_model": "Business model (e.g., B2B SaaS, B2C Retail, Manufacturing, Consulting)",
+  "primary_products": ["Main products or services"],
+  "typical_delivery": "How products/services delivered (e.g., Cloud-based, On-premise, In-person, Physical goods)",
+  "tax_notes": "Tax-relevant notes (e.g., Digital automated services, Tangible personal property, Professional services)",
+  "confidence_score": 85.0
 }}
 
 Be specific and accurate. Extract actual information from the text."""
@@ -301,9 +314,15 @@ def export_metadata_to_excel(pdf_files: List[Path], document_type: str, output_e
                     'vendor_name': suggested_metadata.get('vendor_name', ''),
                     'vendor_category': suggested_metadata.get('vendor_category', ''),
                     'document_category': suggested_metadata.get('document_category', ''),
+                    'industry': suggested_metadata.get('industry', ''),
+                    'business_model': suggested_metadata.get('business_model', ''),
+                    'primary_products': ', '.join(suggested_metadata.get('primary_products', [])),
+                    'typical_delivery': suggested_metadata.get('typical_delivery', ''),
+                    'tax_notes': suggested_metadata.get('tax_notes', ''),
                     'product_types': ', '.join(suggested_metadata.get('product_types', [])),
                     'industries': ', '.join(suggested_metadata.get('industries', [])),
-                    'keywords': ', '.join(suggested_metadata.get('keywords', []))
+                    'keywords': ', '.join(suggested_metadata.get('keywords', [])),
+                    'confidence_score': suggested_metadata.get('confidence_score', 80.0)
                 })
 
             metadata_rows.append(row)
@@ -326,8 +345,10 @@ def export_metadata_to_excel(pdf_files: List[Path], document_type: str, output_e
     else:  # vendor
         column_order = [
             'File_Name', 'Status', 'Document_Type', 'document_title', 'vendor_name',
-            'vendor_category', 'document_category', 'product_types', 'industries',
-            'keywords', 'document_summary', 'AI_Confidence', 'Total_Pages', 'File_Path'
+            'vendor_category', 'industry', 'business_model', 'primary_products',
+            'typical_delivery', 'tax_notes', 'document_category', 'product_types',
+            'industries', 'keywords', 'confidence_score', 'document_summary',
+            'AI_Confidence', 'Total_Pages', 'File_Path'
         ]
 
     df = df[column_order]
@@ -378,7 +399,7 @@ def export_metadata_to_excel(pdf_files: List[Path], document_type: str, output_e
     print(f"{'='*70}\n")
 
 
-def import_metadata_from_excel(excel_path: str):
+def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
     """
     Import edited metadata from Excel and ingest to Supabase
     """
@@ -415,39 +436,88 @@ def import_metadata_from_excel(excel_path: str):
     print(f"\n{'='*70}")
     print(f"Ready to ingest {len(approved_df)} approved documents to Supabase")
     print(f"{'='*70}")
-    response = input("Continue? [y/N]: ").strip().lower()
 
-    if response != 'y':
-        print("❌ Ingestion cancelled")
-        return
+    if not auto_confirm:
+        response = input("Continue? [y/N]: ").strip().lower()
+        if response != 'y':
+            print("❌ Ingestion cancelled")
+            return
+    else:
+        print("Auto-confirming ingestion (--yes flag provided)")
 
     # Process approved documents
     successful = 0
     failed = 0
+    skipped_duplicates = 0
+
+    # Check for existing documents to avoid duplicates (by filename only)
+    print("\n🔍 Checking for duplicates...")
+    existing_docs = supabase.table('knowledge_documents').select('source_file').execute()
+    existing_filenames = {doc['source_file'].split('/')[-1] for doc in existing_docs.data}
+    print(f"Found {len(existing_filenames)} existing documents in database")
 
     for idx, row in approved_df.iterrows():
         try:
             pdf_path = row['File_Path']
             document_type = row['Document_Type']
 
-            if not Path(pdf_path).exists():
-                print(f"❌ File not found: {pdf_path}")
-                failed += 1
-                continue
+            # Check if this is a manual entry (no PDF file)
+            is_manual_entry = (pd.isna(pdf_path) or str(pdf_path).strip() == '' or
+                             str(pdf_path) == 'N/A' or str(pdf_path).endswith('.manual'))
 
-            print(f"\n{'='*70}")
-            print(f"Processing: {row['File_Name']}")
-            print(f"Type: {document_type}")
-            print(f"{'='*70}")
+            if is_manual_entry:
+                # Manual entry - use the synthetic filename from Excel or generate one
+                if str(pdf_path).endswith('.manual'):
+                    synthetic_filename = pdf_path
+                else:
+                    vendor_name = row.get('vendor_name', 'Unknown Vendor')
+                    synthetic_filename = f"{vendor_name.replace(' ', '_').replace('/', '_').replace('\\', '_')}.manual"
 
-            # Extract full text
-            print("📄 Extracting full document text...")
-            full_text, total_pages = extract_text_from_pdf(pdf_path, max_pages=999)
+                vendor_name = row.get('vendor_name', 'Unknown Vendor')
 
-            if not full_text:
-                print("❌ Could not extract text")
-                failed += 1
-                continue
+                # Check for duplicates by synthetic filename
+                if synthetic_filename in existing_filenames:
+                    print(f"\n⏭️  Skipping {vendor_name} - already exists in database")
+                    skipped_duplicates += 1
+                    continue
+
+                print(f"\n{'='*70}")
+                print(f"Processing (Manual Entry): {vendor_name}")
+                print(f"Type: {document_type}")
+                print(f"{'='*70}")
+
+                # For manual entries, use the document summary as the "text"
+                full_text = row.get('document_summary', '')
+                total_pages = 0
+                pdf_path = synthetic_filename  # Use synthetic path for database
+
+            else:
+                # PDF-based entry
+                if not Path(pdf_path).exists():
+                    print(f"❌ File not found: {pdf_path}")
+                    failed += 1
+                    continue
+
+                # Check if document already exists (by filename)
+                filename = Path(pdf_path).name
+                if filename in existing_filenames:
+                    print(f"\n⏭️  Skipping {filename} - already exists in database")
+                    skipped_duplicates += 1
+                    continue
+
+                print(f"\n{'='*70}")
+                print(f"Processing: {row['File_Name']}")
+                print(f"Type: {document_type}")
+                print(f"{'='*70}")
+
+                # Extract full text
+                print("📄 Extracting full document text...")
+                full_text, total_pages = extract_text_from_pdf(pdf_path, max_pages=999)
+
+                if not full_text:
+                    print("❌ Could not extract text")
+                    failed += 1
+                    continue
 
             print(f"✅ Extracted {len(full_text)} characters from {total_pages} pages")
 
@@ -477,9 +547,22 @@ def import_metadata_from_excel(excel_path: str):
                     'referenced_statutes': parse_array(row.get('referenced_statutes', ''))
                 })
             else:  # vendor
+                # Helper function to parse comma-separated strings to arrays
+                def parse_array(value):
+                    if pd.isna(value) or value == '':
+                        return []
+                    return [x.strip() for x in str(value).split(',') if x.strip()]
+
                 doc_data.update({
                     'vendor_name': row.get('vendor_name', ''),
-                    'vendor_category': row.get('vendor_category', '')
+                    'vendor_category': row.get('vendor_category', ''),
+                    'industry': row.get('industry') if pd.notna(row.get('industry')) else None,
+                    'business_model': row.get('business_model') if pd.notna(row.get('business_model')) else None,
+                    'primary_products': parse_array(row.get('primary_products', '')),
+                    'typical_delivery': row.get('typical_delivery') if pd.notna(row.get('typical_delivery')) else None,
+                    'tax_notes': row.get('tax_notes') if pd.notna(row.get('tax_notes')) else None,
+                    'confidence_score': float(row.get('confidence_score', 80.0)) if pd.notna(row.get('confidence_score')) else 80.0,
+                    'data_source': 'pdf_extraction'
                 })
 
             # Store document in Supabase
@@ -582,6 +665,7 @@ def import_metadata_from_excel(excel_path: str):
     print(f"{'='*70}")
     print(f"✅ Successfully ingested: {successful}")
     print(f"❌ Failed: {failed}")
+    print(f"⏭️  Skipped duplicates (already in DB): {skipped_duplicates}")
     print(f"⏭️  Skipped (marked Skip): {len(skipped_df)}")
     print(f"⚠️  Not processed (still in Review): {len(review_df)}")
     print(f"{'='*70}\n")
@@ -594,6 +678,7 @@ def main():
     parser.add_argument("--export-metadata", help="Export AI metadata to Excel (no ingestion)")
     parser.add_argument("--import-metadata", help="Import edited Excel and ingest to Supabase")
     parser.add_argument("--limit", type=int, default=None, help="Limit number of documents")
+    parser.add_argument("--yes", "-y", action="store_true", help="Auto-confirm ingestion without prompting")
 
     args = parser.parse_args()
 
@@ -632,7 +717,7 @@ def main():
             print(f"❌ Excel file not found: {args.import_metadata}")
             return
 
-        import_metadata_from_excel(args.import_metadata)
+        import_metadata_from_excel(args.import_metadata, auto_confirm=args.yes)
         return
 
     else:
