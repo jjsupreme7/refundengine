@@ -19,6 +19,7 @@ import json
 load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+
 def research_vendor(vendor_name: str) -> dict:
     """
     Research a vendor and extract structured metadata
@@ -54,11 +55,14 @@ Be specific and accurate. Return ONLY the JSON object, no other text."""
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a business research expert. Provide accurate, structured vendor information in JSON format."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a business research expert. Provide accurate, structured vendor information in JSON format.",
+                },
+                {"role": "user", "content": prompt},
             ],
             temperature=0.3,
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
         )
 
         result = json.loads(response.choices[0].message.content)
@@ -89,31 +93,40 @@ def create_vendor_background_xlsx(vendors: list, output_path: str):
                 continue
 
             # Generate synthetic filename for manual entry
-            clean_vendor_name = metadata.get('vendor_name', vendor_name).replace(' ', '_').replace('/', '_').replace('\\', '_')
+            clean_vendor_name = (
+                metadata.get("vendor_name", vendor_name)
+                .replace(" ", "_")
+                .replace("/", "_")
+                .replace("\\", "_")
+            )
             synthetic_filename = f"{clean_vendor_name}.manual"
 
             # Build row for Excel
             row = {
-                'File_Name': f'{vendor_name} (Manual Entry)',
-                'File_Path': synthetic_filename,
-                'Total_Pages': 0,
-                'Document_Type': 'vendor_background',
-                'Status': 'Review',  # User will change to: Approved or Skip
-                'document_title': metadata.get('document_title', f'Vendor Background: {vendor_name}'),
-                'document_summary': metadata.get('document_summary', ''),
-                'vendor_name': metadata.get('vendor_name', vendor_name),
-                'vendor_category': 'service_provider',  # Default, user can edit
-                'industry': metadata.get('industry', ''),
-                'business_model': metadata.get('business_model', ''),
-                'primary_products': ', '.join(metadata.get('primary_products', [])),
-                'typical_delivery': metadata.get('typical_delivery', ''),
-                'tax_notes': metadata.get('tax_notes', ''),
-                'document_category': 'background',
-                'product_types': '',  # User can fill in
-                'industries': metadata.get('industry', ''),  # Use same as industry field
-                'keywords': '',  # User can fill in
-                'confidence_score': metadata.get('confidence_score', 75.0),
-                'AI_Confidence': 'Medium'
+                "File_Name": f"{vendor_name} (Manual Entry)",
+                "File_Path": synthetic_filename,
+                "Total_Pages": 0,
+                "Document_Type": "vendor_background",
+                "Status": "Review",  # User will change to: Approved or Skip
+                "document_title": metadata.get(
+                    "document_title", f"Vendor Background: {vendor_name}"
+                ),
+                "document_summary": metadata.get("document_summary", ""),
+                "vendor_name": metadata.get("vendor_name", vendor_name),
+                "vendor_category": "service_provider",  # Default, user can edit
+                "industry": metadata.get("industry", ""),
+                "business_model": metadata.get("business_model", ""),
+                "primary_products": ", ".join(metadata.get("primary_products", [])),
+                "typical_delivery": metadata.get("typical_delivery", ""),
+                "tax_notes": metadata.get("tax_notes", ""),
+                "document_category": "background",
+                "product_types": "",  # User can fill in
+                "industries": metadata.get(
+                    "industry", ""
+                ),  # Use same as industry field
+                "keywords": "",  # User can fill in
+                "confidence_score": metadata.get("confidence_score", 75.0),
+                "AI_Confidence": "Medium",
             }
 
             metadata_rows.append(row)
@@ -127,27 +140,44 @@ def create_vendor_background_xlsx(vendors: list, output_path: str):
 
     # Reorder columns for better Excel layout
     column_order = [
-        'File_Name', 'Status', 'Document_Type', 'document_title', 'vendor_name',
-        'vendor_category', 'industry', 'business_model', 'primary_products',
-        'typical_delivery', 'tax_notes', 'document_category', 'product_types',
-        'industries', 'keywords', 'confidence_score', 'document_summary',
-        'AI_Confidence', 'Total_Pages', 'File_Path'
+        "File_Name",
+        "Status",
+        "Document_Type",
+        "document_title",
+        "vendor_name",
+        "vendor_category",
+        "industry",
+        "business_model",
+        "primary_products",
+        "typical_delivery",
+        "tax_notes",
+        "document_category",
+        "product_types",
+        "industries",
+        "keywords",
+        "confidence_score",
+        "document_summary",
+        "AI_Confidence",
+        "Total_Pages",
+        "File_Path",
     ]
 
     df = df[column_order]
 
     # Export to Excel
-    df.to_excel(output_path, sheet_name='Metadata', index=False, engine='openpyxl')
+    df.to_excel(output_path, sheet_name="Metadata", index=False, engine="openpyxl")
 
     # Format the Excel file
     from openpyxl import load_workbook
     from openpyxl.styles import Font, PatternFill, Alignment
 
     wb = load_workbook(output_path)
-    ws = wb['Metadata']
+    ws = wb["Metadata"]
 
     # Style header row
-    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_fill = PatternFill(
+        start_color="4472C4", end_color="4472C4", fill_type="solid"
+    )
     header_font = Font(bold=True, color="FFFFFF")
 
     for cell in ws[1]:
@@ -188,7 +218,9 @@ def create_vendor_background_xlsx(vendors: list, output_path: str):
     print(f"     - 'Approved' = Ready to ingest")
     print(f"     - 'Skip' = Don't ingest this vendor")
     print(f"  5. Save the Excel file")
-    print(f"  6. Run: python core/ingest_documents.py --import-metadata {output_path} --yes")
+    print(
+        f"  6. Run: python core/ingest_documents.py --import-metadata {output_path} --yes"
+    )
     print(f"{'='*70}\n")
 
 
@@ -200,7 +232,7 @@ if __name__ == "__main__":
         print(f"❌ Vendors file not found: {vendors_file}")
         sys.exit(1)
 
-    with open(vendors_file, 'r') as f:
+    with open(vendors_file, "r") as f:
         vendors = [line.strip() for line in f if line.strip()]
 
     output_path = "outputs/Vendor_Background.xlsx"

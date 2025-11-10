@@ -30,7 +30,7 @@ class EncryptionService:
             ValueError: If no key provided and ENCRYPTION_KEY not set
         """
         if key is None:
-            key_str = os.getenv('ENCRYPTION_KEY')
+            key_str = os.getenv("ENCRYPTION_KEY")
             if not key_str:
                 raise ValueError(
                     "ENCRYPTION_KEY environment variable not set. "
@@ -57,8 +57,8 @@ class EncryptionService:
             return value
 
         try:
-            encrypted_bytes = self.cipher.encrypt(value.encode('utf-8'))
-            return encrypted_bytes.decode('utf-8')
+            encrypted_bytes = self.cipher.encrypt(value.encode("utf-8"))
+            return encrypted_bytes.decode("utf-8")
         except Exception as e:
             raise ValueError(f"Encryption failed: {e}")
 
@@ -79,10 +79,12 @@ class EncryptionService:
             return encrypted_value
 
         try:
-            decrypted_bytes = self.cipher.decrypt(encrypted_value.encode('utf-8'))
-            return decrypted_bytes.decode('utf-8')
+            decrypted_bytes = self.cipher.decrypt(encrypted_value.encode("utf-8"))
+            return decrypted_bytes.decode("utf-8")
         except InvalidToken:
-            raise ValueError("Decryption failed: Invalid encryption key or corrupted data")
+            raise ValueError(
+                "Decryption failed: Invalid encryption key or corrupted data"
+            )
         except Exception as e:
             raise ValueError(f"Decryption failed: {e}")
 
@@ -138,7 +140,7 @@ class EncryptionService:
         Returns:
             Base64-encoded encryption key (store in ENCRYPTION_KEY env var)
         """
-        return Fernet.generate_key().decode('utf-8')
+        return Fernet.generate_key().decode("utf-8")
 
     @staticmethod
     def mask_value(value: str, mask_type: str = "email") -> str:
@@ -157,52 +159,52 @@ class EncryptionService:
 
         if mask_type == "email":
             # john.smith@company.com → john.s***@company.com
-            if '@' in value:
-                local, domain = value.split('@', 1)
+            if "@" in value:
+                local, domain = value.split("@", 1)
                 if len(local) > 3:
-                    masked_local = local[:min(6, len(local))] + '***'
+                    masked_local = local[: min(6, len(local))] + "***"
                 else:
-                    masked_local = local[0] + '***'
+                    masked_local = local[0] + "***"
                 return f"{masked_local}@{domain}"
             return value
 
         elif mask_type == "account":
             # 123456789 → ****6789
             if len(value) > 4:
-                return '****' + value[-4:]
-            return '****'
+                return "****" + value[-4:]
+            return "****"
 
         elif mask_type == "phone":
             # (425) 555-1234 → (***) ***-1234
             # Remove non-digits first
-            digits = ''.join(c for c in value if c.isdigit())
+            digits = "".join(c for c in value if c.isdigit())
             if len(digits) >= 4:
-                return '(***) ***-' + digits[-4:]
-            return '***-****'
+                return "(***) ***-" + digits[-4:]
+            return "***-****"
 
         elif mask_type == "name":
             # John Smith → J*** S***
             parts = value.split()
             if len(parts) > 1:
-                masked = ' '.join(part[0] + '***' for part in parts)
+                masked = " ".join(part[0] + "***" for part in parts)
                 return masked
             elif len(value) > 1:
-                return value[0] + '***'
-            return '***'
+                return value[0] + "***"
+            return "***"
 
         elif mask_type == "tax_id":
             # 12-3456789 → **-****789
-            if '-' in value:
-                parts = value.split('-')
+            if "-" in value:
+                parts = value.split("-")
                 if len(parts) == 2 and len(parts[1]) >= 3:
-                    return '**-****' + parts[1][-3:]
-            return '**-*******'
+                    return "**-****" + parts[1][-3:]
+            return "**-*******"
 
         else:
             # Generic masking: show first 2 and last 2 characters
             if len(value) > 6:
-                return value[:2] + '***' + value[-2:]
-            return '***'
+                return value[:2] + "***" + value[-2:]
+            return "***"
 
 
 class PIIFieldMapper:
@@ -212,24 +214,24 @@ class PIIFieldMapper:
 
     # Fields that should be encrypted in database
     ENCRYPTED_FIELDS = [
-        'contact_email',
-        'contact_phone',
-        'approver_email',
-        'bank_account',
-        'routing_number',
-        'tax_id'
+        "contact_email",
+        "contact_phone",
+        "approver_email",
+        "bank_account",
+        "routing_number",
+        "tax_id",
     ]
 
     # Fields that should be masked in Excel exports (field → mask_type)
     MASKED_FIELDS = {
-        'contact_email': 'email',
-        'contact_phone': 'phone',
-        'approver_email': 'email',
-        'approver_name': 'name',
-        'bank_account': 'account',
-        'routing_number': 'account',
-        'tax_id': 'tax_id',
-        'account_number': 'account'
+        "contact_email": "email",
+        "contact_phone": "phone",
+        "approver_email": "email",
+        "approver_name": "name",
+        "bank_account": "account",
+        "routing_number": "account",
+        "tax_id": "tax_id",
+        "account_number": "account",
     }
 
     @classmethod

@@ -16,6 +16,7 @@ from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
 @dataclass
 class PIIFinding:
     """Represents a detected PII instance"""
+
     type: str  # PII type (e.g., "BANK_ACCOUNT", "EMAIL", "SSN")
     value: str  # The detected value
     start: int  # Start position in text
@@ -50,33 +51,30 @@ class PIIDetector:
         bank_account_pattern = Pattern(
             name="bank_account_pattern",
             regex=r"\b(?:Account|Acct|A/C)[:\s#]*([0-9]{8,17})\b",
-            score=0.85
+            score=0.85,
         )
         bank_account_recognizer = PatternRecognizer(
-            supported_entity="BANK_ACCOUNT",
-            patterns=[bank_account_pattern]
+            supported_entity="BANK_ACCOUNT", patterns=[bank_account_pattern]
         )
 
         # ABA routing number (9 digits)
         routing_pattern = Pattern(
             name="routing_number_pattern",
             regex=r"\b(?:ABA|Routing|RTN)[:\s#]*([0-9]{9})\b",
-            score=0.9
+            score=0.9,
         )
         routing_recognizer = PatternRecognizer(
-            supported_entity="ROUTING_NUMBER",
-            patterns=[routing_pattern]
+            supported_entity="ROUTING_NUMBER", patterns=[routing_pattern]
         )
 
         # Tax ID/EIN (XX-XXXXXXX format)
         tax_id_pattern = Pattern(
             name="tax_id_pattern",
             regex=r"\b(?:EIN|Tax\s*ID|TIN)[:\s#]*([0-9]{2}-[0-9]{7})\b",
-            score=0.9
+            score=0.9,
         )
         tax_id_recognizer = PatternRecognizer(
-            supported_entity="TAX_ID",
-            patterns=[tax_id_pattern]
+            supported_entity="TAX_ID", patterns=[tax_id_pattern]
         )
 
         # Add all custom recognizers
@@ -110,25 +108,27 @@ class PIIDetector:
                 "TAX_ID",
                 "EMAIL_ADDRESS",
                 "PHONE_NUMBER",
-                "PERSON"
-            ]
+                "PERSON",
+            ],
         )
 
         # Convert to PIIFinding objects
         findings = []
         for result in results:
             # Extract the actual text value
-            value = text[result.start:result.end]
+            value = text[result.start : result.end]
 
             # Filter out false positives
             if self._is_valid_finding(result.entity_type, value):
-                findings.append(PIIFinding(
-                    type=result.entity_type,
-                    value=value,
-                    start=result.start,
-                    end=result.end,
-                    confidence=result.score
-                ))
+                findings.append(
+                    PIIFinding(
+                        type=result.entity_type,
+                        value=value,
+                        start=result.start,
+                        end=result.end,
+                        confidence=result.score,
+                    )
+                )
 
         return findings
 
@@ -142,15 +142,24 @@ class PIIDetector:
         """
         if entity_type == "EMAIL_ADDRESS":
             # Filter out generic department emails
-            generic_prefixes = ['info', 'sales', 'support', 'contact', 'admin',
-                               'accounts', 'billing', 'invoice', 'orders']
-            email_prefix = value.split('@')[0].lower()
+            generic_prefixes = [
+                "info",
+                "sales",
+                "support",
+                "contact",
+                "admin",
+                "accounts",
+                "billing",
+                "invoice",
+                "orders",
+            ]
+            email_prefix = value.split("@")[0].lower()
             if any(prefix in email_prefix for prefix in generic_prefixes):
                 return False
 
         if entity_type == "PHONE_NUMBER":
             # Filter out toll-free numbers (1-800, 1-888, etc.)
-            if re.search(r'1-8[0-9]{2}-', value):
+            if re.search(r"1-8[0-9]{2}-", value):
                 return False
 
         return True

@@ -1,6 +1,7 @@
 """
 Tests for RefundAnalyzer class
 """
+
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 import sys
@@ -13,8 +14,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 class TestRefundAnalyzer:
     """Test RefundAnalyzer class"""
 
-    @patch('analysis.analyze_refunds.client')
-    @patch('analysis.analyze_refunds.supabase')
+    @patch("analysis.analyze_refunds.client")
+    @patch("analysis.analyze_refunds.supabase")
     def test_find_line_item_in_invoice(self, mock_supabase, mock_openai):
         """Should extract line item from invoice text"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -23,17 +24,21 @@ class TestRefundAnalyzer:
 
         # Mock OpenAI response
         mock_response = Mock(
-            choices=[Mock(
-                message=Mock(
-                    content=json.dumps({
-                        "product_desc": "Microsoft 365 E5 Licenses",
-                        "product_type": "Software",
-                        "details": "100 user licenses",
-                        "line_item_found": True,
-                        "confidence": 95
-                    })
+            choices=[
+                Mock(
+                    message=Mock(
+                        content=json.dumps(
+                            {
+                                "product_desc": "Microsoft 365 E5 Licenses",
+                                "product_type": "Software",
+                                "details": "100 user licenses",
+                                "line_item_found": True,
+                                "confidence": 95,
+                            }
+                        )
+                    )
                 )
-            )]
+            ]
         )
         mock_openai.chat.completions.create.return_value = mock_response
 
@@ -47,12 +52,12 @@ class TestRefundAnalyzer:
         result = analyzer.find_line_item_in_invoice(invoice_text, 50000.00, 5000.00)
 
         assert result is not None
-        assert result['product_desc'] == "Microsoft 365 E5 Licenses"
-        assert result['line_item_found'] is True
-        assert result['confidence'] == 95
+        assert result["product_desc"] == "Microsoft 365 E5 Licenses"
+        assert result["line_item_found"] is True
+        assert result["confidence"] == 95
 
-    @patch('analysis.analyze_refunds.client')
-    @patch('analysis.analyze_refunds.supabase')
+    @patch("analysis.analyze_refunds.client")
+    @patch("analysis.analyze_refunds.supabase")
     def test_find_line_item_handles_errors(self, mock_supabase, mock_openai):
         """Should handle extraction errors gracefully"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -66,11 +71,11 @@ class TestRefundAnalyzer:
 
         # Should return default error result
         assert result is not None
-        assert result['line_item_found'] is False
-        assert result['confidence'] == 0
+        assert result["line_item_found"] is False
+        assert result["confidence"] == 0
 
-    @patch('analysis.analyze_refunds.client')
-    @patch('analysis.analyze_refunds.supabase')
+    @patch("analysis.analyze_refunds.client")
+    @patch("analysis.analyze_refunds.supabase")
     def test_get_embedding(self, mock_supabase, mock_openai):
         """Should generate embeddings for text"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -88,8 +93,8 @@ class TestRefundAnalyzer:
         assert len(embedding) == 1536
         assert all(isinstance(x, float) for x in embedding)
 
-    @patch('analysis.analyze_refunds.client')
-    @patch('analysis.analyze_refunds.supabase')
+    @patch("analysis.analyze_refunds.client")
+    @patch("analysis.analyze_refunds.supabase")
     def test_search_legal_knowledge(self, mock_supabase, mock_openai):
         """Should search legal knowledge base"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -105,9 +110,9 @@ class TestRefundAnalyzer:
         mock_supabase.rpc.return_value.execute.return_value = Mock(
             data=[
                 {
-                    'chunk_text': 'WAC 458-20-15502: Multi-point use...',
-                    'citation': 'WAC 458-20-15502',
-                    'similarity': 0.85
+                    "chunk_text": "WAC 458-20-15502: Multi-point use...",
+                    "citation": "WAC 458-20-15502",
+                    "similarity": 0.85,
                 }
             ]
         )
@@ -116,11 +121,11 @@ class TestRefundAnalyzer:
 
         assert results is not None
         assert len(results) > 0
-        assert 'chunk_text' in results[0]
-        assert 'citation' in results[0]
+        assert "chunk_text" in results[0]
+        assert "citation" in results[0]
 
-    @patch('analysis.analyze_refunds.client')
-    @patch('analysis.analyze_refunds.supabase')
+    @patch("analysis.analyze_refunds.client")
+    @patch("analysis.analyze_refunds.supabase")
     def test_check_vendor_learning(self, mock_supabase, mock_openai):
         """Should check if vendor/product has been seen before"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -132,10 +137,10 @@ class TestRefundAnalyzer:
         mock_table.select.return_value.eq.return_value.ilike.return_value.execute.return_value = Mock(
             data=[
                 {
-                    'vendor_name': 'Microsoft',
-                    'product_description': 'Microsoft 365',
-                    'product_type': 'SaaS',
-                    'tax_treatment': 'Taxable - MPU applicable'
+                    "vendor_name": "Microsoft",
+                    "product_description": "Microsoft 365",
+                    "product_type": "SaaS",
+                    "tax_treatment": "Taxable - MPU applicable",
                 }
             ]
         )
@@ -144,11 +149,11 @@ class TestRefundAnalyzer:
         result = analyzer.check_vendor_learning("Microsoft", "Microsoft 365 E5")
 
         assert result is not None
-        assert result['vendor_name'] == 'Microsoft'
-        assert result['tax_treatment'] == 'Taxable - MPU applicable'
+        assert result["vendor_name"] == "Microsoft"
+        assert result["tax_treatment"] == "Taxable - MPU applicable"
 
-    @patch('analysis.analyze_refunds.client')
-    @patch('analysis.analyze_refunds.supabase')
+    @patch("analysis.analyze_refunds.client")
+    @patch("analysis.analyze_refunds.supabase")
     def test_check_vendor_learning_no_match(self, mock_supabase, mock_openai):
         """Should return None if vendor/product not in learning database"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -170,8 +175,8 @@ class TestRefundAnalyzer:
 class TestPDFExtraction:
     """Test PDF text extraction"""
 
-    @patch('analysis.analyze_refunds.supabase')
-    @patch('analysis.analyze_refunds.client')
+    @patch("analysis.analyze_refunds.supabase")
+    @patch("analysis.analyze_refunds.client")
     def test_extract_text_from_pdf(self, mock_openai, mock_supabase, temp_pdf_file):
         """Should extract text from PDF file"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -185,8 +190,8 @@ class TestPDFExtraction:
         # PDF should contain "Test Invoice"
         assert "Test Invoice" in text or len(text) > 0
 
-    @patch('analysis.analyze_refunds.supabase')
-    @patch('analysis.analyze_refunds.client')
+    @patch("analysis.analyze_refunds.supabase")
+    @patch("analysis.analyze_refunds.client")
     def test_extract_text_handles_missing_file(self, mock_openai, mock_supabase):
         """Should handle missing PDF files gracefully"""
         from analysis.analyze_refunds import RefundAnalyzer
@@ -198,9 +203,11 @@ class TestPDFExtraction:
         # Should return empty string instead of crashing
         assert text == ""
 
-    @patch('analysis.analyze_refunds.supabase')
-    @patch('analysis.analyze_refunds.client')
-    def test_extract_text_handles_corrupted_pdf(self, mock_openai, mock_supabase, tmp_path):
+    @patch("analysis.analyze_refunds.supabase")
+    @patch("analysis.analyze_refunds.client")
+    def test_extract_text_handles_corrupted_pdf(
+        self, mock_openai, mock_supabase, tmp_path
+    ):
         """Should handle corrupted PDF files"""
         from analysis.analyze_refunds import RefundAnalyzer
 

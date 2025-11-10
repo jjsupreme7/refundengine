@@ -62,25 +62,25 @@ def check_progress(batch_id: str, watch: bool = False):
             if result.ready():
                 batch_result = result.result
 
-                if batch_result.get('status') == 'queued':
-                    task_ids = batch_result.get('task_ids', [])
+                if batch_result.get("status") == "queued":
+                    task_ids = batch_result.get("task_ids", [])
                     progress = get_batch_progress.delay(task_ids).get()
 
-                    total = progress['total']
-                    completed = progress['completed']
-                    failed = progress['failed']
-                    pending = progress['pending']
-                    pct = progress['progress_pct']
+                    total = progress["total"]
+                    completed = progress["completed"]
+                    failed = progress["failed"]
+                    pending = progress["pending"]
+                    pct = progress["progress_pct"]
 
                     # Progress bar
                     bar_length = 50
                     filled = int(bar_length * pct / 100)
-                    bar = '█' * filled + '░' * (bar_length - filled)
+                    bar = "█" * filled + "░" * (bar_length - filled)
 
-                    print(f"\r[{bar}] {pct:.1f}%  |  ", end='')
-                    print(f"Completed: {completed}/{total}  |  ", end='')
-                    print(f"Failed: {failed}  |  ", end='')
-                    print(f"Pending: {pending}    ", end='', flush=True)
+                    print(f"\r[{bar}] {pct:.1f}%  |  ", end="")
+                    print(f"Completed: {completed}/{total}  |  ", end="")
+                    print(f"Failed: {failed}  |  ", end="")
+                    print(f"Pending: {pending}    ", end="", flush=True)
 
                     if pending == 0:
                         print(f"\n\n✅ Batch processing complete!")
@@ -105,7 +105,9 @@ def list_active_workers():
     """List active Celery workers"""
     from celery import Celery
 
-    app = Celery('refund_engine', broker=os.getenv('REDIS_URL', 'redis://localhost:6379/0'))
+    app = Celery(
+        "refund_engine", broker=os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    )
     inspect = app.control.inspect()
 
     active = inspect.active()
@@ -129,18 +131,28 @@ def list_active_workers():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Async Invoice Analyzer')
+    parser = argparse.ArgumentParser(description="Async Invoice Analyzer")
 
     # Command group
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--excel', help='Excel file to process')
-    group.add_argument('--check-progress', metavar='BATCH_ID', help='Check batch progress')
-    group.add_argument('--list-workers', action='store_true', help='List active workers')
+    group.add_argument("--excel", help="Excel file to process")
+    group.add_argument(
+        "--check-progress", metavar="BATCH_ID", help="Check batch progress"
+    )
+    group.add_argument(
+        "--list-workers", action="store_true", help="List active workers"
+    )
 
     # Options
-    parser.add_argument('--start-row', type=int, default=0, help='Starting row (default: 0)')
-    parser.add_argument('--num-rows', type=int, help='Number of rows to process (default: all)')
-    parser.add_argument('--watch', action='store_true', help='Watch progress in real-time')
+    parser.add_argument(
+        "--start-row", type=int, default=0, help="Starting row (default: 0)"
+    )
+    parser.add_argument(
+        "--num-rows", type=int, help="Number of rows to process (default: all)"
+    )
+    parser.add_argument(
+        "--watch", action="store_true", help="Watch progress in real-time"
+    )
 
     args = parser.parse_args()
 
@@ -154,5 +166,5 @@ def main():
         list_active_workers()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

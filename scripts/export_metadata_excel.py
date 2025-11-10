@@ -22,13 +22,15 @@ from openpyxl.utils import get_column_letter
 # Load environment
 load_dotenv()
 
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
 
 def style_header(ws):
     """Apply styling to header row"""
-    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_fill = PatternFill(
+        start_color="4472C4", end_color="4472C4", fill_type="solid"
+    )
     header_font = Font(bold=True, color="FFFFFF")
 
     for cell in ws[1]:
@@ -71,19 +73,39 @@ def export_to_excel(output_path: Path):
     # Sheet 1: Documents
     # ========================================================================
     print("\n📥 Fetching documents...")
-    docs_result = supabase.table('knowledge_documents').select('*').order('created_at').execute()
+    docs_result = (
+        supabase.table("knowledge_documents").select("*").order("created_at").execute()
+    )
 
     if docs_result.data:
         ws_docs = wb.create_sheet("Documents")
 
         # Headers (includes new metadata fields)
         headers = [
-            'id', 'document_type', 'title', 'citation', 'law_category',
-            'effective_date', 'topic_tags', 'tax_types', 'industries',
-            'referenced_statutes', 'vendor_name', 'vendor_category',
-            'industry', 'business_model', 'primary_products', 'typical_delivery',
-            'tax_notes', 'confidence_score', 'data_source',
-            'source_file', 'total_chunks', 'processing_status', 'created_at', 'updated_at'
+            "id",
+            "document_type",
+            "title",
+            "citation",
+            "law_category",
+            "effective_date",
+            "topic_tags",
+            "tax_types",
+            "industries",
+            "referenced_statutes",
+            "vendor_name",
+            "vendor_category",
+            "industry",
+            "business_model",
+            "primary_products",
+            "typical_delivery",
+            "tax_notes",
+            "confidence_score",
+            "data_source",
+            "source_file",
+            "total_chunks",
+            "processing_status",
+            "created_at",
+            "updated_at",
         ]
         ws_docs.append(headers)
 
@@ -94,7 +116,7 @@ def export_to_excel(output_path: Path):
                 value = doc.get(h)
                 # Convert arrays to comma-separated strings
                 if isinstance(value, list):
-                    value = ', '.join(value) if value else ''
+                    value = ", ".join(value) if value else ""
                 row.append(value)
             ws_docs.append(row)
 
@@ -114,15 +136,31 @@ def export_to_excel(output_path: Path):
     # ========================================================================
     print("\n📥 Fetching tax law chunks...")
     try:
-        chunks_result = supabase.table('tax_law_chunks').select(
-            'id, document_id, chunk_number, citation, section_title, law_category, topic_tags, tax_types, industries, referenced_statutes'
-        ).order('document_id, chunk_number').execute()
+        chunks_result = (
+            supabase.table("tax_law_chunks")
+            .select(
+                "id, document_id, chunk_number, citation, section_title, law_category, topic_tags, tax_types, industries, referenced_statutes"
+            )
+            .order("document_id, chunk_number")
+            .execute()
+        )
 
         if chunks_result.data:
             ws_chunks = wb.create_sheet("Tax Law Chunks")
 
             # Headers (includes new metadata fields)
-            headers = ['id', 'document_id', 'chunk_number', 'citation', 'section_title', 'law_category', 'topic_tags', 'tax_types', 'industries', 'referenced_statutes']
+            headers = [
+                "id",
+                "document_id",
+                "chunk_number",
+                "citation",
+                "section_title",
+                "law_category",
+                "topic_tags",
+                "tax_types",
+                "industries",
+                "referenced_statutes",
+            ]
             ws_chunks.append(headers)
 
             # Data
@@ -132,7 +170,7 @@ def export_to_excel(output_path: Path):
                     value = chunk.get(h)
                     # Convert arrays to comma-separated strings
                     if isinstance(value, list):
-                        value = ', '.join(value) if value else ''
+                        value = ", ".join(value) if value else ""
                     row.append(value)
                 ws_chunks.append(row)
 
@@ -152,15 +190,27 @@ def export_to_excel(output_path: Path):
     # ========================================================================
     print("\n📥 Fetching vendor background chunks...")
     try:
-        vendor_result = supabase.table('vendor_background_chunks').select(
-            'id, document_id, chunk_number, vendor_name, vendor_category, document_category'
-        ).order('document_id, chunk_number').execute()
+        vendor_result = (
+            supabase.table("vendor_background_chunks")
+            .select(
+                "id, document_id, chunk_number, vendor_name, vendor_category, document_category"
+            )
+            .order("document_id, chunk_number")
+            .execute()
+        )
 
         if vendor_result.data:
             ws_vendor = wb.create_sheet("Vendor Chunks")
 
             # Headers
-            headers = ['id', 'document_id', 'chunk_number', 'vendor_name', 'vendor_category', 'document_category']
+            headers = [
+                "id",
+                "document_id",
+                "chunk_number",
+                "vendor_name",
+                "vendor_category",
+                "document_category",
+            ]
             ws_vendor.append(headers)
 
             # Data
@@ -170,7 +220,7 @@ def export_to_excel(output_path: Path):
                     value = chunk.get(h)
                     # Convert arrays to comma-separated strings
                     if isinstance(value, list):
-                        value = ', '.join(value) if value else ''
+                        value = ", ".join(value) if value else ""
                     row.append(value)
                 ws_vendor.append(row)
 
@@ -195,7 +245,9 @@ def export_to_excel(output_path: Path):
         [""],
         ["HOW TO EDIT"],
         ["1. Go to the 'Documents' or 'Tax Law Chunks' sheet"],
-        ["2. Edit any fields EXCEPT 'id' and 'document_id' (these are used for matching)"],
+        [
+            "2. Edit any fields EXCEPT 'id' and 'document_id' (these are used for matching)"
+        ],
         ["3. Save this Excel file"],
         ["4. Run: python scripts/import_metadata_excel.py --file <this-file.xlsx>"],
         [""],
@@ -204,9 +256,13 @@ def export_to_excel(output_path: Path):
         ["Documents Sheet:"],
         ["  • title - Document title"],
         ["  • citation - Legal citation (e.g., WAC 458-20-15502)"],
-        ["  • law_category - Category tag (software, digital_goods, manufacturing, etc.)"],
+        [
+            "  • law_category - Category tag (software, digital_goods, manufacturing, etc.)"
+        ],
         ["  • effective_date - When the law became effective (YYYY-MM-DD)"],
-        ["  • topic_tags - Comma-separated topics (e.g., 'digital products, exemptions')"],
+        [
+            "  • topic_tags - Comma-separated topics (e.g., 'digital products, exemptions')"
+        ],
         ["  • tax_types - Comma-separated types (e.g., 'sales tax, use tax')"],
         ["  • industries - Comma-separated industries (e.g., 'retail, technology')"],
         ["  • referenced_statutes - Comma-separated laws (e.g., 'RCW 82.04.215')"],
@@ -217,7 +273,9 @@ def export_to_excel(output_path: Path):
         ["  • citation - Chunk-specific citation"],
         ["  • section_title - Section name or page number"],
         ["  • law_category - Category tag for filtering"],
-        ["  • topic_tags, tax_types, industries, referenced_statutes - Same as Documents sheet"],
+        [
+            "  • topic_tags, tax_types, industries, referenced_statutes - Same as Documents sheet"
+        ],
         ["  • Note: Editing Documents sheet will cascade changes to all chunks!"],
         [""],
         ["SUGGESTED CATEGORIES"],
@@ -248,13 +306,13 @@ def export_to_excel(output_path: Path):
         ws_help.append(row)
 
     # Style instructions
-    ws_help['A1'].font = Font(bold=True, size=14, color="4472C4")
-    ws_help['A3'].font = Font(bold=True, size=12)
-    ws_help['A9'].font = Font(bold=True, size=12)
-    ws_help['A26'].font = Font(bold=True, size=12)
-    ws_help['A37'].font = Font(bold=True, size=12)
+    ws_help["A1"].font = Font(bold=True, size=14, color="4472C4")
+    ws_help["A3"].font = Font(bold=True, size=12)
+    ws_help["A9"].font = Font(bold=True, size=12)
+    ws_help["A26"].font = Font(bold=True, size=12)
+    ws_help["A37"].font = Font(bold=True, size=12)
 
-    ws_help.column_dimensions['A'].width = 80
+    ws_help.column_dimensions["A"].width = 80
 
     # ========================================================================
     # Save workbook
@@ -274,9 +332,15 @@ def export_to_excel(output_path: Path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Export knowledge base metadata to Excel')
-    parser.add_argument('--output', type=str, default=None,
-                       help='Output Excel file path (default: metadata_exports/metadata_TIMESTAMP.xlsx)')
+    parser = argparse.ArgumentParser(
+        description="Export knowledge base metadata to Excel"
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="Output Excel file path (default: metadata_exports/metadata_TIMESTAMP.xlsx)",
+    )
 
     args = parser.parse_args()
 
@@ -284,10 +348,10 @@ def main():
     if args.output:
         output_path = Path(args.output)
     else:
-        output_dir = Path('./metadata_exports')
+        output_dir = Path("./metadata_exports")
         output_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_path = output_dir / f'metadata_{timestamp}.xlsx'
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_path = output_dir / f"metadata_{timestamp}.xlsx"
 
     try:
         export_to_excel(output_path)
@@ -295,9 +359,10 @@ def main():
     except Exception as e:
         print(f"\n❌ Error during export: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     exit(main())

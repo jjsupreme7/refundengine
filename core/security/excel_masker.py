@@ -22,7 +22,9 @@ class ExcelMasker:
         # Encryption service is optional for masking (only used for mask_value static method)
         pass
 
-    def mask_dataframe(self, df: pd.DataFrame, column_mapping: Dict[str, str] = None) -> pd.DataFrame:
+    def mask_dataframe(
+        self, df: pd.DataFrame, column_mapping: Dict[str, str] = None
+    ) -> pd.DataFrame:
         """
         Mask PII columns in a DataFrame.
 
@@ -66,7 +68,7 @@ class ExcelMasker:
         Returns:
             Masked value
         """
-        if pd.isna(value) or value == '' or value is None:
+        if pd.isna(value) or value == "" or value is None:
             return value
 
         if not isinstance(value, str):
@@ -74,7 +76,9 @@ class ExcelMasker:
 
         return EncryptionService.mask_value(value, mask_type)
 
-    def mask_excel_export(self, input_file: str, output_file: str, columns_to_mask: List[str] = None):
+    def mask_excel_export(
+        self, input_file: str, output_file: str, columns_to_mask: List[str] = None
+    ):
         """
         Mask PII in an Excel file and save to new file.
 
@@ -91,7 +95,7 @@ class ExcelMasker:
         if columns_to_mask:
             for col in columns_to_mask:
                 if col in df.columns:
-                    column_mapping[col] = PIIFieldMapper.get_mask_type(col) or 'generic'
+                    column_mapping[col] = PIIFieldMapper.get_mask_type(col) or "generic"
         else:
             # Auto-detect from field mapper
             for col in df.columns:
@@ -108,7 +112,7 @@ class ExcelMasker:
             "input_file": input_file,
             "output_file": output_file,
             "rows_processed": len(masked_df),
-            "columns_masked": list(column_mapping.keys())
+            "columns_masked": list(column_mapping.keys()),
         }
 
     @staticmethod
@@ -134,7 +138,6 @@ class ExcelMasker:
             "ai_confidence": "keep",
             "ai_estimated_refund": "keep",
             "ai_explanation": "keep",
-
             # Mask (sensitive)
             "contact_email": "email",
             "contact_phone": "phone",
@@ -143,10 +146,9 @@ class ExcelMasker:
             "bank_account": "account",
             "routing_number": "account",
             "tax_id": "tax_id",
-
             # Remove completely (highly sensitive)
             "ssn": "remove",
-            "credit_card": "remove"
+            "credit_card": "remove",
         }
 
     def apply_safe_export_policy(self, df: pd.DataFrame) -> pd.DataFrame:

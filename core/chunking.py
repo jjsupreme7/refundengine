@@ -35,7 +35,7 @@ def chunk_legal_document(
     target_words: int = 800,
     max_words: int = 1500,
     min_words: int = 150,
-    preserve_sections: bool = True
+    preserve_sections: bool = True,
 ) -> List[Dict[str, any]]:
     """
     Semantically chunk a legal document while preserving structure.
@@ -80,18 +80,15 @@ def chunk_legal_document(
 
     # Add metadata to each chunk
     for i, chunk in enumerate(chunks):
-        chunk['chunk_index'] = i
-        chunk['word_count'] = len(chunk['chunk_text'].split())
-        chunk['char_count'] = len(chunk['chunk_text'])
+        chunk["chunk_index"] = i
+        chunk["word_count"] = len(chunk["chunk_text"].split())
+        chunk["char_count"] = len(chunk["chunk_text"])
 
     return chunks
 
 
 def _chunk_by_hierarchy(
-    text: str,
-    target_words: int,
-    max_words: int,
-    min_words: int
+    text: str, target_words: int, max_words: int, min_words: int
 ) -> List[Dict[str, str]]:
     """
     Chunk by legal document hierarchy: (1) → (a) → (i) → paragraphs
@@ -100,36 +97,36 @@ def _chunk_by_hierarchy(
     chunks = []
 
     # Level 1: Split by numbered sections (1), (2), (3), etc.
-    numbered_sections = _split_by_pattern(text, r'(?:^|\n)(\(\d+\))')
+    numbered_sections = _split_by_pattern(text, r"(?:^|\n)(\(\d+\))")
 
     for section_marker, section_text in numbered_sections:
         word_count = len(section_text.split())
 
         # If section is reasonable size, keep it whole
         if min_words <= word_count <= max_words:
-            chunks.append({
-                'chunk_text': section_text,
-                'section_id': section_marker.strip() if section_marker else ''
-            })
+            chunks.append(
+                {
+                    "chunk_text": section_text,
+                    "section_id": section_marker.strip() if section_marker else "",
+                }
+            )
 
         # If section is too large, split by subsections (a), (b), (c)
         elif word_count > max_words:
             subsection_chunks = _split_large_section_by_subsections(
-                section_marker,
-                section_text,
-                target_words,
-                max_words,
-                min_words
+                section_marker, section_text, target_words, max_words, min_words
             )
             chunks.extend(subsection_chunks)
 
         # If section is too small but not empty, keep it anyway
         # (We'll combine small chunks in post-processing if needed)
         elif word_count > 0:
-            chunks.append({
-                'chunk_text': section_text,
-                'section_id': section_marker.strip() if section_marker else ''
-            })
+            chunks.append(
+                {
+                    "chunk_text": section_text,
+                    "section_id": section_marker.strip() if section_marker else "",
+                }
+            )
 
     return chunks
 
@@ -139,7 +136,7 @@ def _split_large_section_by_subsections(
     section_text: str,
     target_words: int,
     max_words: int,
-    min_words: int
+    min_words: int,
 ) -> List[Dict[str, str]]:
     """
     Split a large section by lettered subsections (a), (b), (c), etc.
@@ -148,7 +145,7 @@ def _split_large_section_by_subsections(
     chunks = []
 
     # Split by lettered subsections
-    lettered_subsections = _split_by_pattern(section_text, r'(?:^|\n)(\([a-z]\))')
+    lettered_subsections = _split_by_pattern(section_text, r"(?:^|\n)(\([a-z]\))")
 
     current_chunk_text = section_marker + "\n" if section_marker else ""
     current_word_count = len(current_chunk_text.split())
@@ -160,23 +157,24 @@ def _split_large_section_by_subsections(
         if subsection_words > max_words:
             # Save current chunk if exists
             if current_chunk_text.strip() and current_word_count >= min_words:
-                chunks.append({
-                    'chunk_text': current_chunk_text.strip(),
-                    'section_id': section_marker.strip() if section_marker else ''
-                })
+                chunks.append(
+                    {
+                        "chunk_text": current_chunk_text.strip(),
+                        "section_id": section_marker.strip() if section_marker else "",
+                    }
+                )
                 current_chunk_text = section_marker + "\n" if section_marker else ""
                 current_word_count = len(current_chunk_text.split())
 
             # Split huge subsection by paragraphs
             para_chunks = _chunk_by_paragraphs(
-                subsection_marker + subsection_text,
-                target_words,
-                max_words,
-                min_words
+                subsection_marker + subsection_text, target_words, max_words, min_words
             )
 
             for para_chunk in para_chunks:
-                para_chunk['section_id'] = section_marker.strip() if section_marker else ''
+                para_chunk["section_id"] = (
+                    section_marker.strip() if section_marker else ""
+                )
 
             chunks.extend(para_chunks)
 
@@ -188,36 +186,39 @@ def _split_large_section_by_subsections(
         # Current chunk is full, start new one
         else:
             if current_chunk_text.strip() and current_word_count >= min_words:
-                chunks.append({
-                    'chunk_text': current_chunk_text.strip(),
-                    'section_id': section_marker.strip() if section_marker else ''
-                })
+                chunks.append(
+                    {
+                        "chunk_text": current_chunk_text.strip(),
+                        "section_id": section_marker.strip() if section_marker else "",
+                    }
+                )
 
-            current_chunk_text = section_marker + "\n" + subsection_marker + subsection_text
+            current_chunk_text = (
+                section_marker + "\n" + subsection_marker + subsection_text
+            )
             current_word_count = len(current_chunk_text.split())
 
     # Save final chunk
     if current_chunk_text.strip() and current_word_count >= min_words:
-        chunks.append({
-            'chunk_text': current_chunk_text.strip(),
-            'section_id': section_marker.strip() if section_marker else ''
-        })
+        chunks.append(
+            {
+                "chunk_text": current_chunk_text.strip(),
+                "section_id": section_marker.strip() if section_marker else "",
+            }
+        )
 
     return chunks
 
 
 def _chunk_by_paragraphs(
-    text: str,
-    target_words: int,
-    max_words: int,
-    min_words: int
+    text: str, target_words: int, max_words: int, min_words: int
 ) -> List[Dict[str, str]]:
     """
     Simple paragraph-based chunking for documents without clear section structure.
     """
 
     chunks = []
-    paragraphs = re.split(r'\n\s*\n+', text)
+    paragraphs = re.split(r"\n\s*\n+", text)
 
     current_chunk = ""
     current_word_count = 0
@@ -233,10 +234,7 @@ def _chunk_by_paragraphs(
         if para_words > max_words:
             # Save current chunk first
             if current_chunk.strip() and current_word_count >= min_words:
-                chunks.append({
-                    'chunk_text': current_chunk.strip(),
-                    'section_id': ''
-                })
+                chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
                 current_chunk = ""
                 current_word_count = 0
 
@@ -252,28 +250,20 @@ def _chunk_by_paragraphs(
         # Current chunk is full, start new one
         else:
             if current_chunk.strip() and current_word_count >= min_words:
-                chunks.append({
-                    'chunk_text': current_chunk.strip(),
-                    'section_id': ''
-                })
+                chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
 
             current_chunk = para
             current_word_count = para_words
 
     # Save final chunk
     if current_chunk.strip() and current_word_count >= min_words:
-        chunks.append({
-            'chunk_text': current_chunk.strip(),
-            'section_id': ''
-        })
+        chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
 
     return chunks
 
 
 def _split_by_sentences(
-    text: str,
-    target_words: int,
-    max_words: int
+    text: str, target_words: int, max_words: int
 ) -> List[Dict[str, str]]:
     """
     Split text by sentences for very large paragraphs.
@@ -282,7 +272,7 @@ def _split_by_sentences(
     chunks = []
 
     # Basic sentence splitting (handles common legal abbreviations)
-    sentence_pattern = r'(?<!\bRCW|\bWAC|\bCf|\bSec|\bNo|\bVol|\bEd|\bInc|\bLtd|\bMr|\bMrs|\bDr|\bvs|\bv)[.!?]+\s+'
+    sentence_pattern = r"(?<!\bRCW|\bWAC|\bCf|\bSec|\bNo|\bVol|\bEd|\bInc|\bLtd|\bMr|\bMrs|\bDr|\bvs|\bv)[.!?]+\s+"
     sentences = re.split(sentence_pattern, text)
     sentences = [s.strip() for s in sentences if s.strip()]
 
@@ -297,26 +287,20 @@ def _split_by_sentences(
             current_word_count += sentence_words
         else:
             if current_chunk.strip():
-                chunks.append({
-                    'chunk_text': current_chunk.strip(),
-                    'section_id': ''
-                })
+                chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
 
             current_chunk = sentence
             current_word_count = sentence_words
 
     # Save final chunk
     if current_chunk.strip():
-        chunks.append({
-            'chunk_text': current_chunk.strip(),
-            'section_id': ''
-        })
+        chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
 
     return chunks
 
 
 def _split_by_pattern(text: str, pattern: str) -> List[tuple[str, str]]:
-    """
+    r"""
     Split text by a regex pattern, returning (marker, content) tuples.
 
     Args:
@@ -335,18 +319,18 @@ def _split_by_pattern(text: str, pattern: str) -> List[tuple[str, str]]:
 
     if len(parts) <= 1:
         # No matches found, return whole text
-        return [('', text)]
+        return [("", text)]
 
     sections = []
 
     # parts[0] is text before first match (may be empty)
     if parts[0].strip():
-        sections.append(('', parts[0]))
+        sections.append(("", parts[0]))
 
     # Pairs: parts[1] is marker, parts[2] is content, parts[3] is marker, etc.
     for i in range(1, len(parts), 2):
-        marker = parts[i] if i < len(parts) else ''
-        content = parts[i + 1] if i + 1 < len(parts) else ''
+        marker = parts[i] if i < len(parts) else ""
+        content = parts[i + 1] if i + 1 < len(parts) else ""
 
         if marker or content.strip():
             sections.append((marker, content))
@@ -373,28 +357,28 @@ def get_chunking_stats(chunks: List[Dict]) -> Dict[str, any]:
 
     if not chunks:
         return {
-            'total_chunks': 0,
-            'avg_words': 0,
-            'avg_chars': 0,
-            'min_words': 0,
-            'max_words': 0,
-            'total_words': 0
+            "total_chunks": 0,
+            "avg_words": 0,
+            "avg_chars": 0,
+            "min_words": 0,
+            "max_words": 0,
+            "total_words": 0,
         }
 
-    word_counts = [chunk['word_count'] for chunk in chunks]
-    char_counts = [chunk['char_count'] for chunk in chunks]
+    word_counts = [chunk["word_count"] for chunk in chunks]
+    char_counts = [chunk["char_count"] for chunk in chunks]
 
     return {
-        'total_chunks': len(chunks),
-        'avg_words': sum(word_counts) / len(word_counts),
-        'avg_chars': sum(char_counts) / len(char_counts),
-        'min_words': min(word_counts),
-        'max_words': max(word_counts),
-        'total_words': sum(word_counts)
+        "total_chunks": len(chunks),
+        "avg_words": sum(word_counts) / len(word_counts),
+        "avg_chars": sum(char_counts) / len(char_counts),
+        "min_words": min(word_counts),
+        "max_words": max(word_counts),
+        "total_words": sum(word_counts),
     }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Self-test
     sample_text = """(1) This is section one. It has some content about regulations.
 
@@ -412,7 +396,9 @@ if __name__ == '__main__':
     print("Testing canonical chunking module...")
     print("=" * 80)
 
-    chunks = chunk_legal_document(sample_text, target_words=50, max_words=80, min_words=10)
+    chunks = chunk_legal_document(
+        sample_text, target_words=50, max_words=80, min_words=10
+    )
 
     print(f"\nTotal chunks created: {len(chunks)}")
     print("\n" + "=" * 80)
@@ -427,4 +413,6 @@ if __name__ == '__main__':
     stats = get_chunking_stats(chunks)
     print("\nChunking Statistics:")
     for key, value in stats.items():
-        print(f"  {key}: {value:.1f}" if isinstance(value, float) else f"  {key}: {value}")
+        print(
+            f"  {key}: {value:.1f}" if isinstance(value, float) else f"  {key}: {value}"
+        )

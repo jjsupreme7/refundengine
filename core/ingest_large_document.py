@@ -34,8 +34,7 @@ load_dotenv()
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 )
 
 
@@ -62,8 +61,7 @@ def generate_embedding(text: str) -> List[float]:
     """Generate OpenAI embedding for text"""
     try:
         response = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text[:8000]  # Limit to 8k chars
+            model="text-embedding-3-small", input=text[:8000]  # Limit to 8k chars
         )
         return response.data[0].embedding
     except Exception as e:
@@ -78,7 +76,7 @@ def ingest_large_document(
     citation: str = None,
     law_category: str = "general",
     vendor_name: str = None,
-    vendor_category: str = None
+    vendor_category: str = None,
 ):
     """
     Ingest a large document with manual metadata (no AI extraction)
@@ -93,13 +91,13 @@ def ingest_large_document(
         vendor_category: For vendor docs
     """
 
-    print("="*80)
+    print("=" * 80)
     print(f"LARGE DOCUMENT INGESTION")
-    print("="*80)
+    print("=" * 80)
     print(f"File: {pdf_path}")
     print(f"Type: {document_type}")
     print(f"Title: {title}")
-    print("="*80)
+    print("=" * 80)
 
     # Step 1: Extract full text
     print("\n[1/5] Extracting text from PDF...")
@@ -115,27 +113,26 @@ def ingest_large_document(
     print("\n[2/5] Storing document in Supabase...")
 
     doc_data = {
-        'document_type': document_type,
-        'title': title,
-        'source_file': pdf_path,
-        'processing_status': 'processing'
+        "document_type": document_type,
+        "title": title,
+        "source_file": pdf_path,
+        "processing_status": "processing",
     }
 
     # Add type-specific metadata
-    if document_type == 'tax_law':
-        doc_data.update({
-            'citation': citation or title,
-            'law_category': law_category
-        })
+    if document_type == "tax_law":
+        doc_data.update({"citation": citation or title, "law_category": law_category})
     else:  # vendor
-        doc_data.update({
-            'vendor_name': vendor_name or 'Unknown',
-            'vendor_category': vendor_category or 'general'
-        })
+        doc_data.update(
+            {
+                "vendor_name": vendor_name or "Unknown",
+                "vendor_category": vendor_category or "general",
+            }
+        )
 
     try:
-        result = supabase.table('knowledge_documents').insert(doc_data).execute()
-        document_id = result.data[0]['id']
+        result = supabase.table("knowledge_documents").insert(doc_data).execute()
+        document_id = result.data[0]["id"]
         print(f"✅ Document stored (ID: {document_id})")
     except Exception as e:
         print(f"❌ Failed to store document: {e}")
@@ -144,57 +141,64 @@ def ingest_large_document(
     # Step 3: Smart chunk text using canonical chunking WITH PAGE NUMBERS
     print("\n[3/5] Chunking text intelligently (with page number tracking)...")
     chunks, total_pages_processed = chunk_document_with_pages(
-        pdf_path,
-        target_words=800,
-        max_words=1500,
-        min_words=150
+        pdf_path, target_words=800, max_words=1500, min_words=150
     )
 
     stats = get_chunking_stats(chunks)
     print(f"✅ Created {len(chunks)} chunks from {total_pages_processed} pages")
-    print(f"   Average: {stats['avg_words']:.0f} words, Range: {stats['min_words']}-{stats['max_words']} words")
+    print(
+        f"   Average: {stats['avg_words']:.0f} words, Range: {stats['min_words']}-{stats['max_words']} words"
+    )
 
     # Update total_chunks
-    supabase.table('knowledge_documents').update({
-        'total_chunks': len(chunks)
-    }).eq('id', document_id).execute()
+    supabase.table("knowledge_documents").update({"total_chunks": len(chunks)}).eq(
+        "id", document_id
+    ).execute()
 
     # Step 4: Generate embeddings and store chunks
     print("\n[4/5] Generating embeddings and storing chunks...")
 
-    chunk_table = 'tax_law_chunks' if document_type == 'tax_law' else 'vendor_background_chunks'
+    chunk_table = (
+        "tax_law_chunks" if document_type == "tax_law" else "vendor_background_chunks"
+    )
     successful_chunks = 0
 
     for chunk in tqdm(chunks, desc="Processing chunks"):
         try:
-            embedding = generate_embedding(chunk['chunk_text'])
+            embedding = generate_embedding(chunk["chunk_text"])
 
             if embedding:
                 chunk_data = {
                     "document_id": document_id,
-                    "chunk_number": chunk['chunk_index'] + 1,  # 1-indexed
-                    "chunk_text": chunk['chunk_text'],
-                    "embedding": embedding
+                    "chunk_number": chunk["chunk_index"] + 1,  # 1-indexed
+                    "chunk_text": chunk["chunk_text"],
+                    "embedding": embedding,
                 }
 
                 # Add type-specific fields
-                if document_type == 'tax_law':
+                if document_type == "tax_law":
                     # Combine section_id with page_reference for section_title
-                    section_id = chunk.get('section_id', '')
-                    page_ref = chunk.get('page_reference', '')
-                    combined_section_title = format_section_with_page(section_id, page_ref)
+                    section_id = chunk.get("section_id", "")
+                    page_ref = chunk.get("page_reference", "")
+                    combined_section_title = format_section_with_page(
+                        section_id, page_ref
+                    )
 
-                    chunk_data.update({
-                        'citation': citation or title,
-                        'law_category': law_category,
-                        'section_title': combined_section_title  # Now includes page numbers!
-                    })
+                    chunk_data.update(
+                        {
+                            "citation": citation or title,
+                            "law_category": law_category,
+                            "section_title": combined_section_title,  # Now includes page numbers!
+                        }
+                    )
                 else:  # vendor
-                    chunk_data.update({
-                        'vendor_name': vendor_name or 'Unknown',
-                        'vendor_category': vendor_category or 'general',
-                        'document_category': 'general'
-                    })
+                    chunk_data.update(
+                        {
+                            "vendor_name": vendor_name or "Unknown",
+                            "vendor_category": vendor_category or "general",
+                            "document_category": "general",
+                        }
+                    )
 
                 supabase.table(chunk_table).insert(chunk_data).execute()
                 successful_chunks += 1
@@ -207,42 +211,54 @@ def ingest_large_document(
 
     # Step 5: Mark as completed
     print("\n[5/5] Finalizing...")
-    supabase.table('knowledge_documents').update({
-        'processing_status': 'completed'
-    }).eq('id', document_id).execute()
+    supabase.table("knowledge_documents").update({"processing_status": "completed"}).eq(
+        "id", document_id
+    ).execute()
 
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("✅ LARGE DOCUMENT INGESTION COMPLETE!")
-    print("="*80)
+    print("=" * 80)
     print(f"Document ID: {document_id}")
     print(f"Total Chunks: {successful_chunks}")
-    print("="*80)
+    print("=" * 80)
 
     return True
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Ingest large documents with manual metadata")
+    parser = argparse.ArgumentParser(
+        description="Ingest large documents with manual metadata"
+    )
     parser.add_argument("--file", required=True, help="Path to PDF file")
-    parser.add_argument("--type", required=True, choices=['tax_law', 'vendor'], help="Document type")
+    parser.add_argument(
+        "--type", required=True, choices=["tax_law", "vendor"], help="Document type"
+    )
     parser.add_argument("--title", required=True, help="Document title")
 
     # Tax law options
-    parser.add_argument("--citation", help="Citation (for tax law, e.g., 'WAC 458-20-15502')")
-    parser.add_argument("--category", default="general", help="Law category (exemption, rate, definition, general)")
+    parser.add_argument(
+        "--citation", help="Citation (for tax law, e.g., 'WAC 458-20-15502')"
+    )
+    parser.add_argument(
+        "--category",
+        default="general",
+        help="Law category (exemption, rate, definition, general)",
+    )
 
     # Vendor options
     parser.add_argument("--vendor-name", help="Vendor name (for vendor docs)")
-    parser.add_argument("--vendor-category", help="Vendor category (manufacturer, distributor, etc.)")
+    parser.add_argument(
+        "--vendor-category", help="Vendor category (manufacturer, distributor, etc.)"
+    )
 
     args = parser.parse_args()
 
     # Validate
-    if args.type == 'tax_law' and not args.citation:
+    if args.type == "tax_law" and not args.citation:
         print("⚠️  Warning: No citation provided, using title as citation")
         args.citation = args.title
 
-    if args.type == 'vendor' and not args.vendor_name:
+    if args.type == "vendor" and not args.vendor_name:
         print("❌ Error: --vendor-name required for vendor documents")
         return
 
@@ -259,7 +275,7 @@ def main():
         citation=args.citation,
         law_category=args.category,
         vendor_name=args.vendor_name,
-        vendor_category=args.vendor_category
+        vendor_category=args.vendor_category,
     )
 
     if success:

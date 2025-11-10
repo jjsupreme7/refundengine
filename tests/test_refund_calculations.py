@@ -2,6 +2,7 @@
 Critical Tests for Refund Calculations
 These tests ensure financial accuracy - bugs here could cost millions
 """
+
 import pytest
 from decimal import Decimal
 
@@ -40,8 +41,8 @@ class TestMPUCalculations:
         wa_percentage = 17.35
 
         expected_refund = total_tax * (100 - wa_percentage) / 100
-        # Should be 1,020,610.96
-        assert abs(expected_refund - 1020610.96) < 0.01, "Should maintain precision"
+        # Should be 1,020,370.36 (82.65% of 1,234,567.89)
+        assert abs(expected_refund - 1020370.36) < 0.01, "Should maintain precision"
 
     def test_mpu_validates_percentage_range(self):
         """Test that WA percentage is validated"""
@@ -65,7 +66,7 @@ class TestProfessionalServicesExemption:
             "Software consulting services",
             "Professional consulting",
             "IT consulting and advisory",
-            "Technical consulting services"
+            "Technical consulting services",
         ]
 
         for desc in product_descriptions:
@@ -79,7 +80,7 @@ class TestProfessionalServicesExemption:
             "Custom software development",
             "Software development services",
             "Application development and customization",
-            "Bespoke software engineering"
+            "Bespoke software engineering",
         ]
 
         for desc in product_descriptions:
@@ -92,7 +93,7 @@ class TestProfessionalServicesExemption:
             "Help desk support",
             "Technical support services",
             "IT support and maintenance",
-            "Customer support services"
+            "Customer support services",
         ]
 
         for desc in product_descriptions:
@@ -105,7 +106,7 @@ class TestProfessionalServicesExemption:
             "Microsoft 365 licenses",
             "Salesforce subscription",
             "Adobe Creative Cloud",
-            "AWS cloud services"
+            "AWS cloud services",
         ]
 
         for desc in product_descriptions:
@@ -115,10 +116,22 @@ class TestProfessionalServicesExemption:
     def _is_professional_service(self, description: str) -> bool:
         """Helper to classify if something is a professional service"""
         professional_keywords = [
-            'consulting', 'advisory', 'professional services',
-            'custom development', 'software development',
-            'help desk', 'support services', 'technical support',
-            'configuration', 'customization', 'implementation services'
+            "consulting",
+            "advisory",
+            "professional services",
+            "custom development",
+            "software development",
+            "software engineering",
+            "bespoke",
+            "application development",
+            "help desk",
+            "support services",
+            "technical support",
+            "it support",
+            "customer support",
+            "configuration",
+            "customization",
+            "implementation services",
         ]
 
         desc_lower = description.lower()
@@ -134,7 +147,7 @@ class TestDigitalAutomatedServices:
             "Microsoft 365 E5",
             "Salesforce Enterprise",
             "Adobe Creative Cloud",
-            "Zoom Business License"
+            "Zoom Business License",
         ]
 
         for product in saas_products:
@@ -146,7 +159,7 @@ class TestDigitalAutomatedServices:
         cloud_products = [
             "AWS EC2 instances",
             "Azure Virtual Machines",
-            "Google Cloud Platform services"
+            "Google Cloud Platform services",
         ]
 
         for product in cloud_products:
@@ -155,11 +168,7 @@ class TestDigitalAutomatedServices:
 
     def test_hardware_not_das(self):
         """Hardware should not be DAS"""
-        hardware_products = [
-            "Dell servers",
-            "Cisco networking equipment",
-            "HP laptops"
-        ]
+        hardware_products = ["Dell servers", "Cisco networking equipment", "HP laptops"]
 
         for product in hardware_products:
             is_das = self._is_digital_automated_service(product)
@@ -168,14 +177,29 @@ class TestDigitalAutomatedServices:
     def _is_digital_automated_service(self, description: str) -> bool:
         """Helper to classify Digital Automated Services"""
         das_keywords = [
-            'saas', 'software as a service', 'cloud', 'subscription',
-            'license', 'azure', 'aws', 'google cloud', 'salesforce',
-            'microsoft 365', 'office 365', 'adobe', 'zoom'
+            "saas",
+            "software as a service",
+            "cloud",
+            "subscription",
+            "license",
+            "azure",
+            "aws",
+            "google cloud",
+            "salesforce",
+            "microsoft 365",
+            "office 365",
+            "adobe",
+            "zoom",
         ]
 
         das_exclude_keywords = [
-            'hardware', 'equipment', 'server', 'laptop', 'desktop',
-            'physical', 'device'
+            "hardware",
+            "equipment",
+            "server",
+            "laptop",
+            "desktop",
+            "physical",
+            "device",
         ]
 
         desc_lower = description.lower()
@@ -251,7 +275,9 @@ class TestVendorNameNormalization:
 
         for input_name, expected in test_cases:
             normalized = self._normalize_vendor_name(input_name)
-            assert normalized == expected, f"'{input_name}' should normalize to '{expected}'"
+            assert (
+                normalized == expected
+            ), f"'{input_name}' should normalize to '{expected}'"
 
     def test_handles_multiple_suffixes(self):
         """Should handle vendors with multiple suffixes"""
@@ -268,27 +294,61 @@ class TestVendorNameNormalization:
 
         for input_name, expected in test_cases:
             normalized = self._normalize_vendor_name(input_name)
-            assert expected in normalized, f"Core name should be preserved in '{normalized}'"
+            assert (
+                expected in normalized
+            ), f"Core name should be preserved in '{normalized}'"
 
     def _normalize_vendor_name(self, raw_name: str) -> str:
         """Normalize vendor name (from VendorResearcher)"""
         if not raw_name:
             return ""
 
+        # Convert to uppercase for consistency
         normalized = raw_name.upper().strip()
 
+        # Remove trailing punctuation first (commas, periods)
+        normalized = normalized.rstrip(".,")
+
         suffixes_to_remove = [
-            ' LLC', ' L.L.C.', ' L.L.C', ' LTD', ' LIMITED', ' LTD.',
-            ' INC', ' INC.', ' INCORPORATED', ' CORP', ' CORP.',
-            ' CORPORATION', ' CO.', ' CO', ' LP', ' L.P.', ' LLP',
-            ' COMPANY', ' & CO', ' AND CO', ' USA', ' US', ' AMERICA'
+            " LLC",
+            " L.L.C.",
+            " L.L.C",
+            " LTD",
+            " LIMITED",
+            " LTD.",
+            " INC",
+            " INC.",
+            " INCORPORATED",
+            " CORP",
+            " CORP.",
+            " CORPORATION",
+            " CO.",
+            " CO",
+            " LP",
+            " L.P.",
+            " LLP",
+            " COMPANY",
+            " & CO",
+            " AND CO",
+            " USA",
+            " US",
+            " AMERICA",
         ]
 
-        for suffix in suffixes_to_remove:
-            if normalized.endswith(suffix):
-                normalized = normalized[:-len(suffix)].strip()
+        # Keep removing suffixes until none are found (handles multiple suffixes)
+        changed = True
+        while changed:
+            changed = False
+            for suffix in suffixes_to_remove:
+                if normalized.endswith(suffix):
+                    normalized = normalized[: -len(suffix)].strip()
+                    normalized = normalized.rstrip(
+                        ".,"
+                    )  # Remove trailing punctuation after each removal
+                    changed = True
+                    break  # Start over from the beginning of the list
 
-        normalized = ' '.join(normalized.split())
+        normalized = " ".join(normalized.split())
         return normalized
 
 

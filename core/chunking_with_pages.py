@@ -33,17 +33,21 @@ def extract_text_with_page_mapping(pdf_path: str) -> Tuple[str, List[Dict], int]
                 full_text += page_text + "\n\n"
                 end_char = len(full_text)
 
-                page_map.append({
-                    'page_num': i,
-                    'start_char': start_char,
-                    'end_char': end_char,
-                    'text': page_text
-                })
+                page_map.append(
+                    {
+                        "page_num": i,
+                        "start_char": start_char,
+                        "end_char": end_char,
+                        "text": page_text,
+                    }
+                )
 
         return full_text, page_map, total_pages
 
 
-def find_chunk_page_numbers(chunk_text: str, full_text: str, page_map: List[Dict]) -> List[int]:
+def find_chunk_page_numbers(
+    chunk_text: str, full_text: str, page_map: List[Dict]
+) -> List[int]:
     """
     Find which page(s) a chunk came from by matching character positions.
 
@@ -63,18 +67,14 @@ def find_chunk_page_numbers(chunk_text: str, full_text: str, page_map: List[Dict
     pages = []
     for page_info in page_map:
         # Check if chunk overlaps with this page
-        if (chunk_start < page_info['end_char'] and
-            chunk_end > page_info['start_char']):
-            pages.append(page_info['page_num'])
+        if chunk_start < page_info["end_char"] and chunk_end > page_info["start_char"]:
+            pages.append(page_info["page_num"])
 
     return pages
 
 
 def chunk_document_with_pages(
-    pdf_path: str,
-    target_words: int = 800,
-    max_words: int = 1500,
-    min_words: int = 150
+    pdf_path: str, target_words: int = 800, max_words: int = 1500, min_words: int = 150
 ) -> Tuple[List[Dict], int]:
     """
     Chunk a PDF document and include page numbers for each chunk.
@@ -93,22 +93,22 @@ def chunk_document_with_pages(
         target_words=target_words,
         max_words=max_words,
         min_words=min_words,
-        preserve_sections=True
+        preserve_sections=True,
     )
 
     # Add page numbers to each chunk
     for chunk in chunks:
-        page_nums = find_chunk_page_numbers(chunk['chunk_text'], full_text, page_map)
-        chunk['page_numbers'] = page_nums
+        page_nums = find_chunk_page_numbers(chunk["chunk_text"], full_text, page_map)
+        chunk["page_numbers"] = page_nums
 
         # Format page reference for display
         if page_nums:
             if len(page_nums) == 1:
-                chunk['page_reference'] = f"Page {page_nums[0]}"
+                chunk["page_reference"] = f"Page {page_nums[0]}"
             else:
-                chunk['page_reference'] = f"Pages {page_nums[0]}-{page_nums[-1]}"
+                chunk["page_reference"] = f"Pages {page_nums[0]}-{page_nums[-1]}"
         else:
-            chunk['page_reference'] = ""
+            chunk["page_reference"] = ""
 
     return chunks, total_pages
 
@@ -134,7 +134,7 @@ def format_section_with_page(section_id: str, page_reference: str) -> str:
 
 
 # Test function
-if __name__ == '__main__':
+if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
@@ -156,6 +156,8 @@ if __name__ == '__main__':
         print(f"  Section: {chunk.get('section_id', 'N/A')}")
         print(f"  Pages: {chunk.get('page_numbers', [])}")
         print(f"  Page Ref: {chunk.get('page_reference', 'N/A')}")
-        print(f"  Combined: {format_section_with_page(chunk.get('section_id', ''), chunk.get('page_reference', ''))}")
+        print(
+            f"  Combined: {format_section_with_page(chunk.get('section_id', ''), chunk.get('page_reference', ''))}"
+        )
         print(f"  Preview: {chunk['chunk_text'][:100]}...")
         print()

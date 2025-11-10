@@ -17,22 +17,28 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+
 def apply_migration():
     """Apply the vendor metadata migration"""
 
     # Read migration SQL
-    migration_path = Path(__file__).parent.parent / 'database' / 'schema' / 'migration_vendor_metadata.sql'
+    migration_path = (
+        Path(__file__).parent.parent
+        / "database"
+        / "schema"
+        / "migration_vendor_metadata.sql"
+    )
 
     if not migration_path.exists():
         print(f"❌ Migration file not found: {migration_path}")
         return False
 
-    with open(migration_path, 'r') as f:
+    with open(migration_path, "r") as f:
         migration_sql = f.read()
 
     # Get credentials
     project_ref = "yzycrptfkxszeutvhuhm"  # From SUPABASE_URL
-    access_token = os.getenv('SUPABASE_ACCESS_TOKEN')
+    access_token = os.getenv("SUPABASE_ACCESS_TOKEN")
 
     if not access_token:
         print("❌ SUPABASE_ACCESS_TOKEN not found in .env")
@@ -50,12 +56,10 @@ def apply_migration():
 
     headers = {
         "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
-    payload = {
-        "query": migration_sql
-    }
+    payload = {"query": migration_sql}
 
     print("🔄 Applying migration via Supabase Management API...")
     print()
@@ -108,7 +112,9 @@ if __name__ == "__main__":
         print("❌ MIGRATION FAILED")
         print()
         print("Alternative: Run migration manually via Supabase SQL Editor")
-        print("  1. Go to: https://supabase.com/dashboard/project/yzycrptfkxszeutvhuhm/sql/new")
+        print(
+            "  1. Go to: https://supabase.com/dashboard/project/yzycrptfkxszeutvhuhm/sql/new"
+        )
         print("  2. Copy SQL from: database/schema/migration_vendor_metadata.sql")
         print("  3. Paste and click 'Run'")
 

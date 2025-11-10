@@ -33,14 +33,16 @@ class Redactor:
         "TAX_ID": "[REDACTED_TAX_ID]",
         "EMAIL_ADDRESS": "[REDACTED_EMAIL]",
         "PHONE_NUMBER": "[REDACTED_PHONE]",
-        "PERSON": "[REDACTED_NAME]"
+        "PERSON": "[REDACTED_NAME]",
     }
 
     def __init__(self):
         """Initialize redactor with PII detector"""
         self.detector = PIIDetector()
 
-    def redact(self, text: str, preserve_context: bool = True) -> Tuple[str, Dict[str, List[str]]]:
+    def redact(
+        self, text: str, preserve_context: bool = True
+    ) -> Tuple[str, Dict[str, List[str]]]:
         """
         Redact PII from text.
 
@@ -71,7 +73,9 @@ class Redactor:
 
         for finding in findings:
             # Get redaction token
-            token = self.REDACTION_TOKENS.get(finding.type, f"[REDACTED_{finding.type}]")
+            token = self.REDACTION_TOKENS.get(
+                finding.type, f"[REDACTED_{finding.type}]"
+            )
 
             # Track redacted value
             if finding.type not in redaction_map:
@@ -80,9 +84,7 @@ class Redactor:
 
             # Replace in text (from end to start to maintain positions)
             redacted_text = (
-                redacted_text[:finding.start] +
-                token +
-                redacted_text[finding.end:]
+                redacted_text[: finding.start] + token + redacted_text[finding.end :]
             )
 
         return redacted_text, redaction_map
@@ -107,9 +109,8 @@ class Redactor:
             "pii_types_found": list(redaction_map.keys()),
             "total_redactions": sum(len(values) for values in redaction_map.values()),
             "details": {
-                pii_type: len(values)
-                for pii_type, values in redaction_map.items()
-            }
+                pii_type: len(values) for pii_type, values in redaction_map.items()
+            },
         }
 
         return redacted_text, report
@@ -172,7 +173,9 @@ class Redactor:
                                     total_redactions[key][pii_type] = []
                                 total_redactions[key][pii_type].extend(values)
                     elif isinstance(item, dict):
-                        redacted_item, item_redactions = self.redact_structured_data(item)
+                        redacted_item, item_redactions = self.redact_structured_data(
+                            item
+                        )
                         safe_list.append(redacted_item)
                         if item_redactions:
                             if key not in total_redactions:
@@ -195,7 +198,7 @@ class Redactor:
         report = {
             "redacted": bool(total_redactions),
             "fields_redacted": list(total_redactions.keys()),
-            "details": total_redactions
+            "details": total_redactions,
         }
 
         return safe_data, report

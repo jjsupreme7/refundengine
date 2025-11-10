@@ -19,7 +19,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Import OpenAI for embeddings and analysis
 try:
     from openai import OpenAI
-    client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 except ImportError:
     print("Error: openai package not installed. Run: pip install openai")
     sys.exit(1)
@@ -27,8 +28,9 @@ except ImportError:
 # Import Supabase
 try:
     from supabase import create_client, Client
-    SUPABASE_URL = os.getenv('SUPABASE_URL')
-    SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
     if not SUPABASE_URL or not SUPABASE_KEY:
         print("Error: SUPABASE_URL and SUPABASE_KEY must be set")
         sys.exit(1)
@@ -56,7 +58,7 @@ class RefundAnalyzer:
     def extract_text_from_pdf(self, pdf_path: Path) -> str:
         """Extract text from PDF file"""
         try:
-            with open(pdf_path, 'rb') as file:
+            with open(pdf_path, "rb") as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 text = ""
                 for page in pdf_reader.pages:
@@ -66,7 +68,9 @@ class RefundAnalyzer:
             print(f"Error reading PDF {pdf_path}: {e}")
             return ""
 
-    def find_line_item_in_invoice(self, invoice_text: str, amount: float, tax: float) -> Dict:
+    def find_line_item_in_invoice(
+        self, invoice_text: str, amount: float, tax: float
+    ) -> Dict:
         """
         Use AI to find the specific line item in invoice text that matches the amount
         Returns: {product_desc, product_details, line_item_text}
@@ -99,7 +103,7 @@ Return JSON:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",  # Faster model for extraction
                 messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
             result = json.loads(response.choices[0].message.content)
             return result
@@ -110,15 +114,12 @@ Return JSON:
                 "product_type": "Unknown",
                 "details": "",
                 "line_item_found": False,
-                "confidence": 0
+                "confidence": 0,
             }
 
     def get_embedding(self, text: str) -> List[float]:
         """Generate embedding for text"""
-        response = client.embeddings.create(
-            input=text,
-            model=self.embedding_model
-        )
+        response = client.embeddings.create(input=text, model=self.embedding_model)
         return response.data[0].embedding
 
     def search_legal_knowledge(self, query: str, top_k: int = 5) -> List[Dict]:
@@ -127,36 +128,46 @@ Return JSON:
 
         # Search legal_chunks table
         response = supabase.rpc(
-            'match_legal_chunks',
+            "match_legal_chunks",
             {
-                'query_embedding': query_embedding,
-                'match_threshold': 0.5,
-                'match_count': top_k
-            }
+                "query_embedding": query_embedding,
+                "match_threshold": 0.5,
+                "match_count": top_k,
+            },
         ).execute()
 
         return response.data if response.data else []
 
-    def check_vendor_learning(self, vendor_name: str, product_desc: str) -> Optional[Dict]:
+    def check_vendor_learning(
+        self, vendor_name: str, product_desc: str
+    ) -> Optional[Dict]:
         """Check if we've seen this vendor/product before and learned anything"""
         try:
             # Check vendor_products table
-            response = supabase.table('vendor_products').select('*').eq(
-                'vendor_name', vendor_name
-            ).ilike('product_description', f'%{product_desc[:50]}%').execute()
+            response = (
+                supabase.table("vendor_products")
+                .select("*")
+                .eq("vendor_name", vendor_name)
+                .ilike("product_description", f"%{product_desc[:50]}%")
+                .execute()
+            )
 
             if response.data:
                 return response.data[0]
 
             # Check vendor_product_patterns
-            response = supabase.table('vendor_product_patterns').select('*').eq(
-                'vendor_name', vendor_name
-            ).eq('is_active', True).execute()
+            response = (
+                supabase.table("vendor_product_patterns")
+                .select("*")
+                .eq("vendor_name", vendor_name)
+                .eq("is_active", True)
+                .execute()
+            )
 
             if response.data:
                 # Find best matching pattern
                 for pattern in response.data:
-                    if pattern['product_keyword'].lower() in product_desc.lower():
+                    if pattern["product_keyword"].lower() in product_desc.lower():
                         return pattern
 
             return None
@@ -172,7 +183,7 @@ Return JSON:
         amount: float,
         tax: float,
         invoice_text: str,
-        po_text: str
+        po_text: str,
     ) -> Dict:
         """
         Main analysis: Determine if tax refund is eligible
@@ -198,10 +209,12 @@ Consider: exemptions for manufacturing, resale, agricultural equipment, etc.
         legal_chunks = self.search_legal_knowledge(query, top_k=5)
 
         # Build context from legal knowledge
-        legal_context = "\n\n".join([
-            f"[Citation: {chunk.get('citation', 'N/A')}]\n{chunk.get('chunk_text', '')}"
-            for chunk in legal_chunks
-        ])
+        legal_context = "\n\n".join(
+            [
+                f"[Citation: {chunk.get('citation', 'N/A')}]\n{chunk.get('chunk_text', '')}"
+                for chunk in legal_chunks
+            ]
+        )
 
         # Build prompt for AI analysis
         prompt = f"""You are a Washington State tax law expert analyzing use tax refund eligibility.
@@ -245,7 +258,7 @@ Return JSON:
                 model=self.analysis_model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                temperature=0.1  # Lower temperature for consistent legal analysis
+                temperature=0.1,  # Lower temperature for consistent legal analysis
             )
 
             analysis = json.loads(response.choices[0].message.content)
@@ -260,7 +273,7 @@ Return JSON:
                 "refund_percentage": 0,
                 "estimated_refund": 0,
                 "confidence": 0,
-                "explanation": f"Analysis failed: {str(e)}"
+                "explanation": f"Analysis failed: {str(e)}",
             }
 
     def analyze_row(self, row: pd.Series) -> Dict:
@@ -270,8 +283,12 @@ Return JSON:
         print(f"{'='*80}")
 
         # Get invoice and PO files
-        invoice_files = str(row['Inv_1_File']).split(',') if pd.notna(row.get('Inv_1_File')) else []
-        po_files = str(row['PO_1_File']).split(',') if pd.notna(row.get('PO_1_File')) else []
+        invoice_files = (
+            str(row["Inv_1_File"]).split(",") if pd.notna(row.get("Inv_1_File")) else []
+        )
+        po_files = (
+            str(row["PO_1_File"]).split(",") if pd.notna(row.get("PO_1_File")) else []
+        )
 
         invoice_text = ""
         po_text = ""
@@ -279,23 +296,21 @@ Return JSON:
         # Extract text from invoice
         for inv_file in invoice_files:
             inv_path = self.docs_folder / inv_file.strip()
-            if inv_path.exists() and inv_path.suffix.lower() == '.pdf':
+            if inv_path.exists() and inv_path.suffix.lower() == ".pdf":
                 print(f"  Reading invoice: {inv_file}")
                 invoice_text += self.extract_text_from_pdf(inv_path) + "\n"
 
         # Extract text from PO
         for po_file in po_files:
             po_path = self.docs_folder / po_file.strip()
-            if po_path.exists() and po_path.suffix.lower() == '.pdf':
+            if po_path.exists() and po_path.suffix.lower() == ".pdf":
                 print(f"  Reading PO: {po_file}")
                 po_text += self.extract_text_from_pdf(po_path) + "\n"
 
         # Find specific line item in invoice
         print(f"  Searching for line item: ${row['Amount']:,.2f}")
         line_item = self.find_line_item_in_invoice(
-            invoice_text,
-            float(row['Amount']),
-            float(row['Tax'])
+            invoice_text, float(row["Amount"]), float(row["Tax"])
         )
 
         print(f"  Product found: {line_item.get('product_desc', 'Unknown')}")
@@ -304,31 +319,33 @@ Return JSON:
         # Analyze refund eligibility
         print(f"  Analyzing refund eligibility...")
         analysis = self.analyze_refund_eligibility(
-            vendor=row['Vendor'],
-            product_desc=line_item.get('product_desc', 'Unknown'),
-            product_type=line_item.get('product_type', 'Unknown'),
-            amount=float(row['Amount']),
-            tax=float(row['Tax']),
+            vendor=row["Vendor"],
+            product_desc=line_item.get("product_desc", "Unknown"),
+            product_type=line_item.get("product_type", "Unknown"),
+            amount=float(row["Amount"]),
+            tax=float(row["Tax"]),
             invoice_text=invoice_text[:2000],  # Truncate for context
-            po_text=po_text[:2000]
+            po_text=po_text[:2000],
         )
 
-        print(f"  ✓ Analysis complete - Refund: ${analysis.get('estimated_refund', 0):,.2f}")
+        print(
+            f"  ✓ Analysis complete - Refund: ${analysis.get('estimated_refund', 0):,.2f}"
+        )
 
         # Combine results
         result = {
-            'AI_Product_Desc': line_item.get('product_desc', 'Unknown'),
-            'AI_Product_Type': line_item.get('product_type', 'Unknown'),
-            'AI_Product_Details': line_item.get('details', ''),
-            'AI_Refund_Eligible': analysis.get('refund_eligible', False),
-            'AI_Refund_Basis': analysis.get('refund_basis', ''),
-            'AI_Exemption_Type': analysis.get('exemption_type', ''),
-            'AI_Citation': analysis.get('citation', ''),
-            'AI_Confidence': analysis.get('confidence', 0),
-            'AI_Refund_Percentage': analysis.get('refund_percentage', 0),
-            'AI_Estimated_Refund': analysis.get('estimated_refund', 0),
-            'AI_Explanation': analysis.get('explanation', ''),
-            'AI_Key_Factors': ', '.join(analysis.get('key_factors', [])),
+            "AI_Product_Desc": line_item.get("product_desc", "Unknown"),
+            "AI_Product_Type": line_item.get("product_type", "Unknown"),
+            "AI_Product_Details": line_item.get("details", ""),
+            "AI_Refund_Eligible": analysis.get("refund_eligible", False),
+            "AI_Refund_Basis": analysis.get("refund_basis", ""),
+            "AI_Exemption_Type": analysis.get("exemption_type", ""),
+            "AI_Citation": analysis.get("citation", ""),
+            "AI_Confidence": analysis.get("confidence", 0),
+            "AI_Refund_Percentage": analysis.get("refund_percentage", 0),
+            "AI_Estimated_Refund": analysis.get("estimated_refund", 0),
+            "AI_Explanation": analysis.get("explanation", ""),
+            "AI_Key_Factors": ", ".join(analysis.get("key_factors", [])),
         }
 
         return result
@@ -337,27 +354,31 @@ Return JSON:
         """Save analysis results to database"""
         try:
             data = {
-                'row_id': int(row['Row_ID']),
-                'vendor_name': row['Vendor'],
-                'invoice_number': row.get('Invoice_Number'),
-                'po_number': str(row.get('PO Number')),
-                'amount': float(row['Amount']),
-                'tax_amount': float(row['Tax']),
-                'ai_product_desc': analysis.get('AI_Product_Desc'),
-                'ai_product_type': analysis.get('AI_Product_Type'),
-                'ai_refund_basis': analysis.get('AI_Refund_Basis'),
-                'ai_citation': analysis.get('AI_Citation'),
-                'ai_confidence': float(analysis.get('AI_Confidence', 0)),
-                'ai_estimated_refund': float(analysis.get('AI_Estimated_Refund', 0)),
-                'ai_refund_percentage': float(analysis.get('AI_Refund_Percentage', 0)),
-                'ai_explanation': analysis.get('AI_Explanation'),
-                'invoice_files': [row.get('Inv_1_File')] if pd.notna(row.get('Inv_1_File')) else [],
-                'po_files': [row.get('PO_1_File')] if pd.notna(row.get('PO_1_File')) else [],
-                'analysis_status': 'pending_review'
+                "row_id": int(row["Row_ID"]),
+                "vendor_name": row["Vendor"],
+                "invoice_number": row.get("Invoice_Number"),
+                "po_number": str(row.get("PO Number")),
+                "amount": float(row["Amount"]),
+                "tax_amount": float(row["Tax"]),
+                "ai_product_desc": analysis.get("AI_Product_Desc"),
+                "ai_product_type": analysis.get("AI_Product_Type"),
+                "ai_refund_basis": analysis.get("AI_Refund_Basis"),
+                "ai_citation": analysis.get("AI_Citation"),
+                "ai_confidence": float(analysis.get("AI_Confidence", 0)),
+                "ai_estimated_refund": float(analysis.get("AI_Estimated_Refund", 0)),
+                "ai_refund_percentage": float(analysis.get("AI_Refund_Percentage", 0)),
+                "ai_explanation": analysis.get("AI_Explanation"),
+                "invoice_files": (
+                    [row.get("Inv_1_File")] if pd.notna(row.get("Inv_1_File")) else []
+                ),
+                "po_files": (
+                    [row.get("PO_1_File")] if pd.notna(row.get("PO_1_File")) else []
+                ),
+                "analysis_status": "pending_review",
             }
 
-            response = supabase.table('analysis_results').insert(data).execute()
-            return response.data[0]['id'] if response.data else None
+            response = supabase.table("analysis_results").insert(data).execute()
+            return response.data[0]["id"] if response.data else None
 
         except Exception as e:
             print(f"Error saving to database: {e}")
@@ -365,11 +386,17 @@ Return JSON:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyze refunds from Excel')
-    parser.add_argument('input_excel', help='Path to input Excel file')
-    parser.add_argument('--output', '-o', help='Output Excel path (default: adds _analyzed suffix)')
-    parser.add_argument('--docs-folder', default='client_docs', help='Folder containing invoice/PO PDFs')
-    parser.add_argument('--save-db', action='store_true', help='Save results to database')
+    parser = argparse.ArgumentParser(description="Analyze refunds from Excel")
+    parser.add_argument("input_excel", help="Path to input Excel file")
+    parser.add_argument(
+        "--output", "-o", help="Output Excel path (default: adds _analyzed suffix)"
+    )
+    parser.add_argument(
+        "--docs-folder", default="client_docs", help="Folder containing invoice/PO PDFs"
+    )
+    parser.add_argument(
+        "--save-db", action="store_true", help="Save results to database"
+    )
 
     args = parser.parse_args()
 
@@ -378,7 +405,9 @@ def main():
         output_path = args.output
     else:
         input_path = Path(args.input_excel)
-        output_path = input_path.parent / f"{input_path.stem}_analyzed{input_path.suffix}"
+        output_path = (
+            input_path.parent / f"{input_path.stem}_analyzed{input_path.suffix}"
+        )
 
     print(f"\n{'='*80}")
     print(f"REFUND ANALYSIS PIPELINE")
@@ -397,14 +426,26 @@ def main():
 
     # Add columns for AI analysis and review
     review_columns = [
-        'AI_Product_Desc', 'AI_Product_Type', 'AI_Product_Details',
-        'AI_Refund_Eligible', 'AI_Refund_Basis', 'AI_Exemption_Type',
-        'AI_Citation', 'AI_Confidence', 'AI_Refund_Percentage',
-        'AI_Estimated_Refund', 'AI_Explanation', 'AI_Key_Factors',
+        "AI_Product_Desc",
+        "AI_Product_Type",
+        "AI_Product_Details",
+        "AI_Refund_Eligible",
+        "AI_Refund_Basis",
+        "AI_Exemption_Type",
+        "AI_Citation",
+        "AI_Confidence",
+        "AI_Refund_Percentage",
+        "AI_Estimated_Refund",
+        "AI_Explanation",
+        "AI_Key_Factors",
         # Human review columns
-        'Review_Status', 'Corrected_Product_Desc', 'Corrected_Product_Type',
-        'Corrected_Refund_Basis', 'Corrected_Citation',
-        'Corrected_Estimated_Refund', 'Reviewer_Notes'
+        "Review_Status",
+        "Corrected_Product_Desc",
+        "Corrected_Product_Type",
+        "Corrected_Refund_Basis",
+        "Corrected_Citation",
+        "Corrected_Estimated_Refund",
+        "Reviewer_Notes",
     ]
 
     for col in review_columns:
@@ -437,14 +478,16 @@ def main():
     print(f"{'='*80}\n")
 
     # Summary
-    total_refund = df['AI_Estimated_Refund'].sum()
-    eligible_count = df['AI_Refund_Eligible'].sum()
+    total_refund = df["AI_Estimated_Refund"].sum()
+    eligible_count = df["AI_Refund_Eligible"].sum()
     print(f"SUMMARY:")
     print(f"  Total rows analyzed: {len(df)}")
     print(f"  Refund eligible: {eligible_count}")
     print(f"  Total estimated refund: ${total_refund:,.2f}")
-    print(f"\nNext step: Review the Excel file and fill in correction columns if needed.")
+    print(
+        f"\nNext step: Review the Excel file and fill in correction columns if needed."
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

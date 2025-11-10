@@ -8,7 +8,7 @@ import os
 import sys
 
 # Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from core.security import PIIDetector, Redactor, EncryptionService, ExcelMasker
 import pandas as pd
@@ -40,31 +40,33 @@ def test_pii_detection():
             Line Items:
             - Microsoft 365 E5: $50,000
             """,
-            "expected_types": ["EMAIL_ADDRESS", "BANK_ACCOUNT", "ROUTING_NUMBER"]
+            "expected_types": ["EMAIL_ADDRESS", "BANK_ACCOUNT", "ROUTING_NUMBER"],
         },
         {
             "name": "Invoice with Tax ID",
             "text": "Vendor Tax ID: 91-1234567 for 1099 reporting",
-            "expected_types": ["TAX_ID"]
+            "expected_types": ["TAX_ID"],
         },
         {
             "name": "Safe business data (no PII)",
             "text": "Boeing Corporation, Invoice #123, Amount: $50,000, Product: Microsoft 365",
-            "expected_types": []
-        }
+            "expected_types": [],
+        },
     ]
 
     for i, test in enumerate(test_cases, 1):
         print(f"Test Case {i}: {test['name']}")
-        findings = detector.detect(test['text'])
+        findings = detector.detect(test["text"])
 
         print(f"  Expected PII types: {test['expected_types']}")
         print(f"  Found PII types: {[f.type for f in findings]}")
 
         for finding in findings:
-            print(f"    - {finding.type}: '{finding.value}' (confidence: {finding.confidence:.2f})")
+            print(
+                f"    - {finding.type}: '{finding.value}' (confidence: {finding.confidence:.2f})"
+            )
 
-        if not findings and not test['expected_types']:
+        if not findings and not test["expected_types"]:
             print("  ✅ PASS: No PII detected (as expected)")
         elif findings:
             print(f"  ✅ PASS: Detected {len(findings)} PII instances")
@@ -117,7 +119,7 @@ def test_redaction():
     print(f"  Total Redactions: {report['total_redactions']}")
     print(f"  Details: {report['details']}")
 
-    if report['redacted']:
+    if report["redacted"]:
         print("  ✅ PASS: PII redacted successfully")
     else:
         print("  ⚠️  WARNING: No PII detected for redaction")
@@ -133,11 +135,7 @@ def test_encryption():
 
     encryption = EncryptionService(key=test_key.encode())
 
-    test_values = [
-        "john.smith@boeing.com",
-        "(425) 555-1234",
-        "123456789"
-    ]
+    test_values = ["john.smith@boeing.com", "(425) 555-1234", "123456789"]
 
     print("\nTesting encryption/decryption:")
     for value in test_values:
@@ -160,7 +158,7 @@ def test_masking():
         ("123456789", "account", "****6789"),
         ("(425) 555-1234", "phone", "(***) ***-1234"),
         ("John Smith", "name", "J*** S***"),
-        ("91-1234567", "tax_id", "**-****567")
+        ("91-1234567", "tax_id", "**-****567"),
     ]
 
     print("Testing masking for different data types:")
@@ -179,36 +177,41 @@ def test_excel_masking():
     print_header("TEST 5: Excel DataFrame Masking")
 
     # Create sample DataFrame
-    df = pd.DataFrame({
-        "vendor": ["Boeing Corporation", "Nokia Inc"],
-        "invoice_number": ["INV-001", "INV-002"],
-        "amount": [50000, 25000],
-        "contact_email": ["john.smith@boeing.com", "jane.doe@nokia.com"],
-        "contact_phone": ["(425) 555-1234", "(206) 555-5678"],
-        "bank_account": ["123456789", "987654321"]
-    })
+    df = pd.DataFrame(
+        {
+            "vendor": ["Boeing Corporation", "Nokia Inc"],
+            "invoice_number": ["INV-001", "INV-002"],
+            "amount": [50000, 25000],
+            "contact_email": ["john.smith@boeing.com", "jane.doe@nokia.com"],
+            "contact_phone": ["(425) 555-1234", "(206) 555-5678"],
+            "bank_account": ["123456789", "987654321"],
+        }
+    )
 
     print("Original DataFrame:")
     print(df.to_string())
     print()
 
     masker = ExcelMasker()
-    masked_df = masker.mask_dataframe(df, column_mapping={
-        "contact_email": "email",
-        "contact_phone": "phone",
-        "bank_account": "account"
-    })
+    masked_df = masker.mask_dataframe(
+        df,
+        column_mapping={
+            "contact_email": "email",
+            "contact_phone": "phone",
+            "bank_account": "account",
+        },
+    )
 
     print("Masked DataFrame (safe for export):")
     print(masked_df.to_string())
     print()
 
     # Check if masking worked
-    if "***" in str(masked_df['contact_email'].values):
+    if "***" in str(masked_df["contact_email"].values):
         print("✅ PASS: Email masking successful")
-    if "***" in str(masked_df['contact_phone'].values):
+    if "***" in str(masked_df["contact_phone"].values):
         print("✅ PASS: Phone masking successful")
-    if "****" in str(masked_df['bank_account'].values):
+    if "****" in str(masked_df["bank_account"].values):
         print("✅ PASS: Account masking successful")
 
 
@@ -242,9 +245,9 @@ def test_safe_for_api_check():
 
 def main():
     """Run all tests"""
-    print("\n" + "="*70)
+    print("\n" + "=" * 70)
     print("  PII PROTECTION SYSTEM - TEST SUITE")
-    print("="*70)
+    print("=" * 70)
 
     try:
         test_pii_detection()
@@ -257,14 +260,19 @@ def main():
         print_header("TEST SUMMARY")
         print("✅ All tests completed successfully!")
         print("\nNext Steps:")
-        print("1. Generate encryption key: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"")
+        print(
+            '1. Generate encryption key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"'
+        )
         print("2. Add key to .env file: ENCRYPTION_KEY=<your-key>")
-        print("3. Deploy database schema: psql -f database/schema/schema_pii_protection.sql")
+        print(
+            "3. Deploy database schema: psql -f database/schema/schema_pii_protection.sql"
+        )
         print("4. Integrate into analysis pipeline")
 
     except Exception as e:
         print(f"\n❌ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
 
 

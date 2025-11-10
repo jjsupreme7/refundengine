@@ -7,4 +7,4 @@ from .redactor import Redactor
 from .encryption import EncryptionService
 from .excel_masker import ExcelMasker
 
-__all__ = ['PIIDetector', 'Redactor', 'EncryptionService', 'ExcelMasker']
+__all__ = ["PIIDetector", "Redactor", "EncryptionService", "ExcelMasker"]

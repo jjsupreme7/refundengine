@@ -50,8 +50,7 @@ load_dotenv()
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 )
 
 
@@ -74,24 +73,57 @@ class VendorResearcher:
         # Convert to uppercase for consistency
         normalized = raw_name.upper().strip()
 
+        # Remove trailing punctuation first (commas, periods)
+        normalized = normalized.rstrip(".,")
+
         # Remove common legal entity suffixes
         suffixes_to_remove = [
-            ' LLC', ' L.L.C.', ' L.L.C', ' LTD', ' LIMITED', ' LTD.',
-            ' INC', ' INC.', ' INCORPORATED', ' CORP', ' CORP.',
-            ' CORPORATION', ' CO.', ' CO', ' LP', ' L.P.', ' LLP',
-            ' COMPANY', ' & CO', ' AND CO', ' USA', ' US', ' AMERICA'
+            " LLC",
+            " L.L.C.",
+            " L.L.C",
+            " LTD",
+            " LIMITED",
+            " LTD.",
+            " INC",
+            " INC.",
+            " INCORPORATED",
+            " CORP",
+            " CORP.",
+            " CORPORATION",
+            " CO.",
+            " CO",
+            " LP",
+            " L.P.",
+            " LLP",
+            " COMPANY",
+            " & CO",
+            " AND CO",
+            " USA",
+            " US",
+            " AMERICA",
         ]
 
-        for suffix in suffixes_to_remove:
-            if normalized.endswith(suffix):
-                normalized = normalized[:-len(suffix)].strip()
+        # Keep removing suffixes until none are found (handles multiple suffixes)
+        changed = True
+        while changed:
+            changed = False
+            for suffix in suffixes_to_remove:
+                if normalized.endswith(suffix):
+                    normalized = normalized[: -len(suffix)].strip()
+                    normalized = normalized.rstrip(
+                        ".,"
+                    )  # Remove trailing punctuation after each removal
+                    changed = True
+                    break  # Start over from the beginning of the list
 
         # Remove extra whitespace
-        normalized = ' '.join(normalized.split())
+        normalized = " ".join(normalized.split())
 
         return normalized
 
-    def fuzzy_match_vendor(self, vendor_name: str, known_vendors: List[str], threshold: int = 85) -> Optional[str]:
+    def fuzzy_match_vendor(
+        self, vendor_name: str, known_vendors: List[str], threshold: int = 85
+    ) -> Optional[str]:
         """
         Find best fuzzy match for vendor name from known vendors list
         Returns matched vendor if confidence > threshold, else None
@@ -106,7 +138,7 @@ class VendorResearcher:
         match, score = process.extractOne(
             normalized_input,
             [self.normalize_vendor_name(v) for v in known_vendors],
-            scorer=fuzz.token_sort_ratio
+            scorer=fuzz.token_sort_ratio,
         )
 
         if score >= threshold:
@@ -135,7 +167,9 @@ class VendorResearcher:
             print(f"    ⚠️  Web search failed: {e}")
             return []
 
-    def research_vendor_with_ai(self, vendor_name: str, search_results: List[Dict]) -> Dict[str, Any]:
+    def research_vendor_with_ai(
+        self, vendor_name: str, search_results: List[Dict]
+    ) -> Dict[str, Any]:
         """
         Use AI to analyze vendor and extract structured metadata
         """
@@ -144,7 +178,9 @@ class VendorResearcher:
         if search_results:
             search_context = "\n\nWeb search results:\n"
             for i, result in enumerate(search_results[:5], 1):
-                search_context += f"{i}. {result.get('title', '')}\n{result.get('snippet', '')}\n\n"
+                search_context += (
+                    f"{i}. {result.get('title', '')}\n{result.get('snippet', '')}\n\n"
+                )
 
         prompt = f"""Analyze this company and provide structured metadata for REFUND ANALYSIS purposes.
 
@@ -188,13 +224,17 @@ IMPORTANT - REFUND FOCUS:
             response = self.openai_client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are an expert business analyst specializing in vendor classification and tax treatment analysis for Washington State."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert business analyst specializing in vendor classification and tax treatment analysis for Washington State.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
 
             import json
+
             metadata = json.loads(response.choices[0].message.content)
             return metadata
 
@@ -210,7 +250,7 @@ IMPORTANT - REFUND FOCUS:
                 "tax_notes": "Requires manual research",
                 "confidence_score": 0,
                 "data_source": "failed",
-                "notes": f"Error: {str(e)}"
+                "notes": f"Error: {str(e)}",
             }
 
     def research_vendor(self, vendor_name: str) -> Dict[str, Any]:
@@ -229,7 +269,7 @@ IMPORTANT - REFUND FOCUS:
         metadata = self.research_vendor_with_ai(vendor_name, search_results)
 
         # Add timestamp
-        metadata['researched_at'] = datetime.now().isoformat()
+        metadata["researched_at"] = datetime.now().isoformat()
 
         print(f"    ✅ Research complete")
         print(f"       Industry: {metadata.get('industry', 'Unknown')}")
@@ -238,17 +278,19 @@ IMPORTANT - REFUND FOCUS:
 
         return metadata
 
-    def research_vendors_from_excel(self, excel_path: str, limit: Optional[int] = None) -> pd.DataFrame:
+    def research_vendors_from_excel(
+        self, excel_path: str, limit: Optional[int] = None
+    ) -> pd.DataFrame:
         """
         Research multiple vendors from Excel file
         """
         print(f"\n📂 Loading vendor list from: {excel_path}")
         df = pd.read_excel(excel_path)
 
-        if 'Vendor_Name' not in df.columns:
+        if "Vendor_Name" not in df.columns:
             raise ValueError("Excel must have 'Vendor_Name' column")
 
-        vendors = df['Vendor_Name'].dropna().unique()
+        vendors = df["Vendor_Name"].dropna().unique()
 
         if limit:
             vendors = vendors[:limit]
@@ -261,7 +303,7 @@ IMPORTANT - REFUND FOCUS:
 
         for vendor_name in tqdm(vendors, desc="Researching vendors"):
             # Skip blank vendors
-            if not vendor_name or vendor_name.strip() == '' or vendor_name == '(blank)':
+            if not vendor_name or vendor_name.strip() == "" or vendor_name == "(blank)":
                 continue
 
             try:
@@ -273,19 +315,21 @@ IMPORTANT - REFUND FOCUS:
 
             except Exception as e:
                 print(f"    ❌ Error researching {vendor_name}: {e}")
-                results.append({
-                    "vendor_name": vendor_name,
-                    "industry": "Error",
-                    "business_model": "Error",
-                    "vendor_category": "service_provider",
-                    "primary_products": [],
-                    "typical_delivery": "Unknown",
-                    "tax_notes": "Research failed",
-                    "confidence_score": 0,
-                    "data_source": "error",
-                    "notes": str(e),
-                    "researched_at": datetime.now().isoformat()
-                })
+                results.append(
+                    {
+                        "vendor_name": vendor_name,
+                        "industry": "Error",
+                        "business_model": "Error",
+                        "vendor_category": "service_provider",
+                        "primary_products": [],
+                        "typical_delivery": "Unknown",
+                        "tax_notes": "Research failed",
+                        "confidence_score": 0,
+                        "data_source": "error",
+                        "notes": str(e),
+                        "researched_at": datetime.now().isoformat(),
+                    }
+                )
                 continue
 
         # Convert to DataFrame
@@ -299,19 +343,28 @@ IMPORTANT - REFUND FOCUS:
         print(f"\n💾 Exporting results to: {output_path}")
 
         # Convert array fields to comma-separated strings
-        if 'primary_products' in df.columns:
-            df['primary_products'] = df['primary_products'].apply(
-                lambda x: ', '.join(x) if isinstance(x, list) else str(x)
+        if "primary_products" in df.columns:
+            df["primary_products"] = df["primary_products"].apply(
+                lambda x: ", ".join(x) if isinstance(x, list) else str(x)
             )
 
         # Add status column for review
-        df.insert(1, 'Status', 'Review')
+        df.insert(1, "Status", "Review")
 
         # Reorder columns
         column_order = [
-            'vendor_name', 'Status', 'industry', 'business_model', 'vendor_category',
-            'primary_products', 'typical_delivery', 'tax_notes', 'confidence_score',
-            'data_source', 'notes', 'researched_at'
+            "vendor_name",
+            "Status",
+            "industry",
+            "business_model",
+            "vendor_category",
+            "primary_products",
+            "typical_delivery",
+            "tax_notes",
+            "confidence_score",
+            "data_source",
+            "notes",
+            "researched_at",
         ]
 
         df = df[[col for col in column_order if col in df.columns]]
@@ -320,11 +373,11 @@ IMPORTANT - REFUND FOCUS:
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='Vendor Research', index=False)
+        with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+            df.to_excel(writer, sheet_name="Vendor Research", index=False)
 
             # Auto-adjust column widths
-            worksheet = writer.sheets['Vendor Research']
+            worksheet = writer.sheets["Vendor Research"]
             for column in worksheet.columns:
                 max_length = 0
                 column_letter = column[0].column_letter
@@ -348,10 +401,14 @@ IMPORTANT - REFUND FOCUS:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Automated vendor research with web search and AI")
+    parser = argparse.ArgumentParser(
+        description="Automated vendor research with web search and AI"
+    )
     parser.add_argument("--file", help="Input Excel file with vendor names")
     parser.add_argument("--output", help="Output Excel file for research results")
-    parser.add_argument("--import", dest="import_file", help="Import researched vendors to database")
+    parser.add_argument(
+        "--import", dest="import_file", help="Import researched vendors to database"
+    )
     parser.add_argument("--limit", type=int, help="Limit number of vendors to research")
 
     args = parser.parse_args()

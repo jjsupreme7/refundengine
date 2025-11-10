@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Tuple
 from openai import OpenAI
 from supabase import Client
 
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 class EnhancedRAG:
@@ -40,10 +40,7 @@ class EnhancedRAG:
         if cache_key in self._embedding_cache:
             return self._embedding_cache[cache_key]
 
-        response = client.embeddings.create(
-            input=text,
-            model=self.embedding_model
-        )
+        response = client.embeddings.create(input=text, model=self.embedding_model)
 
         embedding = response.data[0].embedding
         self._embedding_cache[cache_key] = embedding
@@ -54,12 +51,12 @@ class EnhancedRAG:
         query_embedding = self.get_embedding(query)
 
         response = self.supabase.rpc(
-            'match_legal_chunks',
+            "match_legal_chunks",
             {
-                'query_embedding': query_embedding,
-                'match_threshold': 0.5,
-                'match_count': top_k
-            }
+                "query_embedding": query_embedding,
+                "match_threshold": 0.5,
+                "match_count": top_k,
+            },
         ).execute()
 
         return response.data if response.data else []
@@ -83,22 +80,24 @@ class EnhancedRAG:
         # Step 2: Validate each chunk
         validated = []
         for i, chunk in enumerate(candidates):
-            print(f"   Validating chunk {i+1}/{len(candidates)}...", end=' ')
+            print(f"   Validating chunk {i+1}/{len(candidates)}...", end=" ")
 
             relevance = self._assess_chunk_relevance(query, chunk)
 
-            if relevance['score'] > 0.7:
+            if relevance["score"] > 0.7:
                 # High relevance - use as-is
-                chunk['relevance_score'] = relevance['score']
-                chunk['relevance_reason'] = relevance['reason']
-                chunk['validated'] = True
+                chunk["relevance_score"] = relevance["score"]
+                chunk["relevance_reason"] = relevance["reason"]
+                chunk["validated"] = True
                 validated.append(chunk)
                 print(f"✅ High relevance ({relevance['score']:.2f})")
 
-            elif relevance['score'] > 0.4:
+            elif relevance["score"] > 0.4:
                 # Medium relevance - try to improve
-                print(f"⚠️  Medium relevance ({relevance['score']:.2f}), attempting correction...")
-                corrected = self._attempt_correction(query, chunk, relevance['reason'])
+                print(
+                    f"⚠️  Medium relevance ({relevance['score']:.2f}), attempting correction..."
+                )
+                corrected = self._attempt_correction(query, chunk, relevance["reason"])
                 if corrected:
                     validated.append(corrected)
                     print("   ✅ Corrected")
@@ -109,23 +108,25 @@ class EnhancedRAG:
 
         # Step 3: If not enough validated chunks, refine query and search again
         if len(validated) < 3:
-            print(f"\n⚠️  Only found {len(validated)} relevant chunks, expanding search...")
+            print(
+                f"\n⚠️  Only found {len(validated)} relevant chunks, expanding search..."
+            )
             refined_query = self._refine_query_with_ai(query)
             print(f"   Refined query: {refined_query[:100]}...")
 
             additional = self.basic_search(refined_query, top_k=3)
 
             for chunk in additional:
-                if chunk.get('id') not in [v.get('id') for v in validated]:
-                    chunk['relevance_score'] = 0.6  # Medium score for refined search
-                    chunk['validated'] = True
-                    chunk['from_refined_query'] = True
+                if chunk.get("id") not in [v.get("id") for v in validated]:
+                    chunk["relevance_score"] = 0.6  # Medium score for refined search
+                    chunk["validated"] = True
+                    chunk["from_refined_query"] = True
                     validated.append(chunk)
 
             print(f"   ✅ Added {len(additional)} chunks from refined search")
 
         # Step 4: Sort by relevance and return top-k
-        validated.sort(key=lambda x: x.get('relevance_score', 0), reverse=True)
+        validated.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
         final_results = validated[:top_k]
 
         print(f"\n✅ Corrective RAG complete: {len(final_results)} validated chunks")
@@ -159,19 +160,21 @@ Return JSON:
                 model=self.fast_model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                max_tokens=150
+                max_tokens=150,
             )
 
             result = json.loads(response.choices[0].message.content)
             return {
-                'score': float(result.get('score', 0.5)),
-                'reason': result.get('reason', 'No reason provided')
+                "score": float(result.get("score", 0.5)),
+                "reason": result.get("reason", "No reason provided"),
             }
         except Exception as e:
             print(f"Error assessing relevance: {e}")
-            return {'score': 0.5, 'reason': 'Error in assessment'}
+            return {"score": 0.5, "reason": "Error in assessment"}
 
-    def _attempt_correction(self, query: str, chunk: Dict, issue: str) -> Optional[Dict]:
+    def _attempt_correction(
+        self, query: str, chunk: Dict, issue: str
+    ) -> Optional[Dict]:
         """Try to correct/improve a medium-relevance chunk"""
 
         # Search for related chunks with more specific query
@@ -180,10 +183,10 @@ Return JSON:
 
         if related:
             # Return the most relevant related chunk
-            best = max(related, key=lambda x: x.get('similarity', 0))
-            best['relevance_score'] = 0.6
-            best['corrected'] = True
-            best['correction_reason'] = issue
+            best = max(related, key=lambda x: x.get("similarity", 0))
+            best["relevance_score"] = 0.6
+            best["corrected"] = True
+            best["correction_reason"] = issue
             return best
 
         return None
@@ -211,7 +214,7 @@ Return only the refined query, no explanation.
             response = client.chat.completions.create(
                 model=self.fast_model,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=100
+                max_tokens=100,
             )
             refined = response.choices[0].message.content.strip()
             return refined
@@ -277,19 +280,19 @@ Return JSON array of indices in order of MOST to LEAST relevant:
                 model=self.analysis_model,  # Use better model for reranking
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                max_tokens=200
+                max_tokens=200,
             )
 
             result = json.loads(response.choices[0].message.content)
-            ranked_indices = result.get('ranked_indices', list(range(len(chunks))))
+            ranked_indices = result.get("ranked_indices", list(range(len(chunks))))
 
             # Reorder chunks based on ranking
             reranked = []
             for i in ranked_indices:
                 if i < len(chunks):
                     chunk = chunks[i]
-                    chunk['reranked_position'] = len(reranked) + 1
-                    chunk['original_position'] = i + 1
+                    chunk["reranked_position"] = len(reranked) + 1
+                    chunk["original_position"] = i + 1
                     reranked.append(chunk)
 
             return reranked
@@ -320,14 +323,16 @@ Return JSON array of indices in order of MOST to LEAST relevant:
             chunks = self.basic_search(q, top_k=3)
 
             for chunk in chunks:
-                chunk_id = chunk.get('id')
+                chunk_id = chunk.get("id")
                 if chunk_id not in seen_ids:
-                    chunk['matched_query'] = q
-                    chunk['query_variation_index'] = i
+                    chunk["matched_query"] = q
+                    chunk["query_variation_index"] = i
                     all_chunks.append(chunk)
                     seen_ids.add(chunk_id)
 
-            print(f"      Found {len(chunks)} chunks ({len([c for c in chunks if c.get('id') not in seen_ids])} unique)")
+            print(
+                f"      Found {len(chunks)} chunks ({len([c for c in chunks if c.get('id') not in seen_ids])} unique)"
+            )
 
         # Step 3: Rerank combined results
         print(f"   Reranking {len(all_chunks)} total chunks...")
@@ -362,11 +367,11 @@ Return JSON:
                 model=self.fast_model,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                max_tokens=200
+                max_tokens=200,
             )
 
             result = json.loads(response.choices[0].message.content)
-            expanded_queries = result.get('queries', [])
+            expanded_queries = result.get("queries", [])
 
             # Always include original query first
             return [original_query] + expanded_queries
@@ -407,17 +412,19 @@ Return JSON:
         """Keyword-based search using PostgreSQL full-text search"""
         try:
             # Use PostgreSQL text search
-            response = self.supabase.table('legal_chunks') \
-                .select('*') \
-                .textSearch('chunk_text', query) \
-                .limit(top_k) \
+            response = (
+                self.supabase.table("legal_chunks")
+                .select("*")
+                .textSearch("chunk_text", query)
+                .limit(top_k)
                 .execute()
+            )
 
             results = response.data if response.data else []
 
             # Mark as keyword search results
             for r in results:
-                r['search_type'] = 'keyword'
+                r["search_type"] = "keyword"
 
             return results
         except Exception as e:
@@ -430,7 +437,7 @@ Return JSON:
         unique = []
 
         for chunk in chunks:
-            chunk_id = chunk.get('id')
+            chunk_id = chunk.get("id")
             if chunk_id and chunk_id not in seen_ids:
                 seen_ids.add(chunk_id)
                 unique.append(chunk)
@@ -471,13 +478,15 @@ Return JSON:
 
             # Combine
             for chunk in vector_results + keyword_results:
-                chunk_id = chunk.get('id')
+                chunk_id = chunk.get("id")
                 if chunk_id not in seen_ids:
-                    chunk['matched_query_variation'] = i
+                    chunk["matched_query_variation"] = i
                     all_candidates.append(chunk)
                     seen_ids.add(chunk_id)
 
-            print(f"   Found {len(vector_results)} vector + {len(keyword_results)} keyword chunks\n")
+            print(
+                f"   Found {len(vector_results)} vector + {len(keyword_results)} keyword chunks\n"
+            )
 
         print(f"📊 Total candidates: {len(all_candidates)}\n")
 
@@ -488,9 +497,9 @@ Return JSON:
         for i, chunk in enumerate(all_candidates[:15]):  # Validate top 15 to save cost
             relevance = self._assess_chunk_relevance(query, chunk)
 
-            if relevance['score'] > 0.4:  # Keep medium+ relevance
-                chunk['relevance_score'] = relevance['score']
-                chunk['relevance_reason'] = relevance['reason']
+            if relevance["score"] > 0.4:  # Keep medium+ relevance
+                chunk["relevance_score"] = relevance["score"]
+                chunk["relevance_reason"] = relevance["reason"]
                 validated.append(chunk)
 
         print(f"   ✅ Validated: {len(validated)} chunks passed threshold\n")
@@ -505,7 +514,9 @@ Return JSON:
         print(f"\n{'='*80}")
         print(f"✅ ENHANCED RAG COMPLETE")
         print(f"   Final results: {len(final_results)} chunks")
-        print(f"   Average relevance: {sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}")
+        print(
+            f"   Average relevance: {sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}"
+        )
         print(f"{'='*80}\n")
 
         return final_results
@@ -526,32 +537,32 @@ Return JSON:
 
         # Method 1: Basic
         print("1️⃣  Basic Vector Search")
-        results['basic'] = self.basic_search(query, top_k)
+        results["basic"] = self.basic_search(query, top_k)
         print(f"   Results: {len(results['basic'])}\n")
 
         # Method 2: Corrective
         print("2️⃣  Corrective RAG")
-        results['corrective'] = self.search_with_correction(query, top_k)
+        results["corrective"] = self.search_with_correction(query, top_k)
         print(f"   Results: {len(results['corrective'])}\n")
 
         # Method 3: Reranking
         print("3️⃣  With Reranking")
-        results['reranking'] = self.search_with_reranking(query, top_k)
+        results["reranking"] = self.search_with_reranking(query, top_k)
         print(f"   Results: {len(results['reranking'])}\n")
 
         # Method 4: Query Expansion
         print("4️⃣  Query Expansion")
-        results['expansion'] = self.search_with_expansion(query, top_k)
+        results["expansion"] = self.search_with_expansion(query, top_k)
         print(f"   Results: {len(results['expansion'])}\n")
 
         # Method 5: Hybrid
         print("5️⃣  Hybrid Search")
-        results['hybrid'] = self.search_hybrid(query, top_k)
+        results["hybrid"] = self.search_hybrid(query, top_k)
         print(f"   Results: {len(results['hybrid'])}\n")
 
         # Method 6: Enhanced (All)
         print("6️⃣  Enhanced (All Improvements)")
-        results['enhanced'] = self.search_enhanced(query, top_k)
+        results["enhanced"] = self.search_enhanced(query, top_k)
         print(f"   Results: {len(results['enhanced'])}\n")
 
         print(f"{'='*80}\n")

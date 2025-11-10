@@ -24,11 +24,8 @@ import PyPDF2
 from core.enhanced_rag import EnhancedRAG
 
 # Initialize clients
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-supabase: Client = create_client(
-    os.getenv('SUPABASE_URL'),
-    os.getenv('SUPABASE_KEY')
-)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
 
 class EnhancedRefundAnalyzer:
@@ -61,7 +58,7 @@ class EnhancedRefundAnalyzer:
     def extract_text_from_pdf(self, pdf_path: Path) -> str:
         """Extract text from PDF file"""
         try:
-            with open(pdf_path, 'rb') as file:
+            with open(pdf_path, "rb") as file:
                 pdf_reader = PyPDF2.PdfReader(file)
                 text = ""
                 for page in pdf_reader.pages:
@@ -71,7 +68,9 @@ class EnhancedRefundAnalyzer:
             print(f"Error reading PDF {pdf_path}: {e}")
             return ""
 
-    def find_line_item_in_invoice(self, invoice_text: str, amount: float, tax: float) -> Dict:
+    def find_line_item_in_invoice(
+        self, invoice_text: str, amount: float, tax: float
+    ) -> Dict:
         """Use AI to find the specific line item in invoice text"""
         prompt = f"""You are analyzing an invoice to find a specific line item.
 
@@ -101,7 +100,7 @@ Return JSON:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
             result = json.loads(response.choices[0].message.content)
             return result
@@ -112,30 +111,40 @@ Return JSON:
                 "product_type": "Unknown",
                 "details": "",
                 "line_item_found": False,
-                "confidence": 0
+                "confidence": 0,
             }
 
     # ==================== VENDOR LEARNING ====================
 
-    def check_vendor_learning(self, vendor_name: str, product_desc: str) -> Optional[Dict]:
+    def check_vendor_learning(
+        self, vendor_name: str, product_desc: str
+    ) -> Optional[Dict]:
         """Check if we've seen this vendor/product before and learned anything"""
         try:
             # Check vendor_products table
-            response = supabase.table('vendor_products').select('*').eq(
-                'vendor_name', vendor_name
-            ).ilike('product_description', f'%{product_desc[:50]}%').execute()
+            response = (
+                supabase.table("vendor_products")
+                .select("*")
+                .eq("vendor_name", vendor_name)
+                .ilike("product_description", f"%{product_desc[:50]}%")
+                .execute()
+            )
 
             if response.data:
                 return response.data[0]
 
             # Check vendor_product_patterns
-            response = supabase.table('vendor_product_patterns').select('*').eq(
-                'vendor_name', vendor_name
-            ).eq('is_active', True).execute()
+            response = (
+                supabase.table("vendor_product_patterns")
+                .select("*")
+                .eq("vendor_name", vendor_name)
+                .eq("is_active", True)
+                .execute()
+            )
 
             if response.data:
                 for pattern in response.data:
-                    if pattern['product_keyword'].lower() in product_desc.lower():
+                    if pattern["product_keyword"].lower() in product_desc.lower():
                         return pattern
 
             return None
@@ -154,7 +163,7 @@ Return JSON:
         tax: float,
         invoice_text: str = "",
         po_text: str = "",
-        rag_method: str = "enhanced"  # basic, corrective, reranking, expansion, hybrid, enhanced
+        rag_method: str = "enhanced",  # basic, corrective, reranking, expansion, hybrid, enhanced
     ) -> Dict:
         """
         Main analysis: Determine if tax refund is eligible
@@ -296,22 +305,22 @@ Return JSON:
             response = client.chat.completions.create(
                 model=self.analysis_model,
                 messages=[{"role": "user", "content": analysis_prompt}],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
 
             analysis_result = json.loads(response.choices[0].message.content)
 
             # Add metadata
-            analysis_result['rag_method'] = rag_method
-            analysis_result['legal_chunks_found'] = len(legal_chunks)
-            analysis_result['vendor_learning_used'] = learned_info is not None
+            analysis_result["rag_method"] = rag_method
+            analysis_result["legal_chunks_found"] = len(legal_chunks)
+            analysis_result["vendor_learning_used"] = learned_info is not None
 
             # Add chunk details for transparency
-            analysis_result['legal_sources'] = [
+            analysis_result["legal_sources"] = [
                 {
-                    'citation': chunk.get('citation', 'N/A'),
-                    'relevance_score': chunk.get('relevance_score'),
-                    'preview': chunk.get('chunk_text', '')[:200]
+                    "citation": chunk.get("citation", "N/A"),
+                    "relevance_score": chunk.get("relevance_score"),
+                    "preview": chunk.get("chunk_text", "")[:200],
                 }
                 for chunk in legal_chunks
             ]
@@ -326,11 +335,7 @@ Return JSON:
 
         except Exception as e:
             print(f"❌ Error in analysis: {e}")
-            return {
-                "error": str(e),
-                "refund_eligible": False,
-                "confidence": 0
-            }
+            return {"error": str(e), "refund_eligible": False, "confidence": 0}
 
     def _build_legal_context(self, chunks: List[Dict]) -> str:
         """Build formatted legal context from chunks"""
@@ -339,12 +344,12 @@ Return JSON:
 
         context = ""
         for i, chunk in enumerate(chunks):
-            citation = chunk.get('citation', 'N/A')
-            text = chunk.get('chunk_text', '')
-            relevance = chunk.get('relevance_score', 'N/A')
+            citation = chunk.get("citation", "N/A")
+            text = chunk.get("chunk_text", "")
+            relevance = chunk.get("relevance_score", "N/A")
 
             context += f"\n[Source {i+1}] {citation}"
-            if relevance != 'N/A':
+            if relevance != "N/A":
                 context += f" (Relevance: {relevance:.2f})"
             context += f"\n{text[:800]}\n"
 
@@ -358,7 +363,7 @@ Return JSON:
         product_desc: str,
         product_type: str,
         amount: float,
-        tax: float
+        tax: float,
     ) -> Dict:
         """
         Compare all RAG methods side-by-side for the same query
@@ -385,17 +390,17 @@ Determine if Washington State use tax refund is eligible.
         rag_results = self.rag.compare_methods(query, top_k=5)
 
         # Summarize comparison
-        summary = {
-            'query': query,
-            'methods_compared': len(rag_results),
-            'results': {}
-        }
+        summary = {"query": query, "methods_compared": len(rag_results), "results": {}}
 
         for method, chunks in rag_results.items():
-            summary['results'][method] = {
-                'chunks_found': len(chunks),
-                'citations': [c.get('citation', 'N/A') for c in chunks[:3]],
-                'avg_relevance': sum(c.get('relevance_score', 0) for c in chunks) / len(chunks) if chunks else 0
+            summary["results"][method] = {
+                "chunks_found": len(chunks),
+                "citations": [c.get("citation", "N/A") for c in chunks[:3]],
+                "avg_relevance": (
+                    sum(c.get("relevance_score", 0) for c in chunks) / len(chunks)
+                    if chunks
+                    else 0
+                ),
             }
 
         return summary
@@ -404,18 +409,24 @@ Determine if Washington State use tax refund is eligible.
 def main():
     """Main entry point for enhanced refund analysis"""
 
-    parser = argparse.ArgumentParser(description='Enhanced Refund Analysis with Improved RAG')
+    parser = argparse.ArgumentParser(
+        description="Enhanced Refund Analysis with Improved RAG"
+    )
 
-    parser.add_argument('--vendor', required=True, help='Vendor name')
-    parser.add_argument('--product', required=True, help='Product description')
-    parser.add_argument('--product-type', default='Unknown', help='Product type')
-    parser.add_argument('--amount', type=float, required=True, help='Invoice amount')
-    parser.add_argument('--tax', type=float, required=True, help='Tax paid')
-    parser.add_argument('--method',
-                       choices=['basic', 'corrective', 'reranking', 'expansion', 'hybrid', 'enhanced'],
-                       default='enhanced',
-                       help='RAG method to use (default: enhanced)')
-    parser.add_argument('--compare', action='store_true', help='Compare all RAG methods')
+    parser.add_argument("--vendor", required=True, help="Vendor name")
+    parser.add_argument("--product", required=True, help="Product description")
+    parser.add_argument("--product-type", default="Unknown", help="Product type")
+    parser.add_argument("--amount", type=float, required=True, help="Invoice amount")
+    parser.add_argument("--tax", type=float, required=True, help="Tax paid")
+    parser.add_argument(
+        "--method",
+        choices=["basic", "corrective", "reranking", "expansion", "hybrid", "enhanced"],
+        default="enhanced",
+        help="RAG method to use (default: enhanced)",
+    )
+    parser.add_argument(
+        "--compare", action="store_true", help="Compare all RAG methods"
+    )
 
     args = parser.parse_args()
 
@@ -425,11 +436,7 @@ def main():
     if args.compare:
         # Compare all methods
         comparison = analyzer.compare_rag_methods(
-            args.vendor,
-            args.product,
-            args.product_type,
-            args.amount,
-            args.tax
+            args.vendor, args.product, args.product_type, args.amount, args.tax
         )
 
         print("\n📊 COMPARISON SUMMARY:")
@@ -442,12 +449,12 @@ def main():
             args.product_type,
             args.amount,
             args.tax,
-            rag_method=args.method
+            rag_method=args.method,
         )
 
         print("\n📄 ANALYSIS RESULT:")
         print(json.dumps(result, indent=2))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

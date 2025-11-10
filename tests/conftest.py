@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures
 """
+
 import os
 import sys
 from pathlib import Path
@@ -11,10 +12,10 @@ from unittest.mock import Mock, MagicMock
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Mock environment variables for testing
-os.environ['OPENAI_API_KEY'] = 'test-key-123'
-os.environ['SUPABASE_URL'] = 'https://test.supabase.co'
-os.environ['SUPABASE_KEY'] = 'test-key'
-os.environ['SUPABASE_SERVICE_ROLE_KEY'] = 'test-service-key'
+os.environ["OPENAI_API_KEY"] = "test-key-123"
+os.environ["SUPABASE_URL"] = "https://test.supabase.co"
+os.environ["SUPABASE_KEY"] = "test-key"
+os.environ["SUPABASE_SERVICE_ROLE_KEY"] = "test-service-key"
 
 
 @pytest.fixture
@@ -23,17 +24,17 @@ def mock_openai_client():
     mock = MagicMock()
 
     # Mock embeddings
-    mock.embeddings.create.return_value = Mock(
-        data=[Mock(embedding=[0.1] * 1536)]
-    )
+    mock.embeddings.create.return_value = Mock(data=[Mock(embedding=[0.1] * 1536)])
 
     # Mock chat completions
     mock.chat.completions.create.return_value = Mock(
-        choices=[Mock(
-            message=Mock(
-                content='{"product_desc": "Test Product", "product_type": "Software", "details": "Test details", "line_item_found": true, "confidence": 95}'
+        choices=[
+            Mock(
+                message=Mock(
+                    content='{"product_desc": "Test Product", "product_type": "Software", "details": "Test details", "line_item_found": true, "confidence": 95}'
+                )
             )
-        )]
+        ]
     )
 
     return mock
@@ -45,14 +46,12 @@ def mock_supabase_client():
     mock = MagicMock()
 
     # Mock table queries
-    mock.table.return_value.select.return_value.eq.return_value.execute.return_value = Mock(
-        data=[]
+    mock.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+        Mock(data=[])
     )
 
     # Mock RPC calls
-    mock.rpc.return_value.execute.return_value = Mock(
-        data=[]
-    )
+    mock.rpc.return_value.execute.return_value = Mock(data=[])
 
     return mock
 
@@ -61,13 +60,13 @@ def mock_supabase_client():
 def sample_invoice_data():
     """Sample invoice data for testing"""
     return {
-        'vendor': 'Microsoft Corporation',
-        'invoice_number': 'INV-001',
-        'date': '2024-01-15',
-        'amount': 50000.00,
-        'tax': 5000.00,
-        'product_desc': 'Microsoft 365 E5 Licenses',
-        'invoice_file': 'test_invoice.pdf'
+        "vendor": "Microsoft Corporation",
+        "invoice_number": "INV-001",
+        "date": "2024-01-15",
+        "amount": 50000.00,
+        "tax": 5000.00,
+        "product_desc": "Microsoft 365 E5 Licenses",
+        "invoice_file": "test_invoice.pdf",
     }
 
 
@@ -75,12 +74,12 @@ def sample_invoice_data():
 def sample_vendor_data():
     """Sample vendor metadata for testing"""
     return {
-        'vendor_name': 'MICROSOFT CORPORATION',
-        'normalized_name': 'MICROSOFT',
-        'industry': 'Software & Technology',
-        'business_model': 'B2B SaaS',
-        'products': ['Microsoft 365', 'Azure', 'Dynamics'],
-        'delivery_method': 'Cloud/SaaS'
+        "vendor_name": "MICROSOFT CORPORATION",
+        "normalized_name": "MICROSOFT",
+        "industry": "Software & Technology",
+        "business_model": "B2B SaaS",
+        "products": ["Microsoft 365", "Azure", "Dynamics"],
+        "delivery_method": "Cloud/SaaS",
     }
 
 
