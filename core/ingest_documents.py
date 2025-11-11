@@ -230,7 +230,7 @@ Be specific and accurate. Extract actual information from the text."""
 
     try:
         response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
@@ -244,7 +244,7 @@ Be specific and accurate. Extract actual information from the text."""
         # Track cost
         usage = response.usage
         cost_tracker.add_gpt_call(
-            "gpt-4o", usage.prompt_tokens, usage.completion_tokens
+            "gpt-4o-mini", usage.prompt_tokens, usage.completion_tokens
         )
 
         metadata = json.loads(response.choices[0].message.content)
