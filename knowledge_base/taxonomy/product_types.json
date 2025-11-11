@@ -1,0 +1,188 @@
+{
+  "product_types": {
+    "saas_subscription": {
+      "name": "SaaS Subscription",
+      "description": "Software as a Service, cloud-based, subscription model",
+      "characteristics": {
+        "delivery_method": "digital",
+        "location_dependent": true,
+        "primarily_human_effort": false,
+        "tangible_personal_property": false,
+        "automated": true
+      },
+      "examples": ["Microsoft 365", "Salesforce", "Workday", "Zoom"],
+      "keywords": ["saas", "subscription", "cloud", "software as a service", "platform"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "digital_automated_service",
+          "taxable": true,
+          "common_exemptions": ["primarily_human_effort", "multi_point_use"],
+          "typical_refund_scenario": "MPU allocation based on user location"
+        }
+      }
+    },
+
+    "iaas_paas": {
+      "name": "Infrastructure/Platform as a Service",
+      "description": "Cloud infrastructure or platform services",
+      "characteristics": {
+        "delivery_method": "cloud_infrastructure",
+        "location_dependent": true,
+        "primarily_human_effort": false,
+        "tangible_personal_property": false,
+        "automated": true
+      },
+      "examples": ["AWS EC2", "Azure VMs", "Google Cloud"],
+      "keywords": ["iaas", "paas", "cloud computing", "virtual machine", "infrastructure"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "digital_automated_service",
+          "taxable": true,
+          "common_exemptions": ["multi_point_use"],
+          "typical_refund_scenario": "MPU allocation based on resource deployment location"
+        }
+      }
+    },
+
+    "professional_services": {
+      "name": "Professional Services",
+      "description": "Human-delivered consulting, advisory, or expertise",
+      "characteristics": {
+        "delivery_method": "human_delivered",
+        "location_dependent": true,
+        "primarily_human_effort": true,
+        "tangible_personal_property": false,
+        "automated": false
+      },
+      "examples": ["Consulting", "Legal services", "Accounting", "Advisory"],
+      "keywords": ["consulting", "professional services", "advisory", "expert", "human"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "service_primarily_human_effort",
+          "taxable": false,
+          "common_exemptions": ["primarily_human_effort"],
+          "typical_refund_scenario": "Full refund if properly classified as primarily human effort"
+        }
+      }
+    },
+
+    "software_license": {
+      "name": "Software License",
+      "description": "Perpetual or term software licenses (not SaaS)",
+      "characteristics": {
+        "delivery_method": "digital_or_physical",
+        "location_dependent": true,
+        "primarily_human_effort": false,
+        "tangible_personal_property": false,
+        "automated": true
+      },
+      "examples": ["Microsoft Office license", "Adobe Acrobat Pro", "AutoCAD license"],
+      "keywords": ["license", "software license", "perpetual", "term license"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "prewritten_software",
+          "taxable": true,
+          "common_exemptions": ["multi_point_use", "interstate_use"],
+          "typical_refund_scenario": "Varies by delivery method and usage location"
+        }
+      }
+    },
+
+    "tangible_personal_property": {
+      "name": "Tangible Personal Property",
+      "description": "Physical goods, hardware, equipment",
+      "characteristics": {
+        "delivery_method": "physical",
+        "location_dependent": true,
+        "primarily_human_effort": false,
+        "tangible_personal_property": true,
+        "automated": false
+      },
+      "examples": ["Computer hardware", "Office equipment", "Machinery"],
+      "keywords": ["hardware", "equipment", "physical", "tangible", "goods"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "tangible_personal_property",
+          "taxable": true,
+          "common_exemptions": ["resale", "manufacturing", "out_of_state_delivery"],
+          "typical_refund_scenario": "Out-of-state delivery or manufacturing exemptions"
+        }
+      }
+    },
+
+    "data_processing": {
+      "name": "Data Processing Service",
+      "description": "Services that process, store, or analyze data",
+      "characteristics": {
+        "delivery_method": "digital",
+        "location_dependent": true,
+        "primarily_human_effort": false,
+        "tangible_personal_property": false,
+        "automated": true
+      },
+      "examples": ["Data analytics", "Cloud storage", "Database services"],
+      "keywords": ["data processing", "analytics", "storage", "database"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "digital_automated_service",
+          "taxable": true,
+          "common_exemptions": ["multi_point_use"],
+          "typical_refund_scenario": "MPU allocation based on data/user location"
+        }
+      }
+    },
+
+    "telecommunications": {
+      "name": "Telecommunications Service",
+      "description": "Phone, internet, communication services",
+      "characteristics": {
+        "delivery_method": "service",
+        "location_dependent": true,
+        "primarily_human_effort": false,
+        "tangible_personal_property": false,
+        "automated": true
+      },
+      "examples": ["Phone service", "Internet", "VoIP"],
+      "keywords": ["telecom", "phone", "internet", "communication", "voip"],
+      "state_tax_notes": {
+        "washington": {
+          "classification": "telecommunications",
+          "taxable": true,
+          "common_exemptions": ["interstate_telecom"],
+          "typical_refund_scenario": "Interstate communication exemptions"
+        }
+      }
+    }
+  },
+
+  "classification_keywords": {
+    "saas_subscription": [
+      "saas", "software as a service", "subscription", "cloud", "platform",
+      "online", "web-based", "hosted", "365", "workspace"
+    ],
+    "iaas_paas": [
+      "infrastructure", "iaas", "paas", "cloud computing", "virtual machine",
+      "vm", "instance", "server", "compute", "storage service"
+    ],
+    "professional_services": [
+      "consulting", "advisory", "professional services", "expert", "consultant",
+      "strategic", "management", "audit", "legal", "accounting", "hours"
+    ],
+    "software_license": [
+      "license", "perpetual", "term license", "software license", "desktop",
+      "standalone", "offline"
+    ],
+    "tangible_personal_property": [
+      "hardware", "equipment", "device", "physical", "machine", "computer",
+      "laptop", "server hardware", "appliance"
+    ],
+    "data_processing": [
+      "data processing", "analytics", "database", "storage", "backup",
+      "archival", "reporting"
+    ],
+    "telecommunications": [
+      "phone", "telecom", "internet", "communication", "voip", "cellular",
+      "mobile", "network"
+    ]
+  }
+}
