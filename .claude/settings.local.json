@@ -64,7 +64,19 @@
       "Bash(git init:*)",
       "Bash(git config:*)",
       "Bash(git remote add:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(timeout /t 10 /nobreak)",
+      "Bash(nul)",
+      "Bash(exit 0)",
+      "Bash(timeout /t 120 /nobreak)",
+      "Bash(taskkill:*)",
+      "Bash(timeout /t 15 /nobreak)",
+      "Bash(timeout /t 60 /nobreak)",
+      "Bash(timeout /t 30 /nobreak)",
+      "Bash(timeout /t 45 /nobreak)",
+      "Bash(findstr:*)",
+      "Bash(dir /b)",
+      "Bash(more)"
     ],
     "deny": [],
     "ask": []
