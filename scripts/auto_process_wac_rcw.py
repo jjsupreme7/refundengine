@@ -15,19 +15,29 @@ from pathlib import Path
 def check_downloads_complete():
     """Check if WAC and RCW downloads are complete"""
     wac_dir = Path("knowledge_base/wa_tax_law/wac/title_458/chapter_458_20")
+    rcw_82_04_dir = Path("knowledge_base/wa_tax_law/rcw/title_82/chapter_82_04")
     rcw_82_08_dir = Path("knowledge_base/wa_tax_law/rcw/title_82/chapter_82_08")
     rcw_82_12_dir = Path("knowledge_base/wa_tax_law/rcw/title_82/chapter_82_12")
+    rcw_82_14_dir = Path("knowledge_base/wa_tax_law/rcw/title_82/chapter_82_14")
+    rcw_82_32_dir = Path("knowledge_base/wa_tax_law/rcw/title_82/chapter_82_32")
 
     # Check if directories exist and have files
-    wac_complete = wac_dir.exists() and len(list(wac_dir.glob("*.html"))) >= 398
-    rcw_08_complete = rcw_82_08_dir.exists() and len(list(rcw_82_08_dir.glob("*.html"))) >= 530
-    rcw_12_complete = rcw_82_12_dir.exists() and len(list(rcw_82_12_dir.glob("*.html"))) >= 100
+    # Updated to actual download counts (not estimates)
+    wac_complete = wac_dir.exists() and len(list(wac_dir.glob("*.html"))) >= 191
+    rcw_04_complete = rcw_82_04_dir.exists() and len(list(rcw_82_04_dir.glob("*.html"))) >= 687
+    rcw_08_complete = rcw_82_08_dir.exists() and len(list(rcw_82_08_dir.glob("*.html"))) >= 177
+    rcw_12_complete = rcw_82_12_dir.exists() and len(list(rcw_82_12_dir.glob("*.html"))) >= 147
+    rcw_14_complete = rcw_82_14_dir.exists() and len(list(rcw_82_14_dir.glob("*.html"))) >= 184
+    rcw_32_complete = rcw_82_32_dir.exists() and len(list(rcw_82_32_dir.glob("*.html"))) >= 357
 
     return {
         'wac': wac_complete,
+        'rcw_82_04': rcw_04_complete,
         'rcw_82_08': rcw_08_complete,
         'rcw_82_12': rcw_12_complete,
-        'all_complete': wac_complete and rcw_08_complete and rcw_12_complete
+        'rcw_82_14': rcw_14_complete,
+        'rcw_82_32': rcw_32_complete,
+        'all_complete': all([wac_complete, rcw_04_complete, rcw_08_complete, rcw_12_complete, rcw_14_complete, rcw_32_complete])
     }
 
 
@@ -81,7 +91,13 @@ import pandas as pd
 from pathlib import Path
 
 output_dir = Path("outputs")
-files = ["WA_Tax_Law_RCW_82-08.xlsx", "WA_Tax_Law_RCW_82-12.xlsx"]
+files = [
+    "WA_Tax_Law_RCW_82-04.xlsx",
+    "WA_Tax_Law_RCW_82-08.xlsx",
+    "WA_Tax_Law_RCW_82-12.xlsx",
+    "WA_Tax_Law_RCW_82-14.xlsx",
+    "WA_Tax_Law_RCW_82-32.xlsx"
+]
 
 all_data = []
 for f in files:
@@ -108,17 +124,23 @@ def main():
     print("WAC/RCW Download Monitor & Auto-Processor")
     print("="*70)
     print("\nMonitoring downloads...")
-    print("- WAC Chapter 458-20: ~398 sections")
-    print("- RCW Chapter 82.08: ~532 sections")
-    print("- RCW Chapter 82.12: ~120 sections")
+    print("- WAC Chapter 458-20: 191 sections")
+    print("- RCW Chapter 82.04: 687 sections (B&O tax)")
+    print("- RCW Chapter 82.08: 177 sections (Retail sales tax)")
+    print("- RCW Chapter 82.12: 147 sections (Use tax)")
+    print("- RCW Chapter 82.14: 184 sections (Local taxes)")
+    print("- RCW Chapter 82.32: 357 sections (Administrative provisions)")
     print("\nAI analysis will start automatically when downloads complete.")
-    print("Estimated cost: ~$0.50 (GPT-4o-mini)")
+    print("Estimated cost: ~$1.50 (GPT-4o-mini)")
     print("="*70)
 
     processed = {
         'wac': False,
+        'rcw_82_04': False,
         'rcw_82_08': False,
-        'rcw_82_12': False
+        'rcw_82_12': False,
+        'rcw_82_14': False,
+        'rcw_82_32': False
     }
 
     check_interval = 300  # Check every 5 minutes
@@ -153,6 +175,33 @@ def main():
             )
             processed['rcw_82_12'] = True
 
+        # Process RCW 82.04 if complete and not yet processed
+        if status['rcw_82_04'] and not processed['rcw_82_04']:
+            print("\n✅ RCW Chapter 82.04 download complete!")
+            run_ai_analysis(
+                "knowledge_base/wa_tax_law/rcw/title_82/chapter_82_04",
+                "outputs/WA_Tax_Law_RCW_82-04.xlsx"
+            )
+            processed['rcw_82_04'] = True
+
+        # Process RCW 82.14 if complete and not yet processed
+        if status['rcw_82_14'] and not processed['rcw_82_14']:
+            print("\n✅ RCW Chapter 82.14 download complete!")
+            run_ai_analysis(
+                "knowledge_base/wa_tax_law/rcw/title_82/chapter_82_14",
+                "outputs/WA_Tax_Law_RCW_82-14.xlsx"
+            )
+            processed['rcw_82_14'] = True
+
+        # Process RCW 82.32 if complete and not yet processed
+        if status['rcw_82_32'] and not processed['rcw_82_32']:
+            print("\n✅ RCW Chapter 82.32 download complete!")
+            run_ai_analysis(
+                "knowledge_base/wa_tax_law/rcw/title_82/chapter_82_32",
+                "outputs/WA_Tax_Law_RCW_82-32.xlsx"
+            )
+            processed['rcw_82_32'] = True
+
         # If everything is complete, combine and exit
         if all(processed.values()):
             print("\n✅ All downloads and AI analysis complete!")
@@ -163,9 +212,14 @@ def main():
             print("="*70)
             print("\n📋 Review these Excel files:")
             print("  1. outputs/WA_Tax_Decisions_Complete.xlsx (755 tax decisions)")
-            print("  2. outputs/WA_Tax_Law_WAC_458-20.xlsx (~398 WAC sections)")
-            print("  3. outputs/WA_Tax_Law_RCW_Complete.xlsx (~650 RCW sections)")
-            print("\n📊 Total: ~1,800 legal documents ready for review!")
+            print("  2. outputs/WA_Tax_Law_WAC_458-20.xlsx (191 WAC sections)")
+            print("  3. outputs/WA_Tax_Law_RCW_Complete.xlsx (1,552 RCW sections)")
+            print("     - RCW 82.04: 687 sections (B&O tax)")
+            print("     - RCW 82.08: 177 sections (Retail sales tax)")
+            print("     - RCW 82.12: 147 sections (Use tax)")
+            print("     - RCW 82.14: 184 sections (Local taxes)")
+            print("     - RCW 82.32: 357 sections (Administrative provisions)")
+            print("\n📊 Total: 2,498 legal documents ready for review!")
             print("="*70)
             break
 

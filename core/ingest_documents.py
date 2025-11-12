@@ -41,11 +41,13 @@ from tqdm import tqdm
 from typing import Dict, List, Any, Optional
 import pandas as pd
 from datetime import datetime
+from bs4 import BeautifulSoup
 
 # Import canonical chunking and cost tracker
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.chunking import chunk_legal_document, get_chunking_stats
 from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
+from core.document_urls import generate_document_url
 
 # Try to import cost tracker, create simple fallback if not available
 try:
@@ -102,6 +104,65 @@ def extract_text_from_pdf(pdf_path: str, max_pages: int = 3) -> tuple[str, int]:
             return text, total_pages
     except Exception as e:
         print(f"❌ Error extracting PDF: {e}")
+        return "", 0
+
+
+def extract_text_from_html(html_path: str, max_chars: int = 10000) -> tuple[str, int]:
+    """
+    Extract text from HTML file using BeautifulSoup
+    Returns: (text, estimated_pages)
+    """
+    try:
+        with open(html_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # Remove script and style elements
+        for script in soup(["script", "style"]):
+            script.decompose()
+
+        # Get text
+        text = soup.get_text()
+
+        # Break into lines and remove leading and trailing space on each
+        lines = (line.strip() for line in text.splitlines())
+        # Break multi-headlines into a line each
+        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+        # Drop blank lines
+        text = '\n'.join(chunk for chunk in chunks if chunk)
+
+        # Limit to max_chars for initial metadata extraction
+        if max_chars > 0:
+            text = text[:max_chars]
+
+        # Estimate pages (assuming ~3000 chars per page)
+        estimated_pages = max(1, len(text) // 3000)
+
+        return text, estimated_pages
+    except Exception as e:
+        print(f"❌ Error extracting HTML: {e}")
+        return "", 0
+
+
+def extract_text_from_file(file_path: str, max_pages_or_chars: int = None) -> tuple[str, int]:
+    """
+    Extract text from either PDF or HTML file
+    Returns: (text, pages_or_estimated)
+    """
+    file_path_obj = Path(file_path)
+
+    if file_path_obj.suffix.lower() == '.pdf':
+        max_pages = max_pages_or_chars if max_pages_or_chars else 3
+        return extract_text_from_pdf(file_path, max_pages=max_pages)
+    elif file_path_obj.suffix.lower() in ['.html', '.htm']:
+        max_chars = max_pages_or_chars if max_pages_or_chars else 10000
+        # For full extraction (e.g., 999 pages), use 0 for unlimited chars
+        if max_pages_or_chars and max_pages_or_chars > 100:
+            max_chars = 0  # unlimited
+        return extract_text_from_html(file_path, max_chars=max_chars)
+    else:
+        print(f"❌ Unsupported file type: {file_path_obj.suffix}")
         return "", 0
 
 
@@ -290,10 +351,10 @@ def export_metadata_to_excel(
 
     metadata_rows = []
 
-    for pdf_path in tqdm(pdf_files, desc="Analyzing PDFs"):
+    for pdf_path in tqdm(pdf_files, desc="Analyzing files"):
         try:
             # Extract sample text
-            sample_text, total_pages = extract_text_from_pdf(str(pdf_path), max_pages=3)
+            sample_text, total_pages = extract_text_from_file(str(pdf_path), max_pages_or_chars=3)
 
             if not sample_text:
                 print(f"⚠️  Skipping {pdf_path.name} - could not extract text")
@@ -612,7 +673,7 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
 
                 # Extract full text
                 print("📄 Extracting full document text...")
-                full_text, total_pages = extract_text_from_pdf(pdf_path, max_pages=999)
+                full_text, total_pages = extract_text_from_file(pdf_path, max_pages_or_chars=999)
 
                 if not full_text:
                     print("❌ Could not extract text")
@@ -622,10 +683,17 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
             print(f"✅ Extracted {len(full_text)} characters from {total_pages} pages")
 
             # Prepare metadata from Excel (user-edited)
+            # Get citation for URL generation (if applicable)
+            citation = row.get("citation", "") if document_type == "tax_law" else None
+
+            # Generate document URL
+            file_url = generate_document_url(citation, pdf_path, document_type)
+
             doc_data = {
                 "document_type": document_type,
                 "title": row["document_title"],
                 "source_file": pdf_path,
+                "file_url": file_url,  # Store the generated URL
                 "processing_status": "processing",
             }
 
@@ -869,16 +937,18 @@ def main():
             print(f"❌ Folder not found: {folder_path}")
             return
 
-        # Find all PDFs
+        # Find all PDFs and HTML files
         pdf_files = list(folder_path.glob("*.pdf"))
+        html_files = list(folder_path.glob("*.html"))
+        all_files = pdf_files + html_files
 
-        if not pdf_files:
-            print(f"❌ No PDF files found in {folder_path}")
+        if not all_files:
+            print(f"❌ No PDF or HTML files found in {folder_path}")
             return
 
-        print(f"\n🔍 Found {len(pdf_files)} PDF files")
+        print(f"\n🔍 Found {len(all_files)} files ({len(pdf_files)} PDFs, {len(html_files)} HTML)")
 
-        export_metadata_to_excel(pdf_files, args.type, args.export_metadata, args.limit)
+        export_metadata_to_excel(all_files, args.type, args.export_metadata, args.limit)
         return
 
     # MODE 2: Import metadata from Excel and ingest

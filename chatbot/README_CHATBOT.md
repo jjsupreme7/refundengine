@@ -4,6 +4,22 @@ Simple, clean chatbot interface for querying Washington State tax law using RAG 
 
 ## 🚀 Quick Start
 
+### **Web UI (Recommended)**
+```bash
+# Start both document server and web UI
+./scripts/start_web_chatbot.sh
+
+# Or manually:
+# Terminal 1: Start document server
+python chatbot/document_server.py
+
+# Terminal 2: Start Streamlit UI
+streamlit run chatbot/web_chat.py
+```
+
+Then open your browser to: **http://localhost:8501**
+
+### **CLI (Terminal-based)**
 ```bash
 python chatbot/simple_chat.py
 ```
@@ -14,6 +30,12 @@ python chatbot/simple_chat.py
 - Semantic search using OpenAI embeddings
 - RAG-powered answers citing actual tax law
 - Returns relevant WAC/RCW references with quotes
+
+### **Clickable Source Links** ✨ NEW
+- Direct links to official WAC/RCW documents on legs.wa.gov
+- Click to view original source documents
+- PDF files served via local document server
+- Easy verification and deeper research
 
 ### **Advanced Filtering**
 Filter search results by:
@@ -148,24 +170,78 @@ Just type naturally:
 - Filters help narrow search for more targeted results
 - Conversation history provides context for follow-up questions
 
-## 🆚 Comparison with Original Chatbot
+## 🆚 Interface Comparison
 
-| Feature | `chat_rag.py` | `simple_chat.py` |
-|---------|---------------|------------------|
-| UI | Basic terminal | Clean, structured |
-| Filters | Basic | Advanced (multi-select) |
-| Screen clearing | No | Yes |
-| Filter UI | Command-line | Interactive menu |
-| Metadata display | Limited | Full (tax types, industries, topics) |
-| Help system | Basic | Comprehensive |
+| Feature | `chat_rag.py` | `simple_chat.py` | `web_chat.py` ✨ |
+|---------|---------------|------------------|------------------|
+| UI | Basic terminal | Clean terminal | Modern web UI |
+| Clickable Links | ❌ No | ❌ No | ✅ Yes |
+| Filters | Basic | Advanced | Advanced + UI |
+| Screen clearing | No | Yes | N/A (web) |
+| Filter UI | Command-line | Interactive menu | Sidebar widgets |
+| Metadata display | Limited | Full | Full + formatted |
+| Help system | Basic | Comprehensive | Inline help |
+| Multi-user | No | No | Yes (web-based) |
+| Mobile friendly | No | No | ✅ Yes |
+
+## 🔧 Setup & Deployment
+
+### **First-Time Setup**
+
+1. **Deploy Database Updates** (required for clickable links)
+```bash
+# Option 1: Use Supabase Dashboard
+# Go to SQL Editor and run: database/migrations/add_file_url_to_rpc.sql
+
+# Option 2: Use psql (if installed)
+./scripts/deploy_url_rpc_updates.sh
+```
+
+2. **Populate Document URLs**
+```bash
+# Backfill file_url for existing documents
+python scripts/populate_file_urls.py
+```
+
+3. **Install Dependencies**
+```bash
+# If using web UI
+pip install streamlit flask
+
+# Already have: openai, supabase, python-dotenv
+```
+
+### **Starting the Web Chatbot**
+
+```bash
+# Easy way - start both servers at once
+./scripts/start_web_chatbot.sh
+
+# Stop servers
+./scripts/stop_web_chatbot.sh
+
+# Or press Ctrl+C in the terminal
+```
+
+### **Document Server Details**
+
+The document server runs on `http://localhost:5001` and serves:
+- **WAC/RCW HTML files** - Scraped from legs.wa.gov
+- **PDF documents** - Local tax law documents
+- **Security features** - Path validation, directory traversal prevention
+
+Endpoints:
+- Health check: `http://localhost:5001/health`
+- Documents: `http://localhost:5001/documents/<filename>`
 
 ## 🚀 Next Steps
 
-1. **Test with real questions** - Try various tax law queries
-2. **Experiment with filters** - See how filtering affects results
-3. **Review citations** - Check if answers accurately cite sources
-4. **Add more documents** - Ingest additional WAC/RCW documents for broader coverage
+1. **Deploy database updates** - Enable clickable source links
+2. **Test with real questions** - Try various tax law queries
+3. **Experiment with filters** - See how filtering affects results
+4. **Review citations** - Click links to verify sources
+5. **Add more documents** - Ingest additional WAC/RCW documents for broader coverage
 
 ---
 
-**Pro Tip:** Use `/stats` to see what documents are available, then use `/filter` to focus on specific areas before asking questions!
+**Pro Tip:** Use the web UI (`web_chat.py`) for the best experience with clickable source links! Click on any WAC/RCW citation to view the original document.
