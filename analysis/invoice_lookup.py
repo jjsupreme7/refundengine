@@ -42,9 +42,26 @@ class InvoiceLookup:
         Args:
             test_data_root: Path to Test Data folder containing invoices
         """
-        self.test_data_root = Path(test_data_root)
+        self.test_data_root = Path(test_data_root).resolve()
         self.invoice_cache = {}  # Cache of invoice number -> file path
         self._build_invoice_cache()
+
+    def _validate_path(self, file_path: Path) -> bool:
+        """
+        Validate that a path is within the test_data_root directory.
+        Prevents path traversal and symlink attacks.
+
+        Args:
+            file_path: Path to validate
+
+        Returns:
+            True if path is safe, False otherwise
+        """
+        try:
+            resolved_path = file_path.resolve()
+            return str(resolved_path).startswith(str(self.test_data_root))
+        except Exception:
+            return False
 
     def _build_invoice_cache(self):
         """Build cache of all invoices in Test Data folders"""
@@ -56,6 +73,10 @@ class InvoiceLookup:
         invoices_folder = self.test_data_root / "Invoices"
         if invoices_folder.exists():
             for file in invoices_folder.glob("*"):
+                # Validate path to prevent symlink attacks
+                if not self._validate_path(file):
+                    print(f"Warning: Skipping file outside trusted directory: {file}")
+                    continue
                 if file.suffix.lower() in ['.pdf', '.tif', '.tiff', '.xls', '.xlsx']:
                     # Extract invoice number from filename
                     # Format: 000005000021-1.PDF -> 000005000021
@@ -66,6 +87,10 @@ class InvoiceLookup:
         po_folder = self.test_data_root / "Purchase Orders"
         if po_folder.exists():
             for file in po_folder.glob("*"):
+                # Validate path to prevent symlink attacks
+                if not self._validate_path(file):
+                    print(f"Warning: Skipping file outside trusted directory: {file}")
+                    continue
                 # Extract PO number: PO_4900668309_ERICSSON_...
                 if file.name.startswith("PO_"):
                     parts = file.name.split("_")
@@ -90,12 +115,23 @@ class InvoiceLookup:
 
         # Try exact match first
         if clean_num in self.invoice_cache:
-            return self.invoice_cache[clean_num]
+            path = self.invoice_cache[clean_num]
+            # Validate path before returning (defense in depth)
+            if self._validate_path(path):
+                return path
+            else:
+                print(f"Warning: Cached path validation failed for {invoice_number}")
+                return None
 
         # Try variations
         for cached_num, path in self.invoice_cache.items():
             if clean_num in cached_num or cached_num in clean_num:
-                return path
+                # Validate path before returning (defense in depth)
+                if self._validate_path(path):
+                    return path
+                else:
+                    print(f"Warning: Cached path validation failed for {invoice_number}")
+                    return None
 
         return None
 

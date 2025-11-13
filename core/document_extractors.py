@@ -270,7 +270,7 @@ def extract_text_from_excel(excel_path: str, sheet_name: Optional[str] = None) -
         return "", 0
 
 
-def extract_text_from_file(file_path: str, max_pages: int = None) -> Tuple[str, int]:
+def extract_text_from_file(file_path: str, max_pages: int = None, base_dir: Optional[str] = None) -> Tuple[str, int]:
     """
     Universal file extractor - automatically detects file type and extracts text
 
@@ -283,20 +283,31 @@ def extract_text_from_file(file_path: str, max_pages: int = None) -> Tuple[str, 
     Args:
         file_path: Path to file
         max_pages: Maximum pages to extract for PDF files (None = all)
+        base_dir: Optional base directory to restrict file access (prevents path traversal)
 
     Returns:
         Tuple of (extracted_text, page_or_item_count)
 
     Raises:
-        ValueError: If file type is not supported
+        ValueError: If file type is not supported or path traversal detected
         FileNotFoundError: If file doesn't exist
 
     Example:
         >>> text, pages = extract_text_from_file("invoice.pdf")
         >>> text, pages = extract_text_from_file("scan.tif")
-        >>> text, metadata = extract_text_from_file("email.msg")
+        >>> text, pages = extract_text_from_file("email.msg")
+        >>> text, pages = extract_text_from_file("invoice.pdf", base_dir="client_docs")
     """
-    path = Path(file_path)
+    path = Path(file_path).resolve()
+
+    # Validate path if base_dir is provided (prevents path traversal attacks)
+    if base_dir:
+        base_path = Path(base_dir).resolve()
+        try:
+            if not str(path).startswith(str(base_path)):
+                raise ValueError(f"Path traversal detected: {file_path} is outside {base_dir}")
+        except Exception as e:
+            raise ValueError(f"Invalid file path: {file_path} - {e}")
 
     if not path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")

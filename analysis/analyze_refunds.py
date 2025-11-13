@@ -46,9 +46,28 @@ class RefundAnalyzer:
     """Analyzes invoice line items for tax refund eligibility"""
 
     def __init__(self, docs_folder: str = "client_docs"):
-        self.docs_folder = Path(docs_folder)
+        self.docs_folder = Path(docs_folder).resolve()
         self.embedding_model = "text-embedding-3-small"
         self.analysis_model = "gpt-4o"  # Use GPT-4 for complex legal analysis
+
+    def validate_path(self, filename: str) -> Optional[Path]:
+        """
+        Validate that a filename doesn't contain path traversal attacks.
+        Returns the safe path if valid, None if invalid.
+        """
+        try:
+            # Construct the full path and resolve it
+            full_path = (self.docs_folder / filename.strip()).resolve()
+
+            # Check if the resolved path is within docs_folder
+            if not str(full_path).startswith(str(self.docs_folder)):
+                print(f"  WARNING: Path traversal attempt detected: {filename}")
+                return None
+
+            return full_path
+        except Exception as e:
+            print(f"  WARNING: Invalid filename: {filename} - {e}")
+            return None
 
     def extract_text_from_pdf(self, pdf_path: Path) -> str:
         """Extract text from PDF file"""
@@ -293,15 +312,15 @@ Return JSON:
 
         # Extract text from invoice
         for inv_file in invoice_files:
-            inv_path = self.docs_folder / inv_file.strip()
-            if inv_path.exists() and inv_path.suffix.lower() == ".pdf":
+            inv_path = self.validate_path(inv_file)
+            if inv_path and inv_path.exists() and inv_path.suffix.lower() == ".pdf":
                 print(f"  Reading invoice: {inv_file}")
                 invoice_text += self.extract_text_from_pdf(inv_path) + "\n"
 
         # Extract text from PO
         for po_file in po_files:
-            po_path = self.docs_folder / po_file.strip()
-            if po_path.exists() and po_path.suffix.lower() == ".pdf":
+            po_path = self.validate_path(po_file)
+            if po_path and po_path.exists() and po_path.suffix.lower() == ".pdf":
                 print(f"  Reading PO: {po_file}")
                 po_text += self.extract_text_from_pdf(po_path) + "\n"
 

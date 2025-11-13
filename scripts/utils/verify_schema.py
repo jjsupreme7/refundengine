@@ -13,6 +13,7 @@ except ImportError:
 
 try:
     import psycopg2
+    from psycopg2 import sql
 except ImportError:
     print("Error: psycopg2 not installed. Run: pip install psycopg2-binary")
     exit(1)
@@ -59,8 +60,8 @@ print("=" * 80 + "\n")
 
 print("All tables in public schema:")
 for (table,) in tables:
-    # Count rows
-    cursor.execute(f"SELECT COUNT(*) FROM {table};")
+    # Count rows - using sql.Identifier to prevent SQL injection
+    cursor.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table)))
     count = cursor.fetchone()[0]
     print(f"  ✓ {table:40} ({count} rows)")
 
