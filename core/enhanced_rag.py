@@ -7,13 +7,23 @@ Improvements over basic RAG:
 2. Reranking - Improves retrieval accuracy using AI
 3. Query Expansion - Better terminology matching
 4. Hybrid Search - Combines vector + keyword search
+
+MIGRATION NOTE: Now uses NEW schema (search_tax_law, tax_law_chunks)
 """
 
 import os
+import sys
 import json
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from openai import OpenAI
 from supabase import Client
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# Import centralized database client
+from core.database import get_supabase_client
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -21,14 +31,276 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 class EnhancedRAG:
     """Enhanced Retrieval Augmented Generation with validation and correction"""
 
-    def __init__(self, supabase_client: Client):
-        self.supabase = supabase_client
+    def __init__(self, supabase_client: Client = None, tax_rules_path: str = None):
+        """
+        Initialize Enhanced RAG
+
+        Args:
+            supabase_client: Optional Supabase client. If None, uses centralized client.
+            tax_rules_path: Path to tax_rules.json file. If None, uses default location.
+        """
+        self.supabase = supabase_client or get_supabase_client()
         self.embedding_model = "text-embedding-3-small"
         self.analysis_model = "gpt-4o"
         self.fast_model = "gpt-4o-mini"
 
         # Cache for embeddings
         self._embedding_cache = {}
+
+        # Load structured tax rules for fast lookup
+        self.tax_rules = self._load_tax_rules(tax_rules_path)
+
+        # Decision thresholds (configurable)
+        self.confidence_threshold_high = 0.85  # Skip retrieval if confidence > this
+        self.confidence_threshold_medium = 0.65  # Use fast retrieval
+
+    def _load_tax_rules(self, tax_rules_path: str = None) -> Dict:
+        """Load structured tax rules from JSON file"""
+        if tax_rules_path is None:
+            # Default path
+            project_root = Path(__file__).parent.parent
+            tax_rules_path = project_root / "knowledge_base/states/washington/tax_rules.json"
+
+        try:
+            if Path(tax_rules_path).exists():
+                with open(tax_rules_path, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"Warning: Could not load tax rules: {e}")
+
+        return {}
+
+    # ==================== AGENTIC RAG: DECISION LAYER ====================
+
+    def search_with_decision(
+        self,
+        query: str,
+        context: Dict = None,
+        top_k: int = 5,
+        force_retrieval: bool = False
+    ) -> Dict:
+        """
+        🤖 AGENTIC RAG: Decide whether/how to retrieve information
+
+        This method implements intelligent decision-making:
+        1. Check if we already have high-confidence cached knowledge
+        2. Check if structured rules (tax_rules.json) are sufficient
+        3. Decide which retrieval strategy to use based on complexity
+        4. Only perform expensive retrieval when necessary
+
+        Args:
+            query: The search query
+            context: Optional context dictionary with keys:
+                - vendor: Vendor name (e.g., "Microsoft")
+                - product: Product description
+                - product_type: Product category (e.g., "saas_subscription")
+                - amount: Transaction amount
+                - tax_paid: Tax amount paid
+                - prior_analysis: Previous analysis results with confidence
+            top_k: Number of results to return
+            force_retrieval: If True, skip decision logic and always retrieve
+
+        Returns:
+            Dictionary with:
+                - action: Decision taken (USE_CACHED | USE_RULES | RETRIEVE_SIMPLE | RETRIEVE_ENHANCED)
+                - reasoning: Why this decision was made
+                - results: The actual search results/cached data
+                - confidence: Confidence score (0-1)
+                - cost_saved: Estimated API cost saved by decision
+
+        Example:
+            >>> context = {
+            ...     "vendor": "Microsoft",
+            ...     "product": "Azure",
+            ...     "product_type": "iaas_paas",
+            ...     "prior_analysis": {"confidence_score": 0.92, "refund_eligible": True}
+            ... }
+            >>> result = rag.search_with_decision("Is Azure taxable?", context)
+            >>> print(result['action'])  # "USE_CACHED" (confidence 0.92 > 0.85)
+        """
+        context = context or {}
+
+        print(f"\n{'='*80}")
+        print(f"🤖 AGENTIC RAG: Making Retrieval Decision")
+        print(f"Query: {query}")
+        if context:
+            print(f"Context: {', '.join([f'{k}={v}' for k, v in list(context.items())[:3]])}")
+        print(f"{'='*80}\n")
+
+        # Skip decision if forced retrieval
+        if force_retrieval:
+            print("⚠️  Force retrieval enabled - using enhanced search\n")
+            results = self.search_enhanced(query, top_k)
+            return {
+                "action": "RETRIEVE_ENHANCED",
+                "reasoning": "Forced retrieval requested",
+                "results": results,
+                "confidence": 0.8,
+                "cost_saved": 0.0
+            }
+
+        # Step 1: Make decision
+        decision = self._make_retrieval_decision(query, context)
+
+        print(f"📊 Decision: {decision['action']}")
+        print(f"   Reasoning: {decision['reasoning']}")
+        print(f"   Estimated cost saved: ${decision['cost_saved']:.4f}\n")
+
+        # Step 2: Execute based on decision
+        if decision['action'] == 'USE_CACHED':
+            return decision
+
+        elif decision['action'] == 'USE_RULES':
+            return decision
+
+        elif decision['action'] == 'RETRIEVE_SIMPLE':
+            print("🔍 Using fast retrieval (basic search)...")
+            results = self.basic_search(query, top_k)
+            decision['results'] = results
+            decision['confidence'] = 0.7  # Medium confidence for simple retrieval
+            return decision
+
+        elif decision['action'] == 'RETRIEVE_ENHANCED':
+            print("🚀 Using enhanced retrieval (all improvements)...")
+            results = self.search_enhanced(query, top_k)
+            decision['results'] = results
+            decision['confidence'] = 0.9  # High confidence for enhanced retrieval
+            return decision
+
+        else:
+            # Fallback
+            print("⚠️  Unknown decision, defaulting to enhanced search...")
+            results = self.search_enhanced(query, top_k)
+            return {
+                "action": "RETRIEVE_ENHANCED",
+                "reasoning": "Fallback to enhanced search",
+                "results": results,
+                "confidence": 0.8,
+                "cost_saved": 0.0
+            }
+
+    def _make_retrieval_decision(self, query: str, context: Dict) -> Dict:
+        """
+        Core decision logic: Determine if/how to retrieve
+
+        Decision tree:
+        1. High-confidence prior analysis (>0.85)? → USE_CACHED
+        2. Product type has structured rules? → USE_RULES
+        3. Simple query (single fact)? → RETRIEVE_SIMPLE
+        4. Complex query (multi-step reasoning)? → RETRIEVE_ENHANCED
+        """
+
+        # Check for high-confidence cached results
+        prior_analysis = context.get('prior_analysis', {})
+        if prior_analysis and isinstance(prior_analysis, dict):
+            confidence = prior_analysis.get('confidence_score', 0)
+
+            if confidence >= self.confidence_threshold_high:
+                print(f"✅ High-confidence cached result found (confidence: {confidence:.2f})")
+                return {
+                    "action": "USE_CACHED",
+                    "reasoning": f"Prior analysis has high confidence ({confidence:.2f} ≥ {self.confidence_threshold_high})",
+                    "results": [{"source": "cached", "data": prior_analysis}],
+                    "confidence": confidence,
+                    "cost_saved": 0.015  # Saved: ~5 embeddings + 1 LLM call
+                }
+
+        # Check if structured rules are sufficient
+        product_type = context.get('product_type', '')
+        if product_type and self._has_structured_rule(product_type):
+            rule = self._get_structured_rule(product_type, query)
+            if rule:
+                print(f"✅ Structured rule found for product type: {product_type}")
+                return {
+                    "action": "USE_RULES",
+                    "reasoning": f"Structured tax rules available for {product_type}",
+                    "results": [{"source": "structured_rules", "data": rule}],
+                    "confidence": 0.8,
+                    "cost_saved": 0.012  # Saved: embeddings + retrieval + validation
+                }
+
+        # Check query complexity to decide retrieval strategy
+        complexity = self._assess_query_complexity(query, context)
+
+        if complexity == 'simple':
+            print(f"📌 Simple query detected - using fast retrieval")
+            return {
+                "action": "RETRIEVE_SIMPLE",
+                "reasoning": "Query is straightforward, basic search sufficient",
+                "results": [],  # Will be filled by search_with_decision
+                "confidence": 0.7,
+                "cost_saved": 0.008  # Saved: validation + reranking steps
+            }
+        else:
+            print(f"🔬 Complex query detected - using enhanced retrieval")
+            return {
+                "action": "RETRIEVE_ENHANCED",
+                "reasoning": "Query requires comprehensive analysis",
+                "results": [],  # Will be filled by search_with_decision
+                "confidence": 0.9,
+                "cost_saved": 0.0  # No savings, but highest accuracy
+            }
+
+    def _has_structured_rule(self, product_type: str) -> bool:
+        """Check if we have structured rules for this product type"""
+        if not self.tax_rules or 'product_type_rules' not in self.tax_rules:
+            return False
+        return product_type in self.tax_rules['product_type_rules']
+
+    def _get_structured_rule(self, product_type: str, query: str) -> Optional[Dict]:
+        """Get structured rule for product type, filtered by query relevance"""
+        if not self._has_structured_rule(product_type):
+            return None
+
+        rule = self.tax_rules['product_type_rules'][product_type]
+
+        # Build a comprehensive response from structured rules
+        return {
+            "product_type": product_type,
+            "taxable": rule.get("taxable", True),
+            "tax_classification": rule.get("tax_classification", ""),
+            "legal_basis": rule.get("legal_basis", []),
+            "description": rule.get("description", ""),
+            "exemptions": rule.get("exemptions", []),
+            "refund_scenarios": rule.get("refund_scenarios", []),
+            "rule_text": json.dumps(rule, indent=2)
+        }
+
+    def _assess_query_complexity(self, query: str, context: Dict) -> str:
+        """
+        Determine if query is simple or complex
+
+        Simple queries: Single-fact lookups (e.g., "Is X taxable?")
+        Complex queries: Multi-step reasoning, edge cases, calculation needed
+        """
+        # Keywords indicating complexity
+        complex_indicators = [
+            'calculate', 'compute', 'allocate', 'apportion',
+            'multi-state', 'multi-point', 'distributed',
+            'primarily human', 'edge case', 'exception',
+            'how much', 'refund amount', 'methodology',
+            'bundled', 'combined', 'mixed'
+        ]
+
+        query_lower = query.lower()
+
+        # Check for complex indicators
+        if any(indicator in query_lower for indicator in complex_indicators):
+            return 'complex'
+
+        # Check context complexity
+        if context.get('amount', 0) > 0 and 'calculate' in query_lower:
+            return 'complex'
+
+        # Check if asking about multiple things
+        if ' and ' in query_lower or ',' in query:
+            and_count = query_lower.count(' and ')
+            comma_count = query.count(',')
+            if and_count + comma_count > 2:
+                return 'complex'
+
+        # Default to simple
+        return 'simple'
 
     # ==================== CORE METHODS ====================
 
@@ -47,15 +319,19 @@ class EnhancedRAG:
         return embedding
 
     def basic_search(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Basic vector search (original implementation)"""
+        """Basic vector search using new schema"""
         query_embedding = self.get_embedding(query)
 
+        # Use the full-featured version with all optional parameters
         response = self.supabase.rpc(
-            "match_legal_chunks",
+            "search_tax_law",  # Updated to new schema function
             {
                 "query_embedding": query_embedding,
                 "match_threshold": 0.5,
                 "match_count": top_k,
+                "law_category_filter": None,
+                "tax_types_filter": None,
+                "industries_filter": None,
             },
         ).execute()
 
@@ -411,9 +687,9 @@ Return JSON:
     def _keyword_search(self, query: str, top_k: int = 5) -> List[Dict]:
         """Keyword-based search using PostgreSQL full-text search"""
         try:
-            # Use PostgreSQL text search
+            # Use PostgreSQL text search (updated to new schema)
             response = (
-                self.supabase.table("legal_chunks")
+                self.supabase.table("tax_law_chunks")  # Updated to new schema table
                 .select("*")
                 .textSearch("chunk_text", query)
                 .limit(top_k)

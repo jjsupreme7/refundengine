@@ -17,15 +17,17 @@ import argparse
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from openai import OpenAI
-from supabase import create_client, Client
 import PyPDF2
+
+# Import centralized database client
+from core.database import get_supabase_client
 
 # Import enhanced RAG
 from core.enhanced_rag import EnhancedRAG
 
 # Initialize clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-supabase: Client = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+supabase = get_supabase_client()
 
 
 class EnhancedRefundAnalyzer:
@@ -163,7 +165,7 @@ Return JSON:
         tax: float,
         invoice_text: str = "",
         po_text: str = "",
-        rag_method: str = "enhanced",  # basic, corrective, reranking, expansion, hybrid, enhanced
+        rag_method: str = "agentic",  # agentic (RECOMMENDED), enhanced, basic, corrective, reranking, expansion, hybrid
     ) -> Dict:
         """
         Main analysis: Determine if tax refund is eligible
@@ -171,12 +173,13 @@ Return JSON:
 
         Args:
             rag_method: Which RAG method to use
+                - "agentic": Intelligent decision layer (RECOMMENDED) - auto-decides cache/rules/retrieval
+                - "enhanced": All RAG improvements - always retrieves with full validation
                 - "basic": Standard vector search
                 - "corrective": With validation/correction
                 - "reranking": With AI reranking
                 - "expansion": With query expansion
                 - "hybrid": Vector + keyword search
-                - "enhanced": All improvements (RECOMMENDED)
         """
 
         print(f"\n{'='*80}")
@@ -209,23 +212,54 @@ Consider:
 - Out-of-state delivery
 """
 
-        # Search legal knowledge using selected RAG method
-        print(f"\n🔍 Searching legal knowledge base ({rag_method} method)...\n")
+        # Use Agentic RAG decision layer for intelligent retrieval
+        # This will automatically decide whether to use cached results, structured rules,
+        # or perform actual retrieval based on context and confidence
+        if rag_method == "agentic":
+            print(f"\n🤖 Using Agentic RAG (intelligent decision-making)...\n")
 
-        if rag_method == "basic":
-            legal_chunks = self.rag.basic_search(query, top_k=5)
-        elif rag_method == "corrective":
-            legal_chunks = self.rag.search_with_correction(query, top_k=5)
-        elif rag_method == "reranking":
-            legal_chunks = self.rag.search_with_reranking(query, top_k=5)
-        elif rag_method == "expansion":
-            legal_chunks = self.rag.search_with_expansion(query, top_k=5)
-        elif rag_method == "hybrid":
-            legal_chunks = self.rag.search_hybrid(query, top_k=5)
-        else:  # enhanced (default)
-            legal_chunks = self.rag.search_enhanced(query, top_k=5)
+            # Build context for decision-making
+            context = {
+                "vendor": vendor,
+                "product": product_desc,
+                "product_type": product_type,
+                "amount": amount,
+                "tax_paid": tax,
+                "prior_analysis": learned_info if learned_info else None
+            }
 
-        print(f"\n✅ Retrieved {len(legal_chunks)} legal chunks\n")
+            # Let the agent decide how to retrieve
+            decision_result = self.rag.search_with_decision(query, context=context, top_k=5)
+
+            # Extract results and add decision metadata
+            legal_chunks = decision_result.get('results', [])
+            decision_action = decision_result.get('action', 'UNKNOWN')
+            decision_confidence = decision_result.get('confidence', 0.0)
+            cost_saved = decision_result.get('cost_saved', 0.0)
+
+            print(f"\n✅ Decision: {decision_action}")
+            print(f"   Confidence: {decision_confidence:.2f}")
+            print(f"   Cost Saved: ${cost_saved:.4f}")
+            print(f"   Retrieved {len(legal_chunks)} chunks\n")
+
+        else:
+            # Traditional RAG methods (backward compatibility)
+            print(f"\n🔍 Searching legal knowledge base ({rag_method} method)...\n")
+
+            if rag_method == "basic":
+                legal_chunks = self.rag.basic_search(query, top_k=5)
+            elif rag_method == "corrective":
+                legal_chunks = self.rag.search_with_correction(query, top_k=5)
+            elif rag_method == "reranking":
+                legal_chunks = self.rag.search_with_reranking(query, top_k=5)
+            elif rag_method == "expansion":
+                legal_chunks = self.rag.search_with_expansion(query, top_k=5)
+            elif rag_method == "hybrid":
+                legal_chunks = self.rag.search_hybrid(query, top_k=5)
+            else:  # enhanced (default)
+                legal_chunks = self.rag.search_enhanced(query, top_k=5)
+
+            print(f"\n✅ Retrieved {len(legal_chunks)} legal chunks\n")
 
         # Build context from legal knowledge
         legal_context = self._build_legal_context(legal_chunks)
