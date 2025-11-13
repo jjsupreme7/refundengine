@@ -25,16 +25,11 @@ except ImportError:
     print("Error: openai package not installed. Run: pip install openai")
     sys.exit(1)
 
-# Import Supabase
+# Import centralized Supabase client
 try:
-    from supabase import create_client, Client
+    from core.database import get_supabase_client
 
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        print("Error: SUPABASE_URL and SUPABASE_KEY must be set")
-        sys.exit(1)
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase = get_supabase_client()
 except ImportError:
     print("Error: supabase package not installed. Run: pip install supabase")
     sys.exit(1)
@@ -126,13 +121,16 @@ Return JSON:
         """Search legal knowledge base using vector similarity"""
         query_embedding = self.get_embedding(query)
 
-        # Search legal_chunks table
+        # Search tax_law_chunks table using new function
         response = supabase.rpc(
-            "match_legal_chunks",
+            "search_tax_law",
             {
                 "query_embedding": query_embedding,
                 "match_threshold": 0.5,
                 "match_count": top_k,
+                "law_category_filter": None,
+                "tax_types_filter": None,
+                "industries_filter": None,
             },
         ).execute()
 

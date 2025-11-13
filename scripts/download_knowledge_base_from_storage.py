@@ -12,17 +12,15 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-from supabase import create_client, Client
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 load_dotenv()
 
-# Initialize Supabase
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+# Import centralized Supabase client
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 # Storage bucket name
 BUCKET_NAME = "knowledge-base"

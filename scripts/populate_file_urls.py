@@ -15,7 +15,6 @@ Usage:
 import os
 import sys
 from pathlib import Path
-from supabase import create_client, Client
 from dotenv import load_dotenv
 from typing import List, Dict
 from tqdm import tqdm
@@ -23,14 +22,13 @@ from tqdm import tqdm
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core.document_urls import generate_document_url
+from core.database import get_supabase_client
 
 # Load environment variables
 load_dotenv()
 
-# Initialize Supabase client
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+# Initialize Supabase client (centralized)
+supabase = get_supabase_client()
 
 
 def fetch_all_documents() -> List[Dict]:

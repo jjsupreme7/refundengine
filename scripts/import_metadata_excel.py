@@ -11,25 +11,28 @@ Usage:
 """
 
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple, Any
-from supabase import create_client
 from dotenv import load_dotenv
 import argparse
 from openpyxl import load_workbook
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Load environment
 load_dotenv()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+# Import centralized database client
+from core.database import get_supabase_client
 
 
 class ExcelMetadataImporter:
     def __init__(self, excel_path: str):
         self.excel_path = Path(excel_path)
-        self.supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        self.supabase = get_supabase_client()
         self.changes = []
 
     def load_sheet_as_dicts(self, sheet_name: str) -> List[Dict]:

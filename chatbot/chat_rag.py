@@ -20,12 +20,9 @@ except:
 from openai import OpenAI
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Supabase
-from supabase import create_client
-supabase = create_client(
-    os.getenv('SUPABASE_URL'),
-    os.getenv('SUPABASE_SERVICE_ROLE_KEY')
-)
+# Supabase - centralized client
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 
 class RAGChatbot:

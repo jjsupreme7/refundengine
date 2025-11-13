@@ -41,17 +41,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from supabase import create_client, Client
 from fuzzywuzzy import fuzz, process
+
+# Import centralized Supabase client
+from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+supabase = get_supabase_client()
 
 
 class VendorResearcher:

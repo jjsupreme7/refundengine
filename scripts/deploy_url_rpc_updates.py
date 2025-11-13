@@ -13,7 +13,10 @@ import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-from supabase import create_client, Client
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from core.database import get_supabase_client
 
 # Load environment variables
 load_dotenv()
@@ -147,7 +150,7 @@ def main():
 
     try:
         # Initialize Supabase client
-        supabase: Client = create_client(supabase_url, supabase_key)
+        supabase = get_supabase_client()
 
         print("🚀 Deploying updated RPC functions...\n")
 

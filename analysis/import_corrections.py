@@ -16,16 +16,11 @@ from typing import Dict, List, Optional
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import Supabase
+# Import centralized Supabase client
 try:
-    from supabase import create_client, Client
+    from core.database import get_supabase_client
 
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        print("Error: SUPABASE_URL and SUPABASE_KEY must be set")
-        sys.exit(1)
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase = get_supabase_client()
 except ImportError:
     print("Error: supabase package not installed. Run: pip install supabase")
     sys.exit(1)

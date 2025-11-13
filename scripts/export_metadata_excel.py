@@ -10,20 +10,23 @@ Usage:
 """
 
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
-from supabase import create_client
 from dotenv import load_dotenv
 import argparse
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Load environment
 load_dotenv()
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+# Import centralized database client
+from core.database import get_supabase_client
 
 
 def style_header(ws):
@@ -59,7 +62,7 @@ def auto_adjust_columns(ws):
 def export_to_excel(output_path: Path):
     """Export all metadata to a single Excel file with multiple sheets"""
 
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase = get_supabase_client()
 
     # Create workbook
     wb = Workbook()

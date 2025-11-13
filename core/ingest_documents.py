@@ -34,7 +34,6 @@ import argparse
 from pathlib import Path
 import pdfplumber
 from openai import OpenAI
-from supabase import create_client, Client
 from dotenv import load_dotenv
 import json
 from tqdm import tqdm
@@ -76,9 +75,10 @@ load_dotenv()
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+
+# Import centralized Supabase client
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 # Initialize cost tracker
 cost_tracker = CostTracker("document_ingestion")
@@ -548,9 +548,14 @@ def export_metadata_to_excel(
     print(f"{'='*70}\n")
 
 
-def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
+def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, force: bool = False):
     """
     Import edited metadata from Excel and ingest to Supabase
+
+    Args:
+        excel_path: Path to Excel file
+        auto_confirm: Skip confirmation prompt
+        force: Ingest ALL documents regardless of Status (bypasses 'Approved' check)
     """
     print(f"\n📂 Loading metadata from Excel: {excel_path}")
 
@@ -562,32 +567,45 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
 
     print(f"✅ Loaded {len(df)} documents from Excel\n")
 
-    # Filter to only 'Approved' status
-    approved_df = df[df["Status"] == "Approved"]
-    skipped_df = df[df["Status"] == "Skip"]
-    review_df = df[df["Status"].isin(["Review"])]
+    if force:
+        # FORCE MODE: Ingest all documents except those marked "Skip"
+        print(f"⚠️  FORCE MODE ENABLED: Ignoring Status column (except 'Skip')")
+        approved_df = df[df["Status"] != "Skip"]
+        skipped_df = df[df["Status"] == "Skip"]
+        review_df = pd.DataFrame()  # Empty since we're forcing all non-skipped
 
-    print(f"📊 Document status:")
-    print(f"  ✅ Approved (will ingest): {len(approved_df)}")
-    print(f"  ⏭️  Skip: {len(skipped_df)}")
-    print(f"  ⚠️  Still in Review: {len(review_df)}")
+        print(f"📊 Document status:")
+        print(f"  🚀 Force ingesting: {len(approved_df)} (all except Skip)")
+        print(f"  ⏭️  Skip: {len(skipped_df)}")
+    else:
+        # NORMAL MODE: Only ingest 'Approved' documents
+        approved_df = df[df["Status"] == "Approved"]
+        skipped_df = df[df["Status"] == "Skip"]
+        review_df = df[df["Status"].isin(["Review"])]
 
-    if len(review_df) > 0:
-        print(f"\n⚠️  Warning: {len(review_df)} documents still marked as Review")
-        print(
-            "These will NOT be ingested. Change status to 'Approved' to ingest them.\n"
-        )
+        print(f"📊 Document status:")
+        print(f"  ✅ Approved (will ingest): {len(approved_df)}")
+        print(f"  ⏭️  Skip: {len(skipped_df)}")
+        print(f"  ⚠️  Still in Review: {len(review_df)}")
 
-    if len(approved_df) == 0:
-        print("\n❌ No documents marked as 'Approved'. Nothing to ingest.")
-        print(
-            "Please edit the Excel file and set Status='Approved' for documents you want to ingest."
-        )
-        return
+        if len(review_df) > 0:
+            print(f"\n⚠️  Warning: {len(review_df)} documents still marked as Review")
+            print(
+                "These will NOT be ingested. Change status to 'Approved' to ingest them."
+            )
+            print(f"   OR use --force flag to ingest ALL documents.\n")
+
+        if len(approved_df) == 0:
+            print("\n❌ No documents marked as 'Approved'. Nothing to ingest.")
+            print(
+                "Please edit the Excel file and set Status='Approved' for documents you want to ingest."
+            )
+            print(f"   OR use --force flag to ingest ALL documents regardless of Status.")
+            return
 
     # Confirm before ingesting
     print(f"\n{'='*70}")
-    print(f"Ready to ingest {len(approved_df)} approved documents to Supabase")
+    print(f"Ready to ingest {len(approved_df)} documents to Supabase")
     print(f"{'='*70}")
 
     if not auto_confirm:
@@ -693,7 +711,7 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
                 "document_type": document_type,
                 "title": row["document_title"],
                 "source_file": pdf_path,
-                "file_url": file_url,  # Store the generated URL
+                # "file_url": file_url,  # TEMPORARILY DISABLED - column doesn't exist yet
                 "processing_status": "processing",
             }
 
@@ -771,11 +789,23 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False):
             document_id = result.data[0]["id"]
             print(f"✅ Document stored (ID: {document_id})")
 
-            # Smart chunk text using canonical chunking WITH PAGE NUMBERS
-            print("✂️  Chunking text intelligently (with page number tracking)...")
-            chunks, total_pages_processed = chunk_document_with_pages(
-                pdf_path, target_words=800, max_words=1500, min_words=150
-            )
+            # Smart chunk text
+            # Check if it's an HTML file (PDFs have page numbers, HTML doesn't)
+            is_html = pdf_path.lower().endswith('.html')
+
+            if is_html:
+                # For HTML, use simple chunking without page tracking
+                print("✂️  Chunking HTML text intelligently...")
+                chunks = chunk_legal_document(
+                    full_text, target_words=800, max_words=1500, min_words=150
+                )
+                total_pages_processed = total_pages
+            else:
+                # For PDF, use page-tracked chunking
+                print("✂️  Chunking PDF text intelligently (with page number tracking)...")
+                chunks, total_pages_processed = chunk_document_with_pages(
+                    pdf_path, target_words=800, max_words=1500, min_words=150
+                )
 
             stats = get_chunking_stats(chunks)
             print(f"✅ Created {len(chunks)} chunks from {total_pages_processed} pages")
@@ -917,6 +947,12 @@ def main():
         action="store_true",
         help="Auto-confirm ingestion without prompting",
     )
+    parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        help="Ingest ALL documents regardless of Status (bypasses 'Approved' check)",
+    )
 
     args = parser.parse_args()
 
@@ -957,7 +993,7 @@ def main():
             print(f"❌ Excel file not found: {args.import_metadata}")
             return
 
-        import_metadata_from_excel(args.import_metadata, auto_confirm=args.yes)
+        import_metadata_from_excel(args.import_metadata, auto_confirm=args.yes, force=args.force)
         return
 
     else:

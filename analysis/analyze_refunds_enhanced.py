@@ -210,6 +210,14 @@ Consider:
 - Digital automated services rules
 - Manufacturing exemptions
 - Out-of-state delivery
+
+IMPORTANT - Check for common errors:
+1. DOUBLE-CHARGING: Was sales tax charged (invoice total not round) AND use tax accrued?
+   → If in-state vendor charged sales tax, use tax should NOT be accrued (100% refund of use tax)
+2. WRONG JURISDICTION RATE: Does tax rate match service/ship-to location for the invoice date?
+   → Check if location indicators (city, site IDs, facility codes) suggest different jurisdiction
+3. CONSTRUCTION RETAINAGE (WA): Is this construction with retainage billing?
+   → WA requires tax on full contract amount upfront, not progressive billing
 """
 
         # Use Agentic RAG decision layer for intelligent retrieval
@@ -309,17 +317,37 @@ ANALYSIS REQUIRED:
    - If yes, what is the refund basis?
    - What percentage/amount should be refunded?
 
-5. **Legal Citations**: Which RCW/WAC sections apply?
+5. **COMMON TAX ERRORS** - Check for these specific scenarios:
 
-6. **Confidence**: How confident are you in this analysis (0-100)?
+   a) **Double-Charging (Sales + Use Tax)**:
+      - Does invoice total suggest sales tax was charged (not a round number)?
+      - Is vendor in-state (same state as buyer)?
+      - If YES to both: Use tax should NOT be accrued (sales tax already collected)
+      - Refund opportunity: 100% of use tax if double-charged
 
-7. **Next Steps**: What additional information is needed?
+   b) **Wrong Jurisdiction Rate**:
+      - Does the tax rate match the service location or ship-to address?
+      - Look for location indicators: city, county, site IDs, facility codes
+      - Check if rate is appropriate for invoice date (rates change by year/quarter)
+      - Refund opportunity: Difference between charged rate and correct rate
+
+   c) **Construction Retainage** (Washington specific):
+      - Is this construction industry with retainage/percentage completion billing?
+      - WA law requires tax on FULL contract amount upfront, not progressive
+      - Check if vendor charged tax progressively (wrong) vs. upfront full amount (correct)
+      - Risk: Potential underpayment (not refund), or overcharge if wrong rate used
+
+6. **Legal Citations**: Which RCW/WAC sections apply?
+
+7. **Confidence**: How confident are you in this analysis (0-100)?
+
+8. **Next Steps**: What additional information is needed?
 
 Return JSON:
 {{
     "is_taxable": true/false,
     "refund_eligible": true/false,
-    "refund_basis": "MPU|Non-taxable|Exemption|OOS Delivery|None",
+    "refund_basis": "MPU|Non-taxable|Exemption|OOS Delivery|Double-Charge|Wrong-Rate|None",
     "refund_percentage": 0-100,
     "estimated_refund": dollar amount,
     "primary_citation": "RCW/WAC",
@@ -328,7 +356,25 @@ Return JSON:
     "allocation_method": "User location|Equipment location|N/A",
     "confidence": 0-100,
     "reasoning": "detailed explanation",
-    "next_steps": ["action1", "action2"]
+    "next_steps": ["action1", "action2"],
+    "common_errors_detected": {{
+        "double_charging": {{
+            "detected": true/false,
+            "explanation": "If detected, explain why",
+            "refund_amount": dollar amount
+        }},
+        "wrong_jurisdiction": {{
+            "detected": true/false,
+            "expected_rate": percentage,
+            "actual_rate": percentage,
+            "location_indicators": ["city", "site_id", etc],
+            "refund_or_risk": "refund|underpayment"
+        }},
+        "construction_retainage": {{
+            "detected": true/false,
+            "issue": "progressive_billing|correct_upfront|unclear"
+        }}
+    }}
 }}
 """
 

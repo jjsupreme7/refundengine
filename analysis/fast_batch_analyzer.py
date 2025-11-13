@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Imports
 from dotenv import load_dotenv
 from openai import OpenAI
-from supabase import create_client, Client
+from core.database import get_supabase_client
 from scripts.utils.smart_cache import SmartCache
 
 # Load environment
@@ -35,9 +35,7 @@ load_dotenv()
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+supabase = get_supabase_client()
 
 # Initialize cache
 cache = SmartCache()
@@ -178,14 +176,17 @@ def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
         )
         query_embedding = response.data[0].embedding
 
-        # Search Supabase (state-aware)
+        # Search Supabase using new search_tax_law function
+        # NOTE: State filtering not yet implemented in new schema
         results = supabase.rpc(
-            "match_documents_by_state",
+            "search_tax_law",
             {
                 "query_embedding": query_embedding,
-                "target_state": state,
                 "match_threshold": 0.7,
                 "match_count": 10,
+                "law_category_filter": None,
+                "tax_types_filter": None,
+                "industries_filter": None,
             },
         ).execute()
 

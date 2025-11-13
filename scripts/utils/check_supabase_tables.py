@@ -2,8 +2,8 @@
 """Check what tables exist in Supabase"""
 
 import os
+import sys
 from pathlib import Path
-from supabase import create_client
 
 try:
     from dotenv import load_dotenv
@@ -12,14 +12,10 @@ try:
 except ImportError:
     pass
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("Error: SUPABASE credentials not found")
-    exit(1)
-
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Import centralized Supabase client
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 # Try to query existing tables
 tables_to_check = [

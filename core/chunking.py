@@ -13,7 +13,7 @@ Strategy:
 4. Always include section marker in chunk for context
 
 Usage:
-    from scripts.utils.chunking import chunk_legal_document
+    from core.chunking import chunk_legal_document
 
     chunks = chunk_legal_document(
         text="Your document text...",

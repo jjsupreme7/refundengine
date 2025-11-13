@@ -7,7 +7,6 @@ Clears old data from Supabase to start fresh
 import os
 import sys
 from pathlib import Path
-from supabase import create_client, Client
 
 # Load .env file
 try:
@@ -18,14 +17,10 @@ try:
 except ImportError:
     print("Warning: python-dotenv not installed, using system environment variables")
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
-
-if not SUPABASE_URL or not SUPABASE_KEY:
-    print("Error: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env file")
-    sys.exit(1)
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Import centralized Supabase client
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 
 def clean_table(table_name):

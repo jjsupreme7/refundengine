@@ -10,6 +10,9 @@ from pathlib import Path
 from typing import List, Dict
 from datetime import datetime
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Load environment
 try:
     from dotenv import load_dotenv
@@ -21,12 +24,9 @@ except:
 from openai import OpenAI
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-# Supabase
-from supabase import create_client
-supabase = create_client(
-    os.getenv('SUPABASE_URL'),
-    os.getenv('SUPABASE_SERVICE_ROLE_KEY')
-)
+# Supabase - using centralized client
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 
 class SimpleTaxChatbot:

@@ -37,7 +37,7 @@ services:
   worker:
     build: .
     container_name: refund-engine-worker
-    command: celery -A tasks worker --loglevel=info --concurrency=10
+    command: celery -A tasks worker --loglevel=info --concurrency=4
     depends_on:
       redis:
         condition: service_healthy
@@ -51,6 +51,11 @@ services:
       - ./client_documents:/app/client_documents
       - ./outputs:/app/outputs
       - ./knowledge_base:/app/knowledge_base
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1.0"
     restart: unless-stopped
 
   # Flower - Celery monitoring UI (optional)
@@ -85,6 +90,11 @@ services:
       - ./client_documents:/app/client_documents
       - ./outputs:/app/outputs
       - ./knowledge_base:/app/knowledge_base
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
     stdin_open: true
     tty: true
 

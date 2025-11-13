@@ -2,8 +2,8 @@
 """Clear old schema tables"""
 
 import os
+import sys
 from pathlib import Path
-from supabase import create_client
 
 try:
     from dotenv import load_dotenv
@@ -12,10 +12,10 @@ try:
 except ImportError:
     pass
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Import centralized Supabase client
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 print("\n" + "=" * 80)
 print("CLEARING OLD SCHEMA")

@@ -9,7 +9,6 @@ without re-ingesting or regenerating embeddings.
 import os
 import sys
 from pathlib import Path
-from supabase import create_client
 from dotenv import load_dotenv
 
 # Add parent directory to path
@@ -22,9 +21,9 @@ from core.chunking_with_pages import (
 
 load_dotenv()
 
-supabase = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+# Import centralized Supabase client
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 
 def add_page_numbers():

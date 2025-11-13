@@ -54,21 +54,14 @@ from analysis.excel_processors import (
 
 # Supabase for database storage
 try:
-    from supabase import create_client, Client
     from dotenv import load_dotenv
+    from core.database import get_supabase_client
 
     load_dotenv()
-    SUPABASE_URL = os.getenv("SUPABASE_URL")
-    SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-    if SUPABASE_URL and SUPABASE_KEY:
-        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        SUPABASE_AVAILABLE = True
-    else:
-        print("[WARN]  Supabase credentials not found. Running in analysis-only mode.")
-        SUPABASE_AVAILABLE = False
-except ImportError:
-    print("[WARN]  Supabase not installed. Running in analysis-only mode.")
+    supabase = get_supabase_client()
+    SUPABASE_AVAILABLE = True
+except Exception as e:
+    print(f"[WARN]  Supabase not available: {e}. Running in analysis-only mode.")
     SUPABASE_AVAILABLE = False
 
 

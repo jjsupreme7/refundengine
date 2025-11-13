@@ -18,7 +18,6 @@ import argparse
 from pathlib import Path
 import pdfplumber
 from openai import OpenAI
-from supabase import create_client, Client
 from dotenv import load_dotenv
 from tqdm import tqdm
 from typing import List
@@ -33,9 +32,10 @@ load_dotenv()
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-)
+
+# Import centralized Supabase client
+from core.database import get_supabase_client
+supabase = get_supabase_client()
 
 
 def extract_full_text_from_pdf(pdf_path: str) -> tuple[str, int]:
