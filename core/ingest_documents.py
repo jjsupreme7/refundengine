@@ -650,7 +650,9 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
                     synthetic_filename = pdf_path
                 else:
                     vendor_name = row.get("vendor_name", "Unknown Vendor")
-                    synthetic_filename = f"{vendor_name.replace(' ', '_').replace('/', '_').replace('\\', '_')}.manual"
+                    # Clean vendor name for filename (can't use backslash in f-string)
+                    clean_name = vendor_name.replace(' ', '_').replace('/', '_').replace('\\', '_')
+                    synthetic_filename = f"{clean_name}.manual"
 
                 vendor_name = row.get("vendor_name", "Unknown Vendor")
 
