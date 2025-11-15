@@ -59,11 +59,33 @@ python scripts/async_analyzer.py --excel Master_Refunds.xlsx
 
 ## 📚 Documentation
 
-- **[Production Setup Guide](PRODUCTION_SETUP.md)** - Complete setup for production use
-- **[Testing Guide](TESTING_GUIDE.md)** - Run tests, ensure financial accuracy
-- **[Async Processing Guide](ASYNC_PROCESSING_GUIDE.md)** - Scale to 100K+ invoices
-- **[Docker Guide](DOCKER_GUIDE.md)** - Containerization and deployment
-- **[Architecture](docs/ARCHITECTURE.md)** - System design and workflow
+### 🚀 Getting Started
+- **[Quick Start Guide](docs/guides/QUICKSTART.md)** - Get running in 15 minutes
+- **[Simple Explanation](docs/guides/SIMPLE_EXPLANATION.md)** - How the system works
+- **[Local Setup](docs/setup/LOCAL_ENVIRONMENT_SETUP.md)** - Set up your development environment
+- **[Quick Reference](docs/guides/QUICK_REFERENCE.md)** - Command cheatsheet
+
+### 📖 Core Workflows
+- **[Excel Workflow Guide](docs/guides/EXCEL_WORKFLOW_GUIDE.md)** - Complete analysis workflow
+- **[Knowledge Base Guide](docs/guides/KNOWLEDGE_BASE_GUIDE.md)** - Managing tax law documents
+- **[Testing Guide](docs/guides/TESTING_GUIDE.md)** - Running tests for accuracy
+
+### 🏗️ Deployment & Scaling
+- **[Production Setup](docs/setup/PRODUCTION_SETUP.md)** - Deploy to production
+- **[Docker Guide](docs/setup/DOCKER_GUIDE.md)** - Containerized deployment
+- **[Async Processing](docs/guides/ASYNC_PROCESSING_GUIDE.md)** - Scale to 100K+ invoices
+
+### 🔧 Technical Deep Dives
+- **[Architecture](docs/technical/ARCHITECTURE.md)** - Business & workflow architecture
+- **[System Architecture](docs/technical/SYSTEM_ARCHITECTURE.md)** - Technical & database design
+- **[Enhanced RAG](docs/technical/ENHANCED_RAG_GUIDE.md)** - AI retrieval system
+
+### 📂 Complete Documentation Index
+➡️ **[See all 47 documentation files](docs/README.md)** - Master documentation index
+
+### 🔗 Project Resources
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and recent changes
+- **[PRODUCT_ROADMAP.md](PRODUCT_ROADMAP.md)** - Strategic roadmap 2025-2026
 
 ### 3. Review & Correct in Excel
 
@@ -83,8 +105,8 @@ python scripts/7_import_corrections.py "input_analyzed.xlsx" --reviewer "your.em
 ```
 
 **📚 Detailed Guides:**
-- Excel Workflow: `docs/EXCEL_WORKFLOW_GUIDE.md`
-- Knowledge Base: `docs/KNOWLEDGE_BASE_GUIDE.md`
+- Excel Workflow: [docs/guides/EXCEL_WORKFLOW_GUIDE.md](docs/guides/EXCEL_WORKFLOW_GUIDE.md)
+- Knowledge Base: [docs/guides/KNOWLEDGE_BASE_GUIDE.md](docs/guides/KNOWLEDGE_BASE_GUIDE.md)
 
 ---
 
@@ -309,12 +331,18 @@ cache.cleanup_expired()
 ## 🤝 Support
 
 **Documentation:**
-- See `docs/` folder for archived guides
-- `knowledge_base/states/washington/tax_rules.json` - Tax logic reference
+- 📖 **[Documentation Index](docs/README.md)** - Complete guide to all 47 documentation files
+- 📁 **Module READMEs** - Each folder has detailed documentation:
+  - [scripts/README.md](scripts/README.md) - All utility scripts
+  - [analysis/README.md](analysis/README.md) - Analysis modules
+  - [knowledge_base/README.md](knowledge_base/README.md) - Knowledge base organization
+  - [tests/README.md](tests/README.md) - Testing information
+  - [core/README.md](core/README.md) - Core ingestion pipeline
+  - [chatbot/README.md](chatbot/README.md) - Chatbot usage
 
 **Database:**
 - Supabase dashboard: https://supabase.com/dashboard
-- Schema: `database/supabase_schema.sql`
+- Schema documentation: [database/README.md](database/README.md)
 
 ---
 

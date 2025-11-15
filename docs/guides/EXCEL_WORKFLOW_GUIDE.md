@@ -217,16 +217,21 @@ Reviewer_Notes: "This is infrastructure equipment for telecom network, not manuf
 ### To Deploy Schema
 
 ```bash
-# Run migrations on Supabase
-psql -h your-db-host -U postgres -d postgres -f database/schema_vendor_learning.sql
-psql -h your-db-host -U postgres -d postgres -f database/rpc_match_legal_chunks.sql
+# Run migrations on Supabase (use current schema files)
+psql -h your-db-host -U postgres -d postgres -f database/schema/schema_vendor_learning.sql
+psql -h your-db-host -U postgres -d postgres -f database/schema/schema_knowledge_base.sql
 ```
 
 Or use Supabase dashboard SQL editor:
-1. Copy contents of `schema_vendor_learning.sql`
+1. Copy contents of `database/schema/schema_vendor_learning.sql`
 2. Paste into SQL Editor
 3. Run
-4. Repeat for `rpc_match_legal_chunks.sql`
+4. Repeat for `database/schema/schema_knowledge_base.sql`
+
+**Note**: The knowledge base schema includes the search RPC functions:
+- `search_tax_law()` - Search tax law documents
+- `search_vendor_background()` - Search vendor documents
+- `search_knowledge_base()` - Combined search
 
 ---
 

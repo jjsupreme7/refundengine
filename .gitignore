@@ -69,3 +69,10 @@ Thumbs.db
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+# Agent workspace (autonomous agent system)
+# All agent outputs, discussions, and proposals are gitignored
+# Only approved changes are committed to main codebase
+agents/workspace/
+agents/temp/
+*.agent.log

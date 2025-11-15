@@ -10,15 +10,15 @@ Fast lookup for common commands and workflows.
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Deploy schemas
+# 2. Deploy schemas (use current schema files from schema/ folder)
 psql -h db.xxx.supabase.co -U postgres << EOF
-\i database/schema_knowledge_base.sql
-\i database/schema_vendor_learning.sql
-\i database/rpc_match_legal_chunks.sql
+\i database/schema/schema_knowledge_base.sql
+\i database/schema/schema_vendor_learning.sql
 EOF
 
 # Or in Supabase SQL Editor:
 # Copy/paste each .sql file and run
+# Note: schema_knowledge_base.sql includes search RPC functions
 ```
 
 ### Ingest Knowledge Base
@@ -208,14 +208,14 @@ ORDER BY corrections DESC;
 
 **Solution:**
 ```bash
-psql -h db.xxx.supabase.co -U postgres -f database/schema_knowledge_base.sql
+psql -h db.xxx.supabase.co -U postgres -f database/schema/schema_knowledge_base.sql
 ```
 
 ### Error: "Table analysis_results does not exist"
 
 **Solution:**
 ```bash
-psql -h db.xxx.supabase.co -U postgres -f database/schema_vendor_learning.sql
+psql -h db.xxx.supabase.co -U postgres -f database/schema/schema_vendor_learning.sql
 ```
 
 ### Error: "No text extracted from PDF"
@@ -352,9 +352,11 @@ SUPABASE_KEY=eyJ...
 ```
 /Users/jacoballen/Desktop/refund-engine/
 ├── database/
-│   ├── schema_knowledge_base.sql        # Knowledge base tables
-│   ├── schema_vendor_learning.sql       # Learning system tables
-│   └── rpc_match_legal_chunks.sql       # Vector search function
+│   ├── schema/
+│   │   ├── schema_knowledge_base.sql    # Knowledge base tables & RPC functions
+│   │   └── schema_vendor_learning.sql   # Learning system tables
+│   └── archive/
+│       └── old_schema/                  # Deprecated schema files (archived)
 │
 ├── scripts/
 │   ├── 6_analyze_refunds.py             # Main analysis script
@@ -376,4 +378,4 @@ SUPABASE_KEY=eyJ...
 
 ---
 
-**Last Updated:** 2025-11-07
+**Last Updated:** 2025-11-13 (Updated schema references to current files)
