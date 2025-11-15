@@ -22,6 +22,18 @@ from agents.core.communication import post_to_discord, create_discussion_thread
 from agents.core.usage_tracker import UsageTracker
 
 
+def extract_json(response: str) -> dict:
+    """Extract JSON from Claude response, handling markdown code blocks."""
+    result_clean = response.strip()
+    if result_clean.startswith('```'):
+        # Extract from markdown code block
+        result_clean = result_clean.split('```')[1]
+        if result_clean.startswith('json'):
+            result_clean = result_clean[4:]
+        result_clean = result_clean.strip()
+    return json.loads(result_clean)
+
+
 class CodeQualityCouncil:
     """
     Manages the Code Quality Council team.
@@ -39,20 +51,17 @@ class CodeQualityCouncil:
         # Initialize agents
         self.architect = Agent(
             name="architect",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.security = Agent(
             name="security",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.performance = Agent(
             name="performance",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.approval_queue = ApprovalQueue(workspace_path)
@@ -175,7 +184,7 @@ Return findings in JSON format:
                 self.usage_tracker.record_usage(self.team_name, "architect")
 
                 # Parse findings
-                area_findings = json.loads(result)
+                area_findings = extract_json(result)
                 findings.extend(area_findings.get("findings", []))
 
             except Exception as e:
@@ -262,7 +271,7 @@ Return findings in JSON format:
                 result = self.security.claude_analyze(prompt, context="security_scan")
                 self.usage_tracker.record_usage(self.team_name, "security")
 
-                check_findings = json.loads(result)
+                check_findings = extract_json(result)
                 findings.extend(check_findings.get("findings", []))
 
             except Exception as e:
@@ -358,7 +367,7 @@ Return findings in JSON format:
                 result = self.performance.claude_analyze(prompt, context="performance_review")
                 self.usage_tracker.record_usage(self.team_name, "performance")
 
-                area_findings = json.loads(result)
+                area_findings = extract_json(result)
                 findings.extend(area_findings.get("findings", []))
 
             except Exception as e:
@@ -412,7 +421,7 @@ As a team, discuss and prioritize these findings:
 3. What should be the top 5 proposals to submit for human review?
 4. For each proposal, what's the impact and implementation effort?
 
-Return prioritized proposals in JSON format:
+IMPORTANT: Return ONLY valid JSON, no explanation or markdown. Use this exact format:
 {{
     "proposals": [
         {{
@@ -428,37 +437,28 @@ Return prioritized proposals in JSON format:
     "discussion_summary": "Brief summary of team discussion"
 }}
 
-Limit to top 5 proposals to avoid overwhelming the human reviewer.
+Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "discussion_summary": "No critical issues requiring immediate action"}}
 """
 
         try:
-            # Multi-agent discussion
-            discussion = self.architect.claude_discuss(
+            # Use architect to analyze and create proposals
+            result_text = self.architect.claude_analyze(
                 discussion_prompt,
-                participants=[self.architect, self.security, self.performance]
+                context="team_discussion"
             )
 
-            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=3)
+            self.usage_tracker.record_usage(self.team_name, "team_discussion")
 
-            # Save discussion log
-            self.architect.save_discussion_log(
-                f"code_quality_discussion_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                discussion
-            )
+            # Parse proposals
+            result = extract_json(result_text)
 
-            # Post discussion to Discord
-            messages = []
-            for msg in discussion:
-                messages.append({
-                    "agent": msg.get("agent", "unknown"),
-                    "content": msg.get("content", "")[:500]  # Truncate for Discord
-                })
-
-            create_discussion_thread("code_quality", "Code Quality Review Discussion", messages)
-
-            # Parse proposals from final message
-            final_result = discussion[-1].get("content", "{}")
-            result = json.loads(final_result)
+            # Post discussion summary to Discord
+            if result.get("discussion_summary"):
+                post_to_discord(
+                    "code_quality",
+                    f"💬 **Discussion Summary**: {result['discussion_summary']}",
+                    username="Code Quality Council"
+                )
 
             return result.get("proposals", [])
 

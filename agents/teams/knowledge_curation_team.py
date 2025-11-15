@@ -23,6 +23,18 @@ from agents.core.communication import post_to_discord, create_discussion_thread
 from agents.core.usage_tracker import UsageTracker
 
 
+def extract_json(response: str) -> dict:
+    """Extract JSON from Claude response, handling markdown code blocks."""
+    result_clean = response.strip()
+    if result_clean.startswith('```'):
+        # Extract from markdown code block
+        result_clean = result_clean.split('```')[1]
+        if result_clean.startswith('json'):
+            result_clean = result_clean[4:]
+        result_clean = result_clean.strip()
+    return json.loads(result_clean)
+
+
 class KnowledgeCurationTeam:
     """
     Manages the Knowledge Curation team.
@@ -41,26 +53,22 @@ class KnowledgeCurationTeam:
         # Initialize agents
         self.legal_researcher = Agent(
             name="legal_researcher",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.taxonomy = Agent(
             name="taxonomy",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.summarizer = Agent(
             name="summarizer",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.cross_reference = Agent(
             name="cross_reference",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.approval_queue = ApprovalQueue(workspace_path)
@@ -151,7 +159,7 @@ Also check these critical sections:
 - WAC 458-20-15502 (Extracted Sales Tax)
 - WAC 458-20-15503 (Delivered Materials)
 
-Return findings in JSON format:
+IMPORTANT: Return ONLY valid JSON, no explanation or markdown. Use this exact format:
 {
     "updates": [
         {
@@ -164,13 +172,15 @@ Return findings in JSON format:
         }
     ]
 }
+
+If no updates found, return: {"updates": []}
 """
 
         try:
             result = self.legal_researcher.claude_analyze(prompt, context="tax_law_monitoring")
             self.usage_tracker.record_usage(self.team_name, "legal_researcher")
 
-            updates = json.loads(result)
+            updates = extract_json(result)
             findings = updates.get("updates", [])
 
             if findings:
@@ -225,7 +235,7 @@ Focus on these common vendors:
 - Shopify, WooCommerce (e-commerce platforms)
 - Salesforce, HubSpot (CRM/SaaS)
 
-Return findings in JSON format:
+IMPORTANT: Return ONLY valid JSON, no explanation or markdown. Use this exact format:
 {
     "vendors": [
         {
@@ -238,13 +248,15 @@ Return findings in JSON format:
         }
     ]
 }
+
+If no vendors to research, return: {"vendors": []}
 """
 
         try:
             result = self.taxonomy.claude_analyze(prompt, context="vendor_research")
             self.usage_tracker.record_usage(self.team_name, "taxonomy")
 
-            research = json.loads(result)
+            research = extract_json(result)
             vendors = research.get("vendors", [])
 
             post_to_discord(
@@ -309,7 +321,7 @@ Limit to top 3 most important summaries.
             result = self.summarizer.claude_analyze(prompt, context="summary_creation")
             self.usage_tracker.record_usage(self.team_name, "summarizer")
 
-            summaries_data = json.loads(result)
+            summaries_data = extract_json(result)
             summaries = summaries_data.get("summaries", [])
 
             post_to_discord(
@@ -368,7 +380,7 @@ Return findings in JSON format:
             result = self.cross_reference.claude_analyze(prompt, context="cross_referencing")
             self.usage_tracker.record_usage(self.team_name, "cross_reference")
 
-            refs_data = json.loads(result)
+            refs_data = extract_json(result)
             cross_refs = refs_data.get("cross_references", [])
 
             post_to_discord(

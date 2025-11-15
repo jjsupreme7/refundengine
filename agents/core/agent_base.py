@@ -59,7 +59,7 @@ class Agent:
         self.message_count = 0
 
     def claude_analyze(self, content: str, focus_areas: Optional[List[str]] = None,
-                      system_prompt: Optional[str] = None) -> str:
+                      system_prompt: Optional[str] = None, context: Optional[str] = None) -> str:
         """
         Analyze content using Claude.
 
@@ -67,6 +67,7 @@ class Agent:
             content: Content to analyze
             focus_areas: Optional list of areas to focus on
             system_prompt: Optional system prompt override
+            context: Optional context label (for logging/tracking)
 
         Returns:
             Analysis from Claude

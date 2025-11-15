@@ -22,6 +22,18 @@ from agents.core.communication import post_to_discord, create_discussion_thread
 from agents.core.usage_tracker import UsageTracker
 
 
+def extract_json(response: str) -> dict:
+    """Extract JSON from Claude response, handling markdown code blocks."""
+    result_clean = response.strip()
+    if result_clean.startswith('```'):
+        # Extract from markdown code block
+        result_clean = result_clean.split('```')[1]
+        if result_clean.startswith('json'):
+            result_clean = result_clean[4:]
+        result_clean = result_clean.strip()
+    return json.loads(result_clean)
+
+
 class PatternLearningCouncil:
     """
     Manages the Pattern Learning Council team.
@@ -47,20 +59,17 @@ class PatternLearningCouncil:
         # Initialize agents
         self.pattern_discovery = Agent(
             name="pattern_discovery",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.validator = Agent(
             name="validator",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.edge_case = Agent(
             name="edge_case",
-            team=self.team_name,
-            workspace_path=workspace_path
+            team=self.team_name
         )
 
         self.approval_queue = ApprovalQueue(workspace_path)
@@ -185,7 +194,7 @@ Focus on discovering 3-5 high-value patterns.
             result = self.pattern_discovery.claude_analyze(prompt, context="pattern_discovery")
             self.usage_tracker.record_usage(self.team_name, "pattern_discovery")
 
-            patterns_data = json.loads(result)
+            patterns_data = extract_json(result)
             patterns = patterns_data.get("patterns", [])
 
             post_to_discord(
@@ -260,7 +269,7 @@ Return validation results in JSON format:
                 result = self.validator.claude_analyze(prompt, context="pattern_validation")
                 self.usage_tracker.record_usage(self.team_name, "validator")
 
-                validation = json.loads(result)
+                validation = extract_json(result)
 
                 # Add validation results to pattern
                 pattern["validation"] = validation
@@ -352,7 +361,7 @@ Focus on edge cases that are common or high-severity.
                 result = self.edge_case.claude_analyze(prompt, context="edge_case_analysis")
                 self.usage_tracker.record_usage(self.team_name, "edge_case")
 
-                edge_data = json.loads(result)
+                edge_data = extract_json(result)
                 edge_cases = edge_data.get("edge_cases", [])
 
                 for edge in edge_cases:

@@ -53,7 +53,7 @@ class AgentScheduler:
         if teams['code_quality_council']['enabled']:
             self.scheduler.add_job(
                 self._run_code_quality,
-                trigger=CronTrigger(hour=f'{start_hour}-{end_hour}', minute='0,90', timezone=self.timezone),
+                trigger=CronTrigger(hour=f'{start_hour}-{end_hour}', minute='0,30', timezone=self.timezone),
                 id='code_quality', name='Code Quality Council', max_instances=1
             )
             print("✓ Code Quality: Every 1.5 hours (1am-8am)")
