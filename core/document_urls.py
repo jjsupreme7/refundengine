@@ -3,10 +3,15 @@ Document URL Generation Utilities
 
 This module provides functions to generate URLs for tax law documents,
 including WAC (Washington Administrative Code) citations, RCW (Revised Code of Washington)
-citations, and local PDF files.
+citations, and PDF files stored in Supabase Storage.
+
+URL Strategy:
+- RCW/WAC HTML: Link to official WA Legislature website (authoritative source)
+- WTD PDFs: Link to Supabase Storage (public, accessible from anywhere)
 """
 
 import re
+import os
 from typing import Optional
 from urllib.parse import quote
 
@@ -140,11 +145,25 @@ def generate_document_url(citation: Optional[str], source_file: Optional[str],
                     rcw_citation = f"{rcw_match.group(1)}.{rcw_match.group(2)}"
                 return generate_rcw_url(rcw_citation)
 
-        # For PDF files, generate local serving URL
+        # For PDF files, generate Supabase Storage URL
         if source_file_lower.endswith('.pdf'):
-            # Extract just the filename from the path
-            filename = source_file.split('/')[-1]
-            return f"http://localhost:5001/documents/{quote(filename)}"
+            # Get Supabase URL from environment
+            supabase_url = os.getenv('SUPABASE_URL', 'https://yzycrptfkxszeutvhuhm.supabase.co')
+
+            # Extract path relative to knowledge_base/
+            # Example: "knowledge_base/wa_tax_law/tax_decisions/2010/29 WTD 1.pdf"
+            #       -> "wa_tax_law/tax_decisions/2010/29 WTD 1.pdf"
+            if 'knowledge_base/' in source_file:
+                storage_path = source_file.split('knowledge_base/')[-1]
+            else:
+                # Fallback: use whole path
+                storage_path = source_file
+
+            # URL encode the path for spaces and special characters
+            encoded_path = '/'.join(quote(part, safe='') for part in storage_path.split('/'))
+
+            # Generate public Storage URL
+            return f"{supabase_url}/storage/v1/object/public/knowledge-base/{encoded_path}"
 
     return None
 

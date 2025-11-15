@@ -17,7 +17,7 @@ We've completed a comprehensive database architecture audit and identified that 
 ## ✅ Completed Tasks (Phase 1)
 
 ### 1. Database Schema Audit ✅
-**File**: [database/SCHEMA_AUDIT_REPORT.md](./SCHEMA_AUDIT_REPORT.md)
+**File**: [docs/reports/SCHEMA_AUDIT_REPORT_2025-11-13.md](../../../docs/reports/SCHEMA_AUDIT_REPORT_2025-11-13.md)
 
 **Findings**:
 - 14 files using OLD schema (`legal_documents`, `document_chunks`, `match_legal_chunks`)

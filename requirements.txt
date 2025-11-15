@@ -138,3 +138,7 @@ isort==5.13.2
 # Additional utilities
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.25.0
+
+# Agent system dependencies
+APScheduler==3.10.4  # Advanced task scheduling
+schedule==1.2.0  # Simple scheduling (for reference)

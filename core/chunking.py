@@ -271,10 +271,32 @@ def _split_by_sentences(
 
     chunks = []
 
-    # Basic sentence splitting (handles common legal abbreviations)
-    sentence_pattern = r"(?<!\bRCW|\bWAC|\bCf|\bSec|\bNo|\bVol|\bEd|\bInc|\bLtd|\bMr|\bMrs|\bDr|\bvs|\bv)[.!?]+\s+"
-    sentences = re.split(sentence_pattern, text)
-    sentences = [s.strip() for s in sentences if s.strip()]
+    # Common legal abbreviations to preserve
+    abbreviations = {'RCW', 'WAC', 'Cf', 'Sec', 'No', 'Vol', 'Ed', 'Inc', 'Ltd', 'Mr', 'Mrs', 'Dr', 'vs', 'v'}
+
+    # Split on sentence endings
+    sentence_pattern = r'[.!?]+\s+'
+    potential_sentences = re.split(sentence_pattern, text)
+
+    # Reconstruct sentences, merging those that ended with abbreviations
+    sentences = []
+    i = 0
+    while i < len(potential_sentences):
+        sentence = potential_sentences[i].strip()
+
+        # Check if this sentence ended with an abbreviation
+        words = sentence.split()
+        if words and i < len(potential_sentences) - 1:
+            last_word = words[-1].rstrip('.')
+            # If last word is an abbreviation, merge with next sentence
+            if last_word in abbreviations:
+                if i + 1 < len(potential_sentences):
+                    sentence = sentence + '. ' + potential_sentences[i + 1].strip()
+                    i += 1  # Skip next sentence since we merged it
+
+        if sentence:
+            sentences.append(sentence)
+        i += 1
 
     current_chunk = ""
     current_word_count = 0

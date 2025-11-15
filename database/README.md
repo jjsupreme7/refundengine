@@ -633,7 +633,7 @@ analysis_results (AI Analysis)
 
 ## Support
 
-**Issues**: See [SCHEMA_AUDIT_REPORT.md](./SCHEMA_AUDIT_REPORT.md) for known issues
+**Issues**: See [SCHEMA_AUDIT_REPORT_2025-11-13.md](../docs/reports/SCHEMA_AUDIT_REPORT_2025-11-13.md) for known issues
 
 **Questions**: Check [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) for migration guidance
 

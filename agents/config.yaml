@@ -1,0 +1,131 @@
+# Agent System Configuration
+# Customize agent behavior, schedules, and team settings
+
+# Agent Work Schedule (7 hours while you sleep)
+schedule:
+  start_hour: 1   # 1am
+  end_hour: 8     # 8am
+  timezone: "America/Los_Angeles"
+
+# Agent Teams
+teams:
+  # Team 1: Code Quality Council (Priority: HIGH)
+  code_quality_council:
+    enabled: true
+    frequency: "0 */90 1-8 * * *"  # Every 1.5 hours, 1am-8am (cron format)
+    priority: high
+    description: "Reviews code architecture, security, and performance"
+    agents:
+      - name: architect
+        role: "Reviews architecture and design patterns"
+      - name: security
+        role: "Scans for vulnerabilities and PII exposure"
+      - name: performance
+        role: "Identifies optimization opportunities"
+
+  # Team 2: Knowledge Base Curation (Priority: HIGH)
+  knowledge_curation:
+    enabled: true
+    frequency: "*/15 1-8 * * *"  # Every 15 minutes, 1am-8am
+    priority: high
+    description: "Monitors tax law updates and researches vendors"
+    agents:
+      - name: legal_researcher
+        role: "Monitors WA legislature for tax law updates"
+      - name: taxonomy
+        role: "Classifies vendors and products"
+      - name: summarizer
+        role: "Creates plain-English summaries"
+      - name: cross_reference
+        role: "Links related WAC/RCW/WTD documents"
+
+  # Team 3: Pattern Learning Council (Priority: MEDIUM)
+  pattern_learning:
+    enabled: true
+    frequency: "0 */3 1-8 * * *"  # Every 3 hours, 1am-8am
+    priority: medium
+    description: "Discovers patterns in refund decisions"
+    agents:
+      - name: pattern_discovery
+        role: "Finds subtle patterns in corrections"
+      - name: validator
+        role: "Tests patterns against historical data"
+      - name: edge_case
+        role: "Identifies exceptions and boundary conditions"
+
+# Discord Configuration
+discord:
+  webhooks:
+    discussions: "${DISCORD_WEBHOOK_DISCUSSIONS}"
+    code_quality: "${DISCORD_WEBHOOK_CODE_QUALITY}"
+    knowledge: "${DISCORD_WEBHOOK_KNOWLEDGE}"
+    patterns: "${DISCORD_WEBHOOK_PATTERNS}"
+    approvals: "${DISCORD_WEBHOOK_APPROVALS}"
+    digest: "${DISCORD_WEBHOOK_DIGEST}"
+
+# Email Configuration
+email:
+  daily_digest:
+    enabled: true
+    time: "08:00"  # 8:00 AM (when agents finish)
+    recipients:
+      - "${USER_EMAIL}"
+    include:
+      - high_priority_proposals
+      - medium_priority_proposals
+      - overnight_summary
+      - usage_statistics
+
+# Workspace Configuration
+workspace:
+  path: "agents/workspace"
+  cleanup_after_days: 30  # Delete proposals older than 30 days
+  max_size_gb: 10  # Alert if workspace exceeds 10GB
+
+# Usage Targets
+usage_targets:
+  weekly_target_percent: 85  # Target 85% of Claude Max weekly limit
+  daily_target_messages: 1800  # ~1800 messages per day (adjusted for 7-hour schedule)
+
+# Security Settings
+security:
+  require_approval_for:
+    - code_changes
+    - database_schema_changes
+    - knowledge_base_updates
+    - pattern_deployments
+
+  auto_reject:
+    - pii_exposure
+    - credential_leaks
+    - sql_injection
+
+# Multi-State Configuration (Future: 50 states)
+knowledge_base:
+  states:
+    washington:
+      enabled: true
+      legislature_url: "https://app.leg.wa.gov"
+      tax_code_prefix: "WAC 458"
+      update_frequency: "daily"
+
+    # Future states (disabled for now)
+    california:
+      enabled: false
+      legislature_url: "https://leginfo.legislature.ca.gov"
+      tax_code_prefix: "CAL. REV. & TAX."
+      update_frequency: "daily"
+
+# Pattern Learning Configuration
+pattern_learning:
+  minimum_accuracy: 0.95  # 95% accuracy required for deployment
+  minimum_sample_size: 50  # Need 50+ examples to discover pattern
+  cross_state_patterns: true  # Learn patterns across states
+  vendor_state_behavior: true  # Track vendor behavior by state
+
+# Logging
+logging:
+  level: "INFO"
+  save_discussions: true
+  save_proposals: true
+  retention_days: 90

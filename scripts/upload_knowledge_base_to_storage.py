@@ -2,17 +2,21 @@
 Upload Knowledge Base Documents to Supabase Storage
 
 This script uploads PDFs from knowledge_base/ to Supabase Storage,
-making them accessible from any computer. The RAG system will continue
-to work from the database embeddings, but originals are backed up in cloud.
+making them accessible from any computer with clickable links in the UI.
+
+Strategy:
+- PDFs (WTD): Upload to Supabase Storage for clickable links
+- HTML (RCW/WAC): Keep as external links to WA Legislature (official source)
 
 Usage:
-    python scripts/upload_knowledge_base_to_storage.py
+    python scripts/upload_knowledge_base_to_storage.py [--dry-run]
 """
 
 import os
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
+import argparse
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -76,64 +80,83 @@ def upload_file(local_path: Path, storage_path: str):
         return None
 
 
-def upload_knowledge_base():
-    """Upload all PDFs from knowledge_base/ directory"""
+def upload_knowledge_base(dry_run=False):
+    """Upload PDFs from knowledge_base/ directory"""
     knowledge_base_dir = Path(__file__).parent.parent / "knowledge_base"
 
     if not knowledge_base_dir.exists():
         print(f"❌ Knowledge base directory not found: {knowledge_base_dir}")
         return
 
-    # Find all PDFs
+    # Find all PDFs (only PDFs - HTML files will link to WA Legislature)
     pdf_files = list(knowledge_base_dir.rglob("*.pdf"))
-    excel_files = list(knowledge_base_dir.rglob("*.xlsx"))
-    all_files = pdf_files + excel_files
 
-    if not all_files:
-        print(f"⚠️  No PDF or Excel files found in {knowledge_base_dir}")
+    if not pdf_files:
+        print(f"⚠️  No PDF files found in {knowledge_base_dir}")
         return
 
-    print(f"\n📁 Found {len(pdf_files)} PDFs and {len(excel_files)} Excel files")
+    print(f"\n📁 Found {len(pdf_files)} PDF files to upload")
+    print(f"   Total size: {sum(f.stat().st_size for f in pdf_files) / 1024 / 1024:.1f} MB")
+
+    if dry_run:
+        print("\n🔍 DRY RUN MODE - No files will be uploaded")
+        print("\nFiles that would be uploaded:")
+        for i, file_path in enumerate(pdf_files[:10], 1):
+            relative_path = file_path.relative_to(knowledge_base_dir)
+            print(f"  {i}. {relative_path}")
+        if len(pdf_files) > 10:
+            print(f"  ... and {len(pdf_files) - 10} more files")
+        return
+
     print("=" * 80)
 
     uploaded_count = 0
     failed_count = 0
 
-    for file_path in all_files:
+    for i, file_path in enumerate(pdf_files, 1):
         # Create storage path relative to knowledge_base/
         relative_path = file_path.relative_to(knowledge_base_dir)
         storage_path = str(relative_path).replace("\\", "/")
 
-        print(f"\n📄 Processing: {relative_path}")
+        # Progress indicator
+        progress = f"[{i}/{len(pdf_files)}]"
+        print(f"{progress} {relative_path}...", end=" ", flush=True)
 
         file_url = upload_file(file_path, storage_path)
 
         if file_url:
             uploaded_count += 1
+            print("✓")
         else:
             failed_count += 1
+            print("✗")
 
     print("\n" + "=" * 80)
     print(f"\n✅ Upload complete!")
     print(f"   Uploaded: {uploaded_count}")
     print(f"   Failed: {failed_count}")
-    print(f"   Total: {len(all_files)}")
+    print(f"   Total: {len(pdf_files)}")
 
     print(
         "\n💡 Next steps:\n"
-        "   1. Your documents are now backed up in Supabase Storage\n"
-        "   2. You can access them from any computer\n"
-        "   3. The RAG system still uses database embeddings (no changes needed)\n"
-        "   4. To re-ingest on another computer, download from Storage first"
+        "   1. Update document_urls.py to generate Storage URLs\n"
+        "   2. Run populate_file_urls.py to update database\n"
+        "   3. Test clickable links in web chatbot\n"
+        "   4. Monitor storage usage with check_storage_usage.py"
     )
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Upload PDFs to Supabase Storage")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be uploaded without uploading")
+    args = parser.parse_args()
+
     print("🚀 Knowledge Base Upload to Supabase Storage")
     print("=" * 80)
 
-    # Create bucket
-    create_storage_bucket_if_not_exists()
+    if not args.dry_run:
+        # Create bucket
+        create_storage_bucket_if_not_exists()
 
     # Upload files
-    upload_knowledge_base()
+    upload_knowledge_base(dry_run=args.dry_run)

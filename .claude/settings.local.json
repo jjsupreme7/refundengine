@@ -84,7 +84,10 @@
       "Bash(then echo \"=== $file ===\")",
       "Bash(done)",
       "Bash(while read f)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "WebFetch(domain:lawfilesext.leg.wa.gov)",
+      "WebFetch(domain:dor.wa.gov)",
+      "WebFetch(domain:app.leg.wa.gov)"
     ],
     "deny": [],
     "ask": []

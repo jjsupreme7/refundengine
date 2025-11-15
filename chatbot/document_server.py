@@ -23,7 +23,6 @@ import os
 import sys
 from pathlib import Path
 from flask import Flask, send_file, abort, jsonify
-from werkzeug.utils import secure_filename
 from urllib.parse import unquote
 
 # Add parent directory to path
@@ -33,6 +32,13 @@ app = Flask(__name__)
 
 # Base directory for documents
 KNOWLEDGE_BASE_DIR = Path(__file__).parent.parent / "knowledge_base"
+
+# Security: Only serve PDF files
+ALLOWED_EXTENSIONS = {'.pdf'}
+
+# File index cache: {filename: Path}
+# Built at startup to avoid rglob() on every request
+FILE_INDEX = {}
 
 
 @app.route('/health', methods=['GET'])
@@ -51,25 +57,30 @@ def serve_document(filename):
     Serve a document file securely
 
     Args:
-        filename: URL-encoded filename (e.g., "WAC_458-20-100.pdf")
+        filename: URL-encoded filename (e.g., "WAC 458-20-100.pdf")
 
     Security:
-        - Validates filename to prevent directory traversal
+        - URL-decodes filename only (no secure_filename mutation)
+        - Validates extension (PDF-only whitelist)
+        - Uses Path.resolve().relative_to() to prevent directory traversal
         - Only serves files from knowledge_base directory
-        - Returns 404 for non-existent files
     """
 
     # Decode URL-encoded filename
     filename = unquote(filename)
 
-    # Secure the filename (removes any path components)
-    safe_filename = secure_filename(filename)
-
-    if not safe_filename:
+    if not filename or filename.strip() == '':
         abort(400, description="Invalid filename")
 
-    # Search for the file in knowledge_base directory
-    file_path = find_file_in_knowledge_base(safe_filename)
+    # Security check: validate extension BEFORE file lookup
+    # This prevents information disclosure of non-PDF files
+    file_ext = Path(filename).suffix.lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        app.logger.warning(f"Blocked request for non-PDF file: {filename} (extension: {file_ext})")
+        abort(403, description="Only PDF files are served")
+
+    # Search for the file in knowledge_base directory using cached index
+    file_path = find_file_in_knowledge_base(filename)
 
     if not file_path:
         abort(404, description=f"File not found: {filename}")
@@ -79,79 +90,86 @@ def serve_document(filename):
         abort(404, description="File not found")
 
     # Security check: ensure file is within knowledge_base directory
+    # This prevents directory traversal attacks
     try:
         file_path.resolve().relative_to(KNOWLEDGE_BASE_DIR.resolve())
     except ValueError:
         # File is outside knowledge_base directory - security violation
-        app.logger.warning(f"Attempted access to file outside knowledge_base: {file_path}")
+        app.logger.warning(f"Path traversal attempt blocked: {file_path}")
         abort(403, description="Access denied")
 
-    # Determine mimetype
-    mimetype = get_mimetype(file_path)
+    # Double-check extension of resolved file (defense in depth)
+    if file_path.suffix.lower() not in ALLOWED_EXTENSIONS:
+        app.logger.warning(f"Blocked resolved file with non-PDF extension: {file_path}")
+        abort(403, description="Only PDF files are served")
 
     # Send file
     return send_file(
         file_path,
-        mimetype=mimetype,
+        mimetype='application/pdf',
         as_attachment=False,  # Display in browser if possible
-        download_name=safe_filename
+        download_name=filename
     )
 
 
 def find_file_in_knowledge_base(filename: str) -> Path:
     """
-    Search for a file in the knowledge_base directory tree
+    Search for a file in the knowledge_base directory using cached index
 
     Args:
-        filename: Filename to search for
+        filename: Filename to search for (case-sensitive)
 
     Returns:
         Path object if found, None otherwise
+
+    Note:
+        This function uses the FILE_INDEX cache built at startup,
+        avoiding expensive rglob() calls on every request.
     """
-
-    # First, try exact match in common locations
-    common_paths = [
-        KNOWLEDGE_BASE_DIR / filename,
-        KNOWLEDGE_BASE_DIR / "wa_tax_law" / filename,
-        KNOWLEDGE_BASE_DIR / "vendors" / filename,
-        KNOWLEDGE_BASE_DIR / "states" / "washington" / filename,
-    ]
-
-    for path in common_paths:
-        if path.exists():
-            return path
-
-    # If not found, do a recursive search
-    for path in KNOWLEDGE_BASE_DIR.rglob(filename):
-        if path.is_file():
-            return path
-
-    return None
+    # Use cached index for O(1) lookup instead of O(n) filesystem search
+    return FILE_INDEX.get(filename)
 
 
-def get_mimetype(file_path: Path) -> str:
+def build_file_index():
     """
-    Get MIME type for a file based on extension
+    Build an index of all PDF files in the knowledge_base directory
 
-    Args:
-        file_path: Path to file
+    This function is called once at startup to create a filename->Path
+    lookup table, eliminating the need for expensive rglob() calls
+    on every request.
+
+    Security:
+        - Only indexes files with extensions in ALLOWED_EXTENSIONS
+        - Prevents DoS attacks via repeated filesystem searches
 
     Returns:
-        MIME type string
+        Number of files indexed
     """
+    global FILE_INDEX
+    FILE_INDEX.clear()
 
-    suffix = file_path.suffix.lower()
+    # Recursively find all allowed files
+    for ext in ALLOWED_EXTENSIONS:
+        pattern = f"**/*{ext}"
+        for file_path in KNOWLEDGE_BASE_DIR.rglob(pattern):
+            if file_path.is_file():
+                # Index by filename only (not full path)
+                filename = file_path.name
 
-    mimetypes = {
-        '.pdf': 'application/pdf',
-        '.html': 'text/html',
-        '.htm': 'text/html',
-        '.txt': 'text/plain',
-        '.doc': 'application/msword',
-        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    }
+                # Handle duplicate filenames by keeping the first one found
+                if filename not in FILE_INDEX:
+                    FILE_INDEX[filename] = file_path
+                else:
+                    # Log warning about duplicate
+                    existing = FILE_INDEX[filename]
+                    app.logger.warning(
+                        f"Duplicate filename found: {filename}\n"
+                        f"  Existing: {existing}\n"
+                        f"  Duplicate: {file_path}\n"
+                        f"  Keeping existing entry."
+                    )
 
-    return mimetypes.get(suffix, 'application/octet-stream')
+    return len(FILE_INDEX)
 
 
 @app.errorhandler(404)
@@ -194,6 +212,19 @@ def main():
     print("📄 Document Server Starting")
     print("=" * 70)
     print(f"Knowledge Base: {KNOWLEDGE_BASE_DIR}")
+    print(f"Allowed Extensions: {', '.join(sorted(ALLOWED_EXTENSIONS))}")
+    print()
+
+    # Build file index at startup (prevents DoS via rglob on every request)
+    print("Building file index...")
+    try:
+        num_files = build_file_index()
+        print(f"✓ Indexed {num_files} files")
+    except Exception as e:
+        print(f"❌ Error building file index: {e}")
+        sys.exit(1)
+
+    print()
     print(f"Server URL: http://localhost:5001")
     print(f"Health Check: http://localhost:5001/health")
     print(f"File Endpoint: http://localhost:5001/documents/<filename>")
