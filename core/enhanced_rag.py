@@ -155,13 +155,16 @@ class EnhancedRAG:
 
         elif decision['action'] == 'RETRIEVE_SIMPLE':
             print("🔍 Using fast retrieval (basic search)...")
-            results = self.basic_search(query, top_k)
+            # Extract filters from context if provided
+            filters = context.get('filters') if context else None
+            results = self.basic_search(query, top_k, filters=filters)
             decision['results'] = results
             decision['confidence'] = 0.7  # Medium confidence for simple retrieval
             return decision
 
         elif decision['action'] == 'RETRIEVE_ENHANCED':
             print("🚀 Using enhanced retrieval (all improvements)...")
+            # Note: search_enhanced doesn't support filters yet, but basic search is called within it
             results = self.search_enhanced(query, top_k)
             decision['results'] = results
             decision['confidence'] = 0.9  # High confidence for enhanced retrieval
@@ -318,22 +321,30 @@ class EnhancedRAG:
         self._embedding_cache[cache_key] = embedding
         return embedding
 
-    def basic_search(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Basic vector search using new schema"""
+    def basic_search(self, query: str, top_k: int = 5, filters: Dict = None) -> List[Dict]:
+        """Basic vector search using new schema with optional filters"""
         query_embedding = self.get_embedding(query)
 
-        # Use the full-featured version with all optional parameters
-        response = self.supabase.rpc(
-            "search_tax_law",  # Updated to new schema function
-            {
-                "query_embedding": query_embedding,
-                "match_threshold": 0.5,
-                "match_count": top_k,
-                "law_category_filter": None,
-                "tax_types_filter": None,
-                "industries_filter": None,
-            },
-        ).execute()
+        # Build RPC parameters with filters
+        rpc_params = {
+            "query_embedding": query_embedding,
+            "match_threshold": 0.5,
+            "match_count": top_k,
+            "law_category_filter": None,
+            "tax_types_filter": None,
+            "industries_filter": None,
+        }
+
+        # Apply filters if provided
+        if filters:
+            if filters.get('law_category'):
+                rpc_params['law_category_filter'] = filters['law_category']
+            if filters.get('tax_types'):
+                rpc_params['tax_types_filter'] = filters['tax_types']
+            if filters.get('industries'):
+                rpc_params['industries_filter'] = filters['industries']
+
+        response = self.supabase.rpc("search_tax_law", rpc_params).execute()
 
         return response.data if response.data else []
 
