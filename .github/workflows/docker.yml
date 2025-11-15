@@ -32,4 +32,4 @@ jobs:
 
       - name: Test Docker image
         run: |
-          docker run --rm refund-engine:test pytest tests/ -v --no-cov
+          docker run --rm refund-engine:test pytest tests/ -v -p no:cov
