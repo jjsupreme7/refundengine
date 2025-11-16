@@ -20,6 +20,11 @@ st.set_page_config(
     layout="wide"
 )
 
+# AUTHENTICATION
+from core.auth import require_authentication
+if not require_authentication():
+    st.stop()
+
 # Header
 st.markdown('<div class="main-header">📚 Rules & Guidance</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-subtitle">Browse tax rules, regulations, and guidance documents</div>', unsafe_allow_html=True)

@@ -13,12 +13,23 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dashboard.utils.data_loader import get_documents_from_db, get_projects_from_db
 
+# File upload security settings
+MAX_FILE_SIZE_MB = 10
+MAX_TOTAL_SIZE_MB = 50
+ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.xlsx', '.csv'}
+DANGEROUS_EXTENSIONS = {'.exe', '.bat', '.sh', '.cmd', '.ps1', '.jar', '.app', '.deb', '.rpm'}
+
 # Page configuration
 st.set_page_config(
     page_title="Documents - TaxDesk",
     page_icon="📄",
     layout="wide"
 )
+
+# AUTHENTICATION
+from core.auth import require_authentication
+if not require_authentication():
+    st.stop()
 
 # Header
 st.markdown('<div class="main-header">📄 Documents</div>', unsafe_allow_html=True)
@@ -56,21 +67,62 @@ if st.session_state.get('show_upload', False):
         uploaded_files = st.file_uploader(
             "Choose files",
             accept_multiple_files=True,
-            type=['pdf', 'jpg', 'jpeg', 'png', 'xlsx', 'csv']
+            type=['pdf', 'jpg', 'jpeg', 'png', 'xlsx', 'csv'],
+            help=f"Max {MAX_FILE_SIZE_MB}MB per file, {MAX_TOTAL_SIZE_MB}MB total"
         )
 
+        # File validation
+        validation_errors = []
+        valid_files = []
+
         if uploaded_files:
-            st.success(f"✅ {len(uploaded_files)} file(s) selected")
+            total_size = 0
             for file in uploaded_files:
-                st.write(f"- {file.name} ({file.size:,} bytes)")
+                # Check file size
+                file_size_mb = file.size / (1024 * 1024)
+                total_size += file_size_mb
+
+                if file_size_mb > MAX_FILE_SIZE_MB:
+                    validation_errors.append(f"❌ {file.name}: File too large ({file_size_mb:.1f}MB, max {MAX_FILE_SIZE_MB}MB)")
+                    continue
+
+                # Check file extension
+                import os
+                file_ext = os.path.splitext(file.name)[1].lower()
+
+                if file_ext in DANGEROUS_EXTENSIONS:
+                    validation_errors.append(f"❌ {file.name}: Dangerous file type not allowed ({file_ext})")
+                    continue
+
+                if file_ext not in ALLOWED_EXTENSIONS:
+                    validation_errors.append(f"❌ {file.name}: File type not allowed ({file_ext})")
+                    continue
+
+                # File passed validation
+                valid_files.append(file)
+
+            # Check total size
+            if total_size > MAX_TOTAL_SIZE_MB:
+                st.error(f"❌ Total file size ({total_size:.1f}MB) exceeds limit of {MAX_TOTAL_SIZE_MB}MB")
+                valid_files = []
+
+            # Display validation results
+            if validation_errors:
+                for error in validation_errors:
+                    st.warning(error)
+
+            if valid_files:
+                st.success(f"✅ {len(valid_files)} file(s) ready for upload")
+                for file in valid_files:
+                    st.write(f"- {file.name} ({file.size:,} bytes)")
 
         notes = st.text_area("Notes (Optional)", placeholder="Any additional context about these documents...")
 
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("✅ Upload & Process", type="primary", use_container_width=True, disabled=not uploaded_files):
-                if uploaded_files:
-                    st.success(f"✅ Uploaded {len(uploaded_files)} documents successfully!")
+            if st.button("✅ Upload & Process", type="primary", use_container_width=True, disabled=not valid_files):
+                if valid_files:
+                    st.success(f"✅ Uploaded {len(valid_files)} documents successfully!")
                     st.info("Documents are being processed. Check back soon for analysis results.")
                     st.session_state.show_upload = False
                     st.rerun()

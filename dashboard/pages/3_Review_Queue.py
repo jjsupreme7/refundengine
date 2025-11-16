@@ -13,6 +13,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from dashboard.utils.data_loader import load_analyzed_transactions, get_review_queue
+from core.html_utils import escape_html
 
 # Page configuration
 st.set_page_config(
@@ -20,6 +21,11 @@ st.set_page_config(
     page_icon="🔍",
     layout="wide"
 )
+
+# AUTHENTICATION
+from core.auth import require_authentication
+if not require_authentication():
+    st.stop()
 
 # Header
 st.markdown('<div class="main-header">🔍 Review Queue</div>', unsafe_allow_html=True)
@@ -155,8 +161,8 @@ else:
                 st.markdown(f"**Category:** {row['Tax_Category']}")
 
                 st.markdown("#### 🤖 AI Analysis")
-                st.markdown(f"**Decision:** <span class='badge {decision_class}'>{decision}</span>", unsafe_allow_html=True)
-                st.markdown(f"**Confidence:** <span class='badge {conf_class}'>{confidence:.1f}%</span>", unsafe_allow_html=True)
+                st.markdown(f"**Decision:** <span class='badge {decision_class}'>{escape_html(decision)}</span>", unsafe_allow_html=True)
+                st.markdown(f"**Confidence:** <span class='badge {conf_class}'>{escape_html(str(confidence)):.1f}%</span>", unsafe_allow_html=True)
                 st.markdown(f"**Est. Refund:** ${row['Estimated_Refund']:,.2f}")
                 st.markdown(f"**Refund Basis:** {row.get('Refund_Basis', 'N/A')}")
 

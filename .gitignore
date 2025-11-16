@@ -76,3 +76,4 @@ Thumbs.db
 agents/workspace/
 agents/temp/
 *.agent.log
+.auth_config.json

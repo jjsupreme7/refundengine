@@ -21,6 +21,11 @@ st.set_page_config(
     layout="wide"
 )
 
+# AUTHENTICATION
+from core.auth import require_authentication
+if not require_authentication():
+    st.stop()
+
 # Header
 st.markdown('<div class="main-header">📋 Claims</div>', unsafe_allow_html=True)
 st.markdown('<div class="main-subtitle">Draft and finalize tax refund claims for submission</div>', unsafe_allow_html=True)

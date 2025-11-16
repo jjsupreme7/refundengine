@@ -47,6 +47,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# AUTHENTICATION - Require login
+from core.auth import require_authentication
+if not require_authentication():
+    st.stop()
+
 # Custom CSS
 st.markdown("""
 <style>
@@ -506,24 +511,23 @@ def render_source(doc: Dict, index: int):
     text = doc.get('chunk_text', '')[:200]
 
     # Get file_url and source_file
-    file_url = doc.get('file_url', '')
-    source_file = doc.get('source_file', '')
+    file_url = doc.get('file_url') or ''
+    source_file = doc.get('source_file') or ''
 
-    # If not in doc, fetch from database
-    if (not file_url or not source_file) and doc.get('document_id'):
+    # If BOTH are missing, fetch from database
+    if (not file_url and not source_file) and doc.get('document_id'):
         db_url, db_source = get_file_url_for_document(doc.get('document_id'))
-        file_url = file_url or db_url
-        source_file = source_file or db_source
+        file_url = db_url or ''
+        source_file = db_source or ''
 
     # Prioritize file_url (online URL), fall back to source_file (local path)
     if file_url:
         citation_display = f'<a href="{file_url}" target="_blank" style="color: #1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 🔗'
     elif source_file:
-        # Convert to file:// URL for local files
+        # For local files, just show the citation and path (file:// URLs don't work reliably)
         import os
-        abs_path = os.path.abspath(source_file) if not os.path.isabs(source_file) else source_file
-        file_link = f'file://{abs_path}'
-        citation_display = f'<a href="{file_link}" target="_blank" style="color: #1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 📄'
+        filename = os.path.basename(source_file)
+        citation_display = f'<span style="color: #1f77b4; font-weight: bold;">{citation}</span> 📄 <span style="color: #666; font-size: 0.85rem;">({filename})</span>'
     else:
         citation_display = f'<span style="color: #000; font-weight: bold;">{citation}</span>'
 

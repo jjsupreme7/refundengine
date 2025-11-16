@@ -8,7 +8,14 @@ DB_HOST="aws-0-us-west-1.pooler.supabase.com"
 DB_PORT="6543"
 DB_USER="postgres.aomkrzblkbhbikqanfat"
 DB_NAME="postgres"
-DB_PASSWORD="jSnuCinRda65zCuA"
+
+# Get password from environment variable
+if [ -z "$SUPABASE_DB_PASSWORD" ]; then
+    echo "❌ Error: SUPABASE_DB_PASSWORD environment variable not set"
+    echo "Please run: export SUPABASE_DB_PASSWORD='your-password'"
+    exit 1
+fi
+DB_PASSWORD="$SUPABASE_DB_PASSWORD"
 
 SCHEMA_FILE="database/schema/migration_excel_file_tracking.sql"
 
