@@ -127,7 +127,10 @@
       "Bash(export SUPABASE_DB_PASSWORD='jSnuCinRda65zCuA')",
       "Bash(./scripts/deploy_rls.sh:*)",
       "Bash(export PATH=\"/opt/homebrew/opt/postgresql@15/bin:$PATH\")",
-      "Bash(export SUPABASE_DB_PASSWORD='Rawdog#456')"
+      "Bash(export SUPABASE_DB_PASSWORD='Rawdog#456')",
+      "Bash(gh pr list:*)",
+      "Bash(git branch:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []
