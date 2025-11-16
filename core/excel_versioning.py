@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import Optional, Dict, List, Tuple
 from datetime import datetime
 from supabase import create_client, Client
+from storage3.exceptions import StorageApiError
 import pandas as pd
 import openpyxl
 from openpyxl import load_workbook
@@ -114,12 +115,15 @@ class ExcelVersionManager:
         # Generate storage path: {project_id}/current/{filename}
         storage_path = f"{project_id}/current/{file_name}"
 
-        # Upload to Supabase Storage
+        # Upload to Supabase Storage (upsert to handle re-uploads)
         with open(file_path, 'rb') as f:
             self.supabase.storage.from_('excel-files').upload(
                 path=storage_path,
                 file=f,
-                file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+                file_options={
+                    "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "upsert": "true"  # Allow overwriting if file already exists
+                }
             )
 
         # Create database record
@@ -147,7 +151,10 @@ class ExcelVersionManager:
             self.supabase.storage.from_('excel-versions').upload(
                 path=version_storage_path,
                 file=f,
-                file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+                file_options={
+                    "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "upsert": "true"  # Allow overwriting during testing
+                }
             )
 
         # Create version record
@@ -202,18 +209,34 @@ class ExcelVersionManager:
         df_new = pd.read_excel(file_path)
         row_count_new = len(df_new)
 
-        # Get next version number
-        current_version = file_data['current_version']
+        # Get next version number by checking what actually exists in the database
+        # (in case of partial uploads, current_version might be out of sync)
+        existing_versions = self.supabase.table('excel_file_versions')\
+            .select('version_number')\
+            .eq('file_id', file_id)\
+            .order('version_number', desc=True)\
+            .limit(1)\
+            .execute()
+
+        if existing_versions.data:
+            current_version = existing_versions.data[0]['version_number']
+        else:
+            current_version = 0
+
         next_version = current_version + 1
 
-        # Upload to versions bucket
+        # Upload to versions bucket (or update if exists)
         version_storage_path = f"{file_id}/v{next_version}/{file_data['file_name']}"
 
+        # Upload to versions bucket with upsert to allow overwriting during testing
         with open(file_path, 'rb') as f:
             self.supabase.storage.from_('excel-versions').upload(
                 path=version_storage_path,
                 file=f,
-                file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+                file_options={
+                    "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "upsert": "true"  # Allow overwriting if version already exists
+                }
             )
 
         # Calculate changes (basic version - can be enhanced)
@@ -222,31 +245,105 @@ class ExcelVersionManager:
         rows_deleted = max(0, row_count_old - row_count_new)
         rows_modified = 0  # Will be calculated by diff
 
-        # Create version record using RPC function
-        version_result = self.supabase.rpc('create_file_version', {
-            'file_id_param': file_id,
-            'user_email_param': user_email,
-            'change_summary_param': change_summary,
-            'storage_path_param': version_storage_path,
-            'file_hash_param': new_hash,
-            'file_size_param': file_size,
-            'row_count_param': row_count_new
+        # Create version record directly (not using RPC)
+        version_insert_result = self.supabase.table('excel_file_versions').insert({
+            'file_id': file_id,
+            'version_number': next_version,
+            'storage_path': version_storage_path,
+            'file_hash': new_hash,
+            'created_by': user_email,
+            'change_summary': change_summary or '',
+            'rows_added': rows_added,
+            'rows_modified': rows_modified,
+            'rows_deleted': rows_deleted,
+            'file_size_bytes': file_size,
+            'row_count': row_count_new
         }).execute()
 
-        version_id = version_result.data
+        version_id = version_insert_result.data[0]['id']
+
+        # Detect cell-level changes between previous and current version
+        if current_version > 0:
+            # Download previous version to compare
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as tmp:
+                prev_version_path = tmp.name
+                try:
+                    self.download_version(file_id, current_version, prev_version_path)
+                    df_old = pd.read_excel(prev_version_path)
+
+                    # Track which rows were modified
+                    modified_rows = set()
+                    cell_changes = []
+
+                    # Compare common rows
+                    min_rows = min(len(df_old), len(df_new))
+                    for row_idx in range(min_rows):
+                        for col in df_old.columns:
+                            if col not in df_new.columns:
+                                continue
+
+                            old_val = df_old.iloc[row_idx][col]
+                            new_val = df_new.iloc[row_idx][col]
+
+                            # Check if values differ (handle NaN properly)
+                            values_differ = False
+                            if pd.isna(old_val) and pd.isna(new_val):
+                                continue
+                            elif pd.isna(old_val) or pd.isna(new_val):
+                                values_differ = True
+                            elif old_val != new_val:
+                                values_differ = True
+
+                            if values_differ:
+                                modified_rows.add(row_idx)
+                                cell_changes.append({
+                                    'file_id': file_id,
+                                    'version_id': version_id,
+                                    'sheet_name': 'Sheet1',  # Default sheet name for Excel files
+                                    'row_index': row_idx,
+                                    'column_name': col,
+                                    'old_value': str(old_val) if not pd.isna(old_val) else None,
+                                    'new_value': str(new_val) if not pd.isna(new_val) else None,
+                                    'change_type': 'modified',
+                                    'changed_by': user_email
+                                })
+
+                    # Insert cell changes into database
+                    if cell_changes:
+                        self.supabase.table('excel_cell_changes').insert(cell_changes).execute()
+                        rows_modified = len(modified_rows)
+
+                        # Update version record with correct rows_modified count
+                        self.supabase.table('excel_file_versions').update({
+                            'rows_modified': rows_modified
+                        }).eq('id', version_id).execute()
+
+                finally:
+                    # Clean up temp file
+                    if os.path.exists(prev_version_path):
+                        os.unlink(prev_version_path)
+
+        # Update current version in file tracking
+        self.supabase.table('excel_file_tracking').update({
+            'current_version': next_version,
+            'file_hash': new_hash,
+            'row_count': row_count_new,
+            'file_size_bytes': file_size
+        }).eq('id', file_id).execute()
 
         # Update current file in excel-files bucket
         current_storage_path = file_data['storage_path']
 
-        # Delete old current version
-        self.supabase.storage.from_('excel-files').remove([current_storage_path])
-
-        # Upload new current version
+        # Upload new current version (upsert to overwrite)
         with open(file_path, 'rb') as f:
             self.supabase.storage.from_('excel-files').upload(
                 path=current_storage_path,
                 file=f,
-                file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+                file_options={
+                    "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "upsert": "true"  # Overwrite the current file
+                }
             )
 
         print(f"✅ Created version {next_version} for file {file_data['file_name']}")
