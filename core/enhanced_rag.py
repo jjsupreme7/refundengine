@@ -328,7 +328,7 @@ class EnhancedRAG:
         # Build RPC parameters with filters
         rpc_params = {
             "query_embedding": query_embedding,
-            "match_threshold": 0.5,
+            "match_threshold": 0.3,  # Lowered from 0.5 to catch more relevant results
             "match_count": top_k,
             "law_category_filter": None,
             "tax_types_filter": None,

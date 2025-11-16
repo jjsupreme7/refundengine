@@ -58,9 +58,11 @@ class LawVersionHandler:
             doc_id = chunk.get('document_id')
             effective_date_str = chunk.get('effective_date')
             citation = chunk.get('citation', '')
+            source_file = chunk.get('source_file', '')
 
             # Determine if this is old or new law
             is_new_law = self._is_new_law_document(
+                source_file,
                 effective_date_str,
                 citation,
                 chunk.get('chunk_text', '')
@@ -80,6 +82,7 @@ class LawVersionHandler:
 
     def _is_new_law_document(
         self,
+        source_file: str,
         effective_date_str: Optional[str],
         citation: str,
         text: str
@@ -87,12 +90,18 @@ class LawVersionHandler:
         """
         Determine if document represents new law
 
-        Logic:
-        1. If citation contains "ESSB 5814" → New law
-        2. If effective_date >= Oct 1, 2025 → New law
-        3. If text mentions ESSB 5814 → New law
-        4. Otherwise → Old law (or pre-ESSB 5814)
+        Logic (in priority order):
+        1. If source_file contains "essb_5814" folder → New law (PRIMARY CHECK)
+        2. If citation contains "ESSB 5814" → New law
+        3. If effective_date >= Oct 1, 2025 → New law
+        4. If text mentions ESSB 5814 → New law
+        5. Otherwise → Old law (or pre-ESSB 5814)
         """
+        # PRIMARY CHECK: Check folder path first
+        # Documents in essb_5814_oct_2025 folder are definitively new law
+        if source_file and "essb_5814" in source_file.lower():
+            return True
+
         # Check citation
         if "ESSB 5814" in citation or "essb 5814" in citation.lower():
             return True

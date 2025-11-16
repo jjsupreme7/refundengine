@@ -483,18 +483,18 @@ def render_decision_info(search_result: Dict):
     st.markdown(decision_html, unsafe_allow_html=True)
 
 
-def get_file_url_for_document(document_id: str) -> str:
-    """Fetch file_url from knowledge_documents table"""
+def get_file_url_for_document(document_id: str) -> tuple:
+    """Fetch file_url and source_file from knowledge_documents table"""
     try:
         from core.database import get_supabase_client
         supabase = get_supabase_client()
 
-        result = supabase.table('knowledge_documents').select('file_url').eq('id', document_id).execute()
+        result = supabase.table('knowledge_documents').select('file_url, source_file').eq('id', document_id).execute()
         if result.data and len(result.data) > 0:
-            return result.data[0].get('file_url', '')
+            return (result.data[0].get('file_url', ''), result.data[0].get('source_file', ''))
     except Exception as e:
         print(f"Error fetching file_url: {e}")
-    return ''
+    return ('', '')
 
 
 def render_source(doc: Dict, index: int):
@@ -505,12 +505,25 @@ def render_source(doc: Dict, index: int):
     category = doc.get('law_category', '')
     text = doc.get('chunk_text', '')[:200]
 
+    # Get file_url and source_file
     file_url = doc.get('file_url', '')
-    if not file_url and doc.get('document_id'):
-        file_url = get_file_url_for_document(doc.get('document_id'))
+    source_file = doc.get('source_file', '')
 
+    # If not in doc, fetch from database
+    if (not file_url or not source_file) and doc.get('document_id'):
+        db_url, db_source = get_file_url_for_document(doc.get('document_id'))
+        file_url = file_url or db_url
+        source_file = source_file or db_source
+
+    # Prioritize file_url (online URL), fall back to source_file (local path)
     if file_url:
         citation_display = f'<a href="{file_url}" target="_blank" style="color: #1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 🔗'
+    elif source_file:
+        # Convert to file:// URL for local files
+        import os
+        abs_path = os.path.abspath(source_file) if not os.path.isabs(source_file) else source_file
+        file_link = f'file://{abs_path}'
+        citation_display = f'<a href="{file_link}" target="_blank" style="color: #1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 📄'
     else:
         citation_display = f'<span style="color: #000; font-weight: bold;">{citation}</span>'
 
@@ -769,11 +782,14 @@ def main():
                         'industries': industries if industries else None
                     }
 
+                # For compare mode, retrieve MORE results to ensure we get both old and new law
+                search_top_k = top_k * 3 if law_version == "compare" else top_k
+
                 # Use enhanced RAG with decision-making and filters
                 search_result = st.session_state.rag.search_with_decision(
                     prompt,
                     context=context,
-                    top_k=top_k,
+                    top_k=search_top_k,
                     force_retrieval=force_retrieval
                 )
 
@@ -801,10 +817,18 @@ def main():
                         search_result['results'],
                         "new_law"
                     )
+
+                    # Limit each to top_k results
+                    old_law_results = old_law_results[:top_k]
+                    new_law_results = new_law_results[:top_k]
+
                     # Store both for comparison display
                     search_result['old_law_results'] = old_law_results
                     search_result['new_law_results'] = new_law_results
                     search_result['comparison_mode'] = True
+
+                    # Combine for answer generation (prioritize new law, then old law)
+                    search_result['results'] = new_law_results + old_law_results
 
                 # Store decision
                 st.session_state.messages.append({

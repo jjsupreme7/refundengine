@@ -104,7 +104,8 @@
       "Bash(then echo \"✅ .env file exists\")",
       "Bash(else echo \"❌ .env file not found\")",
       "Bash(open http://localhost:5001)",
-      "Bash(open:*)"
+      "Bash(open:*)",
+      "Bash(/Users/jacoballen/Desktop/refund-engine/scripts/deploy_source_file_update.sh:*)"
     ],
     "deny": [],
     "ask": []
