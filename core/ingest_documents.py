@@ -627,7 +627,9 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
         supabase.table("knowledge_documents").select("source_file").execute()
     )
     existing_filenames = {
-        doc["source_file"].split("/")[-1] for doc in existing_docs.data
+        doc["source_file"].split("/")[-1]
+        for doc in existing_docs.data
+        if doc.get("source_file")  # Skip documents with null source_file
     }
     print(f"Found {len(existing_filenames)} existing documents in database")
 

@@ -1,0 +1,7 @@
+COMPREHENSIVE ANALYSIS SUMMARY
+============================================================
+
+Total Rows: 31
+Avg Confidence: 89.54838709677419
+Flagged for Review: 10
+Total Refund: 14437.5

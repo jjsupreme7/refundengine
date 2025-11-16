@@ -139,6 +139,7 @@ isort==5.13.2
 # Additional utilities
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.25.0
+extract-msg==0.48.8
 
 # Agent system dependencies
 APScheduler==3.10.4  # Advanced task scheduling

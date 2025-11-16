@@ -265,7 +265,7 @@ IMPORTANT - Check for common errors:
             elif rag_method == "hybrid":
                 legal_chunks = self.rag.search_hybrid(query, top_k=5)
             else:  # enhanced (default)
-                legal_chunks = self.rag.search_enhanced(query, top_k=5)
+                legal_chunks = self.rag.search_enhanced(query, top_k=5, vendor_name=vendor)
 
             print(f"\n✅ Retrieved {len(legal_chunks)} legal chunks\n")
 
@@ -283,6 +283,27 @@ This vendor/product has been analyzed before:
 - Confidence: {learned_info.get('confidence_score', 'N/A')}
 """
 
+        # Extract vendor background from legal chunks if available
+        vendor_background_context = ""
+        if legal_chunks and len(legal_chunks) > 0:
+            first_chunk = legal_chunks[0]
+            if 'vendor_background' in first_chunk and first_chunk['vendor_background']:
+                vb = first_chunk['vendor_background']
+                products_str = ", ".join(vb.get('primary_products', [])[:3]) if vb.get('primary_products') else "N/A"
+                vendor_background_context = f"""
+VENDOR BACKGROUND:
+Understanding the vendor's business helps interpret ambiguous descriptions:
+- Company: {vb.get('vendor_name', vendor)}
+- Industry: {vb.get('industry', 'Unknown')}
+- Business Model: {vb.get('business_model', 'Unknown')}
+- Primary Offerings: {products_str}
+- Research Confidence: {vb.get('confidence_score', 0)}%
+
+Context: This vendor typically provides services/products in the {vb.get('industry', 'technology')} sector.
+Understanding their typical offerings helps determine if this transaction matches their standard
+patterns (e.g., custom development vs. licenses, professional services vs. tangible goods).
+"""
+
         # Build comprehensive analysis prompt
         analysis_prompt = f"""You are a Washington State tax law expert analyzing use tax refund eligibility.
 
@@ -292,6 +313,8 @@ TRANSACTION DETAILS:
 - Product Type: {product_type}
 - Amount: ${amount:,.2f}
 - Tax Paid: ${tax:,.2f}
+
+{vendor_background_context}
 
 {learning_context}
 

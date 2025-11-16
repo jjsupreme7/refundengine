@@ -90,7 +90,21 @@
       "WebFetch(domain:app.leg.wa.gov)",
       "Bash(git rev-list:*)",
       "Bash(streamlit run:*)",
-      "Bash(./deploy_file_url_update.sh:*)"
+      "Bash(./deploy_file_url_update.sh:*)",
+      "Bash(launchctl list:*)",
+      "Bash(export SUPABASE_DB_PASSWORD='jSnuCinRda65zCuA')",
+      "Bash(/Users/jacoballen/Desktop/refund-engine/scripts/deploy_feedback_schema.sh:*)",
+      "Bash(source:*)",
+      "Bash(./scripts/apply_vendor_migration.py:*)",
+      "Bash(./scripts/deploy_excel_tracking_schema.sh:*)",
+      "Skill(ultrathink)",
+      "Bash(lsof:*)",
+      "Bash(/dev/null)",
+      "Bash(if [ -f .env ])",
+      "Bash(then echo \"✅ .env file exists\")",
+      "Bash(else echo \"❌ .env file not found\")",
+      "Bash(open http://localhost:5001)",
+      "Bash(open:*)"
     ],
     "deny": [],
     "ask": []

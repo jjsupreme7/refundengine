@@ -731,9 +731,62 @@ Return JSON:
 
         return unique
 
+    # ==================== VENDOR BACKGROUND RETRIEVAL ====================
+
+    def get_vendor_background(self, vendor_name: str) -> Optional[Dict]:
+        """
+        Retrieve vendor background information from knowledge_documents.
+
+        This provides crucial context for analysis:
+        - Industry and business model
+        - Primary products/services
+        - Known tax patterns
+        - Confidence score from previous research
+
+        Args:
+            vendor_name: Vendor name to search for
+
+        Returns:
+            Dictionary with vendor background or None if not found
+        """
+        if not vendor_name:
+            return None
+
+        try:
+            # Search for vendor background in knowledge_documents
+            result = self.supabase.table("knowledge_documents")\
+                .select("*")\
+                .eq("document_type", "vendor_background")\
+                .ilike("vendor_name", f"%{vendor_name.split()[0]}%")\
+                .limit(1)\
+                .execute()
+
+            if result.data and len(result.data) > 0:
+                vendor_data = result.data[0]
+                print(f"\n✅ Found vendor background for {vendor_name}")
+                print(f"   Industry: {vendor_data.get('industry')}")
+                print(f"   Business Model: {vendor_data.get('business_model')}")
+                print(f"   Products: {vendor_data.get('primary_products', [])[:2]}")
+
+                return {
+                    'vendor_name': vendor_data.get('vendor_name'),
+                    'industry': vendor_data.get('industry'),
+                    'business_model': vendor_data.get('business_model'),
+                    'primary_products': vendor_data.get('primary_products', []),
+                    'confidence_score': vendor_data.get('confidence_score', 0),
+                    'title': vendor_data.get('title'),
+                }
+            else:
+                print(f"\n⚠️  No vendor background found for {vendor_name}")
+                return None
+
+        except Exception as e:
+            print(f"Error retrieving vendor background: {e}")
+            return None
+
     # ==================== BEST METHOD: COMBINES ALL IMPROVEMENTS ====================
 
-    def search_enhanced(self, query: str, top_k: int = 5) -> List[Dict]:
+    def search_enhanced(self, query: str, top_k: int = 5, vendor_name: str = None) -> List[Dict]:
         """
         **RECOMMENDED METHOD**
         Combines all improvements: Corrective RAG + Reranking + Query Expansion + Hybrid Search
@@ -744,7 +797,14 @@ Return JSON:
         print(f"\n{'='*80}")
         print(f"🚀 ENHANCED RAG SEARCH (All Improvements)")
         print(f"Query: {query}")
+        if vendor_name:
+            print(f"Vendor: {vendor_name}")
         print(f"{'='*80}\n")
+
+        # Step 0: Retrieve vendor background if provided
+        vendor_context = None
+        if vendor_name:
+            vendor_context = self.get_vendor_background(vendor_name)
 
         # Step 1: Query expansion to get multiple variations
         expanded_queries = self._expand_query(query)
@@ -795,15 +855,23 @@ Return JSON:
         print(f"🔄 Final Reranking...")
         reranked = self._rerank_chunks(query, validated)
 
-        # Step 5: Return top-k
+        # Step 5: Return top-k with vendor context
         final_results = reranked[:top_k]
+
+        # Add vendor background to results
+        if vendor_context:
+            for result in final_results:
+                result['vendor_background'] = vendor_context
 
         print(f"\n{'='*80}")
         print(f"✅ ENHANCED RAG COMPLETE")
         print(f"   Final results: {len(final_results)} chunks")
-        print(
-            f"   Average relevance: {sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}"
-        )
+        if final_results:
+            print(
+                f"   Average relevance: {sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}"
+            )
+        if vendor_context:
+            print(f"   ✅ Vendor background included")
         print(f"{'='*80}\n")
 
         return final_results
