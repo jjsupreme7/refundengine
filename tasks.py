@@ -64,10 +64,10 @@ def analyze_single_invoice(self, row_data: Dict[str, Any]) -> Dict[str, Any]:
         Dict with analysis results
     """
     try:
-        from analysis.analyze_refunds import RefundAnalyzer
+        from analysis.analyze_refunds_enhanced import EnhancedRefundAnalyzer
 
-        # Initialize analyzer
-        analyzer = RefundAnalyzer()
+        # Initialize analyzer (using Enhanced RAG with decision intelligence)
+        analyzer = EnhancedRefundAnalyzer()
 
         # Extract invoice file path
         invoice_file = row_data.get('invoice_file', '')
