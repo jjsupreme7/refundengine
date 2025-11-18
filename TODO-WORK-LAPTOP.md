@@ -16,21 +16,19 @@
 
 2. **Create .env file with Supabase credentials** (if not already there):
    ```bash
-   # Check if .env exists
-   ls -la .env
+   # Copy the .env file from your personal laptop (DO NOT commit credentials to GitHub!)
+   # Or manually create .env with the credentials from your password manager
 
-   # If not, create it with these credentials:
-   cat > .env << 'EOF'
-SUPABASE_URL=https://yzycrptfkxszeutvhuhm.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6eWNycHRma3hzemV1dHZodWhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzNzY3NjYsImV4cCI6MjA3Nzk1Mjc2Nn0.3qLB6dkuMZg77UmU9keACfO_U00i88iqmVAVlojgUts
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6eWNycHRma3hzemV1dHZodWhtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjM3Njc2NiwiZXhwIjoyMDc3OTUyNzY2fQ.4tC4uy2mI2Ps66XBu8Q-_lahyHQA3eFD8zeDFqYjV0Y
-SUPABASE_ACCESS_TOKEN=sbp_aedcc714d160a73484dcedc0bdc388eb9602e7f1
-SUPABASE_DB_HOST=db.yzycrptfkxszeutvhuhm.supabase.co
-SUPABASE_DB_USER=postgres
-SUPABASE_DB_PASSWORD=Rawdog#456
-SUPABASE_DB_NAME=postgres
-SUPABASE_DB_PORT=5432
-EOF
+   # The .env file should contain:
+   # SUPABASE_URL=<your-url>
+   # SUPABASE_ANON_KEY=<your-anon-key>
+   # SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+   # SUPABASE_ACCESS_TOKEN=<your-access-token>
+   # SUPABASE_DB_HOST=<your-db-host>
+   # SUPABASE_DB_USER=postgres
+   # SUPABASE_DB_PASSWORD=<your-db-password>
+   # SUPABASE_DB_NAME=postgres
+   # SUPABASE_DB_PORT=5432
    ```
 
 3. **Find your historical Excel file** (likely named):
