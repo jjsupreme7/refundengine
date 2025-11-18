@@ -456,33 +456,28 @@ Focus on high-impact improvements. Limit to top 5 proposals.
 """
 
         try:
-            discussion = self.legal_researcher.claude_discuss(
+            discussion_result = self.legal_researcher.claude_analyze(
                 discussion_prompt,
-                participants=[self.legal_researcher, self.taxonomy,
-                            self.summarizer, self.cross_reference]
+                context="team_discussion"
             )
 
-            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=4)
+            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=1)
 
             # Save discussion
             self.legal_researcher.save_discussion_log(
                 f"knowledge_discussion_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                discussion
+                discussion_result
             )
 
             # Post to Discord
-            messages = []
-            for msg in discussion:
-                messages.append({
-                    "agent": msg.get("agent", "unknown"),
-                    "content": msg.get("content", "")[:500]
-                })
-
-            create_discussion_thread("knowledge", "Knowledge Curation Discussion", messages)
+            post_to_discord(
+                "knowledge",
+                f"💬 **Team Discussion** - Reviewing findings...",
+                username="Knowledge Curation Team"
+            )
 
             # Parse proposals
-            final_result = discussion[-1].get("content", "{}")
-            result = json.loads(final_result)
+            result = extract_json(discussion_result)
 
             return result.get("proposals", [])
 

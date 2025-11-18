@@ -1,10 +1,10 @@
 # Agent System Configuration
 # Customize agent behavior, schedules, and team settings
 
-# Agent Work Schedule (7 hours while you sleep)
+# Agent Work Schedule (1 hour overnight)
 schedule:
   start_hour: 1   # 1am
-  end_hour: 8     # 8am
+  end_hour: 2     # 2am
   timezone: "America/Los_Angeles"
 
 # Agent Teams

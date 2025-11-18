@@ -450,32 +450,28 @@ Only propose patterns that are truly ready. Quality over quantity.
 """
 
         try:
-            discussion = self.pattern_discovery.claude_discuss(
+            discussion_result = self.pattern_discovery.claude_analyze(
                 discussion_prompt,
-                participants=[self.pattern_discovery, self.validator, self.edge_case]
+                context="team_discussion"
             )
 
-            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=3)
+            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=1)
 
             # Save discussion
             self.pattern_discovery.save_discussion_log(
                 f"pattern_discussion_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                discussion
+                discussion_result
             )
 
             # Post to Discord
-            messages = []
-            for msg in discussion:
-                messages.append({
-                    "agent": msg.get("agent", "unknown"),
-                    "content": msg.get("content", "")[:500]
-                })
-
-            create_discussion_thread("patterns", "Pattern Learning Discussion", messages)
+            post_to_discord(
+                "patterns",
+                f"💬 **Team Discussion** - Reviewing patterns...",
+                username="Pattern Learning Council"
+            )
 
             # Parse proposals
-            final_result = discussion[-1].get("content", "{}")
-            result = json.loads(final_result)
+            result = extract_json(discussion_result)
 
             return result.get("proposals", [])
 

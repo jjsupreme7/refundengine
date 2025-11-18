@@ -31,12 +31,13 @@ chmod 644 "$DEST_PLIST"
 # Unload if already loaded
 if launchctl list | grep -q "com.refundengine.scheduler"; then
     echo "Stopping existing scheduler service..."
-    launchctl unload "$DEST_PLIST" 2>/dev/null || true
+    launchctl bootout gui/$(id -u)/com.refundengine.scheduler 2>/dev/null || true
 fi
 
 # Load the launch agent
 echo "Starting scheduler service..."
-launchctl load "$DEST_PLIST"
+launchctl bootstrap gui/$(id -u) "$DEST_PLIST"
+launchctl kickstart -k gui/$(id -u)/com.refundengine.scheduler
 
 echo -e "\n${GREEN}✓ Agent scheduler configured successfully!${NC}\n"
 echo "The scheduler will now:"
@@ -52,7 +53,8 @@ echo "  tail -f agents/scheduler.log"
 echo "  tail -f agents/scheduler.error.log"
 echo ""
 echo "To stop the service:"
-echo "  launchctl unload ~/Library/LaunchAgents/$PLIST_FILE"
+echo "  launchctl bootout gui/\$(id -u)/com.refundengine.scheduler"
 echo ""
 echo "To start the service again:"
-echo "  launchctl load ~/Library/LaunchAgents/$PLIST_FILE"
+echo "  launchctl bootstrap gui/\$(id -u) ~/Library/LaunchAgents/$PLIST_FILE"
+echo "  launchctl kickstart -k gui/\$(id -u)/com.refundengine.scheduler"
