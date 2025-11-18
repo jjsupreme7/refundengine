@@ -1,0 +1,3613 @@
+[
+  {
+    "vendor_name": "3SI SECURITY SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 44,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "SECURITY",
+      "3SI"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "A10 NETWORKS INC",
+    "product_type": "2",
+    "historical_sample_count": 40,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "NETWORKS",
+      "A10"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ABF DATA SYSTEMS",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.75,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "DATA",
+      "ABF"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AC NIELSEN CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "NIELSEN",
+      "AC"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ACCENT FOOD SERVICES LLC",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FOOD",
+      "ACCENT",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ACCERTIFY INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "ACCERTIFY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ACCURATE BACKGROUND LLC",
+    "product_type": "14",
+    "historical_sample_count": 884,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BACKGROUND",
+      "ACCURATE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ADOBE SYSTEMS INCORPORATED",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "ADOBE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ADVANCED COLLECTION SERVICES",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ADVANCED",
+      "COLLECTION",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ALCATEL-LUCENT USA INC",
+    "product_type": "2",
+    "historical_sample_count": 68,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ALCATEL-LUCENT",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ALLEN INDUSTRIES INC",
+    "product_type": "2",
+    "historical_sample_count": 4052,
+    "historical_success_rate": 0.0005,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "ALLEN",
+      "INDUSTRIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ALLNET LABS LLC",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "ALLNET",
+      "LABS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AMDOCS INC",
+    "product_type": "2",
+    "historical_sample_count": 52,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "AMDOCS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ANDERSEN CONSTRUCTION COMPANY OF",
+    "product_type": "2",
+    "historical_sample_count": 114,
+    "historical_success_rate": 0.693,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "CONSTRUCTION",
+      "OF",
+      "ANDERSEN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ANIXTER INC",
+    "product_type": "2",
+    "historical_sample_count": 487,
+    "historical_success_rate": 0.1704,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "ANIXTER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ANRITSU COMPANY",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.1176,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "ANRITSU"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "APPDYNAMICS INC",
+    "product_type": "8",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "APPDYNAMICS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "APPTENTIVE INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "APPTENTIVE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ARCHITECTURAL GRAPHICS INC",
+    "product_type": "2",
+    "historical_sample_count": 711,
+    "historical_success_rate": 0.0169,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "ARCHITECTURAL",
+      "GRAPHICS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ARRIS SOLUTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "ARRIS",
+      "SOLUTIONS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AUDIO FIDELITY COMMUNICATIONS",
+    "product_type": "2",
+    "historical_sample_count": 15,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FIDELITY",
+      "COMMUNICATIONS",
+      "AUDIO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AUTHENTICID INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "AUTHENTICID"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AUTOMATED SYSTEMS DESIGN INC",
+    "product_type": "2",
+    "historical_sample_count": 192,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "AUTOMATED",
+      "DESIGN",
+      "SYSTEMS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AUTOMOTIVE RENTALS INC",
+    "product_type": "2",
+    "historical_sample_count": 113,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "AUTOMOTIVE",
+      "RENTALS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "AXIS GROUP LLC",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.3333,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "AXIS",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BAILIWICK SERVICES LLC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BAILIWICK",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BAZAARVOICE INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "BAZAARVOICE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BEAM TEAM CONSTRUCTION INC",
+    "product_type": "2",
+    "historical_sample_count": 87,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BEAM",
+      "CONSTRUCTION",
+      "TEAM"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BITLY INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BITLY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BLAIR COMPANIES",
+    "product_type": "2",
+    "historical_sample_count": 1105,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BLAIR",
+      "COMPANIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BLUE YONDER INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "YONDER",
+      "BLUE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BLUECORE INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BLUECORE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BLUESTREAM PROFESSIONAL SERVICES LL",
+    "product_type": "2",
+    "historical_sample_count": 78,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "LL",
+      "PROFESSIONAL",
+      "BLUESTREAM",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BRANDIT CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 59,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BRANDIT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BRINTON BUSINESS VENTURES INC",
+    "product_type": "2",
+    "historical_sample_count": 236,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BUSINESS",
+      "VENTURES",
+      "BRINTON"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BROADRIDGE MAIL LLC",
+    "product_type": "2",
+    "historical_sample_count": 882,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MAIL",
+      "BROADRIDGE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BROADRIDGE OUTPUT SOLUTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 62,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "OUTPUT",
+      "BROADRIDGE",
+      "SOLUTIONS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BTI SOLUTIONS INC",
+    "product_type": "4",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "B&O tax",
+    "vendor_keywords": [
+      "BTI",
+      "SOLUTIONS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BUILD A SIGN LLC",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SIGN",
+      "BUILD"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BURR COMPUTER ENVIRONMENTS INC",
+    "product_type": "2",
+    "historical_sample_count": 111,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BURR",
+      "ENVIRONMENTS",
+      "COMPUTER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "BUSINESS INTERIORS NORTHWEST INC",
+    "product_type": "2",
+    "historical_sample_count": 291,
+    "historical_success_rate": 0.0034,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "INTERIORS",
+      "BUSINESS",
+      "NORTHWEST"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CALIBER 1 CONSTRUCTION INC",
+    "product_type": "6",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CONSTRUCTION",
+      "CALIBER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CALLIDUS SOFTWARE INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CALLIDUS",
+      "SOFTWARE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CASS INFORMATION SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 492,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "CASS",
+      "INFORMATION"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CISCO SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 34,
+    "historical_success_rate": 0.0588,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "CISCO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CITIBANK NA",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CITIBANK",
+      "NA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CITY OF LAWTON  OK",
+    "product_type": "2",
+    "historical_sample_count": 28,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CITY",
+      "LAWTON",
+      "OF",
+      "OK"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CLARK EQUIPMENT COMPANY",
+    "product_type": "2",
+    "historical_sample_count": 23,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "EQUIPMENT",
+      "CLARK"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CLICKTALE INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CLICKTALE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CLOUDERA INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CLOUDERA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COAST SIGN INCORPORATED",
+    "product_type": "2",
+    "historical_sample_count": 2704,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SIGN",
+      "COAST"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COMMSCOPE INC OF NORTH CAROLINA",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.3333,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "NORTH",
+      "OF",
+      "COMMSCOPE",
+      "CAROLINA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COMMUNICATIONS & ENTERTAINMENT INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "COMMUNICATIONS",
+      "ENTERTAINMENT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COMPEREMEDIA INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "COMPEREMEDIA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COMPETITIVE MEDIA REPORTING LLC",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "COMPETITIVE",
+      "REPORTING",
+      "MEDIA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COMPUCOM SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 53,
+    "historical_success_rate": 0.7736,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "COMPUCOM"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CONTINUANT INC",
+    "product_type": "2",
+    "historical_sample_count": 27,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CONTINUANT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CONVERGENT MEDIA SYSTEMS",
+    "product_type": "2",
+    "historical_sample_count": 113,
+    "historical_success_rate": 0.0088,
+    "typical_refund_basis": "Partial OOS shipment",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "CONVERGENT",
+      "MEDIA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CONVERGEONE INC",
+    "product_type": "2",
+    "historical_sample_count": 64,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CONVERGEONE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CONVERSOCIAL INC",
+    "product_type": "3",
+    "historical_sample_count": 8,
+    "historical_success_rate": 0.25,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "CONVERSOCIAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CORNELL STOREFRONT SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 13,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "CORNELL",
+      "STOREFRONT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COST SIGN INC",
+    "product_type": "3",
+    "historical_sample_count": 14,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SIGN",
+      "COST"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "COSTAR GROUP INC",
+    "product_type": "2",
+    "historical_sample_count": 27,
+    "historical_success_rate": 0.1481,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "COSTAR",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CREO INDUSTRIAL ARTS LLC",
+    "product_type": "2",
+    "historical_sample_count": 62,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ARTS",
+      "CREO",
+      "INDUSTRIAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CUSHMAN & WAKEFIELD US INC",
+    "product_type": "2",
+    "historical_sample_count": 103,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CUSHMAN",
+      "US",
+      "WAKEFIELD"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "CYBER-ARK SOFTWARE INC",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CYBER-ARK",
+      "SOFTWARE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DAY MANAGEMENT CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DAY",
+      "MANAGEMENT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DE LAGE LANDEN FINANCIAL SERVICES I",
+    "product_type": "2",
+    "historical_sample_count": 67,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "LANDEN",
+      "SERVICES",
+      "DE",
+      "FINANCIAL",
+      "LAGE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DECO DATA GROUP LLC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DATA",
+      "GROUP",
+      "DECO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DELL COMPUTER CORP",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "COMPUTER",
+      "DELL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DELOITTE CONSULTING LLP",
+    "product_type": "2",
+    "historical_sample_count": 147,
+    "historical_success_rate": 0.0136,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "DELOITTE",
+      "LLP",
+      "CONSULTING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DELUXE SMALL BUSINESS SALES INC",
+    "product_type": "2",
+    "historical_sample_count": 124,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BUSINESS",
+      "SALES",
+      "SMALL",
+      "DELUXE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DEMANDBASE INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "DEMANDBASE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DIMENSION SYSTEMS",
+    "product_type": "2",
+    "historical_sample_count": 81,
+    "historical_success_rate": 0.2716,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "DIMENSION"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DIRECT CONNECT GROUP DCG LLC",
+    "product_type": "2",
+    "historical_sample_count": 10,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DIRECT",
+      "GROUP",
+      "DCG",
+      "CONNECT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DOCUSIGN INC",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DOCUSIGN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "DUN & BRADSTREET INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "DUN",
+      "BRADSTREET"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ELECTRIC COFFIN CREATIVE SUPPLY CO",
+    "product_type": "2",
+    "historical_sample_count": 8,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELECTRIC",
+      "CREATIVE",
+      "COFFIN",
+      "SUPPLY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ELEMENTAL TECHNOLOGIES LLC",
+    "product_type": "4",
+    "historical_sample_count": 16,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELEMENTAL",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ELOQUENT CORP",
+    "product_type": "2",
+    "historical_sample_count": 909,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELOQUENT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "EMC CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 14,
+    "historical_success_rate": 0.2857,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "EMC"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ENERGY DESIGN SERVICE SYSTEMS LLC",
+    "product_type": "2",
+    "historical_sample_count": 81,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SERVICE",
+      "DESIGN",
+      "SYSTEMS",
+      "ENERGY"
+    ],
+    "description_keywords": [
+      "002"
+    ]
+  },
+  {
+    "vendor_name": "ENQUERO INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ENQUERO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "EPLUS TECHNOLOGY INC",
+    "product_type": "2",
+    "historical_sample_count": 120,
+    "historical_success_rate": 0.4833,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "TECHNOLOGY",
+      "EPLUS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ERICSSON INC",
+    "product_type": "002",
+    "historical_sample_count": 476,
+    "historical_success_rate": 0.1134,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "ERICSSON"
+    ],
+    "description_keywords": [
+      "002",
+      "003",
+      "004",
+      "005",
+      "006",
+      "008",
+      "010",
+      "012",
+      "007",
+      "009"
+    ]
+  },
+  {
+    "vendor_name": "EUROPTIMUM DISPLAY CORP",
+    "product_type": "2",
+    "historical_sample_count": 26,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "EUROPTIMUM",
+      "DISPLAY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "EXHIBIT WORKS INC",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "EXHIBIT",
+      "WORKS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "EXTRAHOP NETWORKS INC",
+    "product_type": "2",
+    "historical_sample_count": 11,
+    "historical_success_rate": 0.1818,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "NETWORKS",
+      "EXTRAHOP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FACILITY INTERIORS INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "INTERIORS",
+      "FACILITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FAIR ISAAC CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 65,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FAIR",
+      "ISAAC"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FINISAR CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 32,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FINISAR"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FIREEYE INC",
+    "product_type": "5",
+    "historical_sample_count": 10,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "FIREEYE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FIREKING SECURITY PRODUCTS LLC",
+    "product_type": "2",
+    "historical_sample_count": 173,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PRODUCTS",
+      "FIREKING",
+      "SECURITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FIRST AD SIGNS",
+    "product_type": "6",
+    "historical_sample_count": 145,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "AD",
+      "SIGNS",
+      "FIRST"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FM SYSTEMS GROUP LLC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "FM",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FORMAN INDUSTRIES INC",
+    "product_type": "4",
+    "historical_sample_count": 77,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FORMAN",
+      "INDUSTRIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FORRESTER RESEARCH INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "FORRESTER",
+      "RESEARCH"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FORT EFFECT CORP",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "EFFECT",
+      "FORT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FREE ROAD FILMS",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "ROAD",
+      "FREE",
+      "FILMS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "FULCRUM TECHNOLOGIES INC",
+    "product_type": "4",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.5,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "FULCRUM",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GALLAGHER BASSETT SERVICES INC",
+    "product_type": "2",
+    "historical_sample_count": 10,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "GALLAGHER",
+      "SERVICES",
+      "BASSETT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GARTNER INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "GARTNER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GE POWER ELECTRONICS INC",
+    "product_type": "8",
+    "historical_sample_count": 8,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "POWER",
+      "ELECTRONICS",
+      "GE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GENERAL DATATECH",
+    "product_type": "2",
+    "historical_sample_count": 405,
+    "historical_success_rate": 0.0025,
+    "typical_refund_basis": "Partial OOS services",
+    "vendor_keywords": [
+      "DATATECH",
+      "GENERAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GENESCO SPORTS ENTERPRISES INC",
+    "product_type": "2",
+    "historical_sample_count": 13,
+    "historical_success_rate": 0.7692,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "SPORTS",
+      "GENESCO",
+      "ENTERPRISES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GIGAMON INC",
+    "product_type": "2",
+    "historical_sample_count": 194,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "GIGAMON"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GITLAB INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "GITLAB"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GLOBAL FACILITY MANAGEMENT &",
+    "product_type": "2",
+    "historical_sample_count": 188,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MANAGEMENT",
+      "FACILITY",
+      "GLOBAL"
+    ],
+    "description_keywords": [
+      "002"
+    ]
+  },
+  {
+    "vendor_name": "GLOBALDATA PUBLICATIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "PUBLICATIONS",
+      "GLOBALDATA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GOOGLE PAYMENT CORP",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PAYMENT",
+      "GOOGLE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "GRAYBAR ELECTRIC COMPANY INC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELECTRIC",
+      "GRAYBAR"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HALO BRANDED SOLUTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 188,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "HALO",
+      "BRANDED"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HASHICORP INC",
+    "product_type": "6",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "HASHICORP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HAWK BUILDING LLC",
+    "product_type": "2",
+    "historical_sample_count": 103,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "HAWK",
+      "BUILDING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HCL AMERICA INC",
+    "product_type": "2",
+    "historical_sample_count": 2486,
+    "historical_success_rate": 0.0294,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "AMERICA",
+      "HCL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HEAD ACOUSTICS INC",
+    "product_type": "4",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "HEAD",
+      "ACOUSTICS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HELP/SYSTEMS LLC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "HELP/SYSTEMS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HEMISPHERE DESIGN & MANUFACTURING L",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MANUFACTURING",
+      "DESIGN",
+      "HEMISPHERE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HEWLETT PACKARD ENTERPRISE COMPANY",
+    "product_type": "2",
+    "historical_sample_count": 37,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ENTERPRISE",
+      "HEWLETT",
+      "PACKARD"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HH ASSOCIATES US INC",
+    "product_type": "2",
+    "historical_sample_count": 123,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "HH",
+      "US",
+      "ASSOCIATES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HICORP",
+    "product_type": "2",
+    "historical_sample_count": 10,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "HICORP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HITACHI VANTARA LLC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "VANTARA",
+      "HITACHI"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HORIZON RETAIL CONSTRUCTION INC",
+    "product_type": "2",
+    "historical_sample_count": 152,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CONSTRUCTION",
+      "RETAIL",
+      "HORIZON"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "HUBER SUHNER INC",
+    "product_type": "2",
+    "historical_sample_count": 9,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SUHNER",
+      "HUBER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "IMAGE NATIONAL INC",
+    "product_type": "2",
+    "historical_sample_count": 1984,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "NATIONAL",
+      "IMAGE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INDECT USA CORPORATION",
+    "product_type": "4",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "INDECT",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INFOSYS LIMITED",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "INFOSYS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INFOVISTA NETWORK TESTING INC",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.1176,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "NETWORK",
+      "TESTING",
+      "INFOVISTA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INGRAM MICRO INC",
+    "product_type": "2",
+    "historical_sample_count": 33,
+    "historical_success_rate": 0.1818,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "INGRAM",
+      "MICRO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INTEGRITY NETWORKS INC",
+    "product_type": "2",
+    "historical_sample_count": 53,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "INTEGRITY",
+      "NETWORKS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INTERNATIONAL BUSINESS MACHINES",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "INTERNATIONAL",
+      "BUSINESS",
+      "MACHINES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "INVUE SECURITY PRODUCTS INC",
+    "product_type": "2",
+    "historical_sample_count": 1022,
+    "historical_success_rate": 0.0039,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "PRODUCTS",
+      "SECURITY",
+      "INVUE"
+    ],
+    "description_keywords": [
+      "003"
+    ]
+  },
+  {
+    "vendor_name": "ITENTIAL",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ITENTIAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "JOHN A MARSHALL COMPANY",
+    "product_type": "2",
+    "historical_sample_count": 8,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MARSHALL",
+      "JOHN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "JP MORGAN CHASE BANK",
+    "product_type": "2",
+    "historical_sample_count": 47,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "CHASE",
+      "JP",
+      "BANK",
+      "MORGAN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KC WHOLESALE CONSTRUCTION PRODUCTS",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "CONSTRUCTION",
+      "PRODUCTS",
+      "KC",
+      "WHOLESALE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KENTIK TECHNOLOGIES INC",
+    "product_type": "3",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "TECHNOLOGIES",
+      "KENTIK"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KEYSIGHT TECHNOLOGIES INC",
+    "product_type": "2",
+    "historical_sample_count": 13,
+    "historical_success_rate": 0.5385,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "KEYSIGHT",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KEYSTONE MANAGEMENT INC",
+    "product_type": "2",
+    "historical_sample_count": 1814,
+    "historical_success_rate": 0.0039,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "MANAGEMENT",
+      "KEYSTONE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KIMCO FACILITY SERVICES LLC",
+    "product_type": "2",
+    "historical_sample_count": 49,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FACILITY",
+      "SERVICES",
+      "KIMCO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KIOSK INFORMATION SYSTEMS",
+    "product_type": "2",
+    "historical_sample_count": 83,
+    "historical_success_rate": 0.0843,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "KIOSK",
+      "INFORMATION"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "KRONOS INCORPORATED",
+    "product_type": "2",
+    "historical_sample_count": 8,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "KRONOS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "LANE VALENTE INDUSTRIES INC",
+    "product_type": "2",
+    "historical_sample_count": 360,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "LANE",
+      "INDUSTRIES",
+      "VALENTE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "LEXISNEXIS RISK SOLUTIONS FL INC",
+    "product_type": "2",
+    "historical_sample_count": 48,
+    "historical_success_rate": 0.75,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "LEXISNEXIS",
+      "RISK",
+      "FL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "LINDGREN RF ENCLOSURES",
+    "product_type": "2",
+    "historical_sample_count": 15,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "RF",
+      "ENCLOSURES",
+      "LINDGREN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "LINKED IN CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "LINKED",
+      "IN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "LOCKTON COMPANIES",
+    "product_type": "2",
+    "historical_sample_count": 146,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "LOCKTON",
+      "COMPANIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "M SCIENCE LLC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SCIENCE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MACDONALD MILLER FACILITY SOLUTIONS",
+    "product_type": "2",
+    "historical_sample_count": 66,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "FACILITY",
+      "MILLER",
+      "MACDONALD"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MAILFINANCE INC",
+    "product_type": "2",
+    "historical_sample_count": 15,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MAILFINANCE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MANSELL GROUP INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "MANSELL",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MC SIGN COMPANY",
+    "product_type": "2",
+    "historical_sample_count": 8374,
+    "historical_success_rate": 0.001,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "MC",
+      "SIGN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MCKINSTRY CO LLC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MCKINSTRY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MDS BUILDERS INC",
+    "product_type": "2",
+    "historical_sample_count": 149,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MDS",
+      "BUILDERS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MDS BUILDERS OF TEXAS INC",
+    "product_type": "2",
+    "historical_sample_count": 91,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MDS",
+      "BUILDERS",
+      "OF",
+      "TEXAS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MEDALLIA INC",
+    "product_type": "2",
+    "historical_sample_count": 16,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MEDALLIA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MICRO FOCUS LLC",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FOCUS",
+      "MICRO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MICROSOFT CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 199,
+    "historical_success_rate": 0.0251,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "MICROSOFT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MILFORD ENTERPRISES INC",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MILFORD",
+      "ENTERPRISES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MIST SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.1429,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "MIST"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MITEL MOBILITY INC",
+    "product_type": "2",
+    "historical_sample_count": 110,
+    "historical_success_rate": 0.0182,
+    "typical_refund_basis": "OOS shipment",
+    "vendor_keywords": [
+      "MOBILITY",
+      "MITEL"
+    ],
+    "description_keywords": [
+      "002"
+    ]
+  },
+  {
+    "vendor_name": "MITTERA GROUP",
+    "product_type": "2",
+    "historical_sample_count": 9,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MITTERA",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MK SYSTEMS USA INC",
+    "product_type": "2",
+    "historical_sample_count": 9,
+    "historical_success_rate": 0.1111,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "MK",
+      "SYSTEMS",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MOBILE TECH INC",
+    "product_type": "2",
+    "historical_sample_count": 14,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TECH",
+      "MOBILE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MOHAWK CARPET DISTRIBUTION INC",
+    "product_type": "2",
+    "historical_sample_count": 77,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DISTRIBUTION",
+      "CARPET",
+      "MOHAWK"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MOREDIRECT INC",
+    "product_type": "2",
+    "historical_sample_count": 35339,
+    "historical_success_rate": 0.001,
+    "typical_refund_basis": "Partial OOS shipment",
+    "vendor_keywords": [
+      "MOREDIRECT"
+    ],
+    "description_keywords": [
+      "002"
+    ]
+  },
+  {
+    "vendor_name": "MORLEY MOSS INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MOSS",
+      "MORLEY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MOTIVACTION LLC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MOTIVACTION"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "MT PARENT INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "MT",
+      "PARENT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NATIONAL GLAZING SOLUTIONS LLC",
+    "product_type": "4",
+    "historical_sample_count": 40,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "NATIONAL",
+      "GLAZING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NATIONAL MAINTENANCE & CONSTRUCTION",
+    "product_type": "2",
+    "historical_sample_count": 937,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MAINTENANCE",
+      "NATIONAL",
+      "CONSTRUCTION"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NC4 INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "NC4"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NETCRACKER TECHNOLOGY SOLUTIONS LLC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TECHNOLOGY",
+      "SOLUTIONS",
+      "NETCRACKER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NICE SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 8,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "NICE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NOKIA SOLUTIONS AND NETWORKS US LLC",
+    "product_type": "002",
+    "historical_sample_count": 272,
+    "historical_success_rate": 0.0699,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "NOKIA",
+      "NETWORKS",
+      "US",
+      "SOLUTIONS"
+    ],
+    "description_keywords": [
+      "002",
+      "003",
+      "006",
+      "005",
+      "013",
+      "008",
+      "012",
+      "004",
+      "009",
+      "014"
+    ]
+  },
+  {
+    "vendor_name": "NOVO PAINTING & PROPERTY SERVICES L",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PROPERTY",
+      "NOVO",
+      "PAINTING",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "NUANCE COMMUNICATIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 51,
+    "historical_success_rate": 0.6078,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "COMMUNICATIONS",
+      "NUANCE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "O9 SOLUTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.2,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "O9",
+      "SOLUTIONS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "OBJEKTS LLC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "OBJEKTS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "OEG INC",
+    "product_type": "2",
+    "historical_sample_count": 60,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "OEG"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "OFFICE DEPOT INC",
+    "product_type": "2",
+    "historical_sample_count": 4557,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DEPOT",
+      "OFFICE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "OPENMARKET INC",
+    "product_type": "2",
+    "historical_sample_count": 15,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "OPENMARKET"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "OPENTEXT INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.75,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "OPENTEXT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "OPTIV SECURITY INC",
+    "product_type": "2",
+    "historical_sample_count": 37,
+    "historical_success_rate": 0.027,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "SECURITY",
+      "OPTIV"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ORACLE AMERICA INC",
+    "product_type": "2",
+    "historical_sample_count": 14,
+    "historical_success_rate": 0.0714,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "AMERICA",
+      "ORACLE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ORTRONICS INC",
+    "product_type": "2",
+    "historical_sample_count": 22,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ORTRONICS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PACIFIC BUILDING SERVICES INC",
+    "product_type": "2",
+    "historical_sample_count": 38,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PACIFIC",
+      "SERVICES",
+      "BUILDING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PACIFIC TECHNICAL SOLUTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PACIFIC",
+      "SOLUTIONS",
+      "TECHNICAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PAGERDUTY INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "PAGERDUTY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PALMER DISTRIBUTORS INC",
+    "product_type": "2",
+    "historical_sample_count": 33,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PALMER",
+      "DISTRIBUTORS"
+    ],
+    "description_keywords": [
+      "003",
+      "002"
+    ]
+  },
+  {
+    "vendor_name": "PICORE BERISTAIN INTIATIVE INC",
+    "product_type": "2",
+    "historical_sample_count": 61,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "BERISTAIN",
+      "INTIATIVE",
+      "PICORE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PITNEY BOWES SOFTWARE",
+    "product_type": "2",
+    "historical_sample_count": 16,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PITNEY",
+      "BOWES",
+      "SOFTWARE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PIVOTAL SOFTWARE INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PIVOTAL",
+      "SOFTWARE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PLAYNETWORK INC",
+    "product_type": "2",
+    "historical_sample_count": 5,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PLAYNETWORK"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PORTIS & ASSOCIATES LLC",
+    "product_type": "2",
+    "historical_sample_count": 19,
+    "historical_success_rate": 0.3158,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "ASSOCIATES",
+      "PORTIS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "POWERHOUSE RETAIL SERVICES LLC",
+    "product_type": "2",
+    "historical_sample_count": 750,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "POWERHOUSE",
+      "RETAIL",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PREPARESMART LLC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PREPARESMART"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PRIME ELECTRIC INC",
+    "product_type": "2",
+    "historical_sample_count": 102,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELECTRIC",
+      "PRIME"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PRINCIPLE USA INC",
+    "product_type": "2",
+    "historical_sample_count": 708,
+    "historical_success_rate": 0.0494,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "PRINCIPLE",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PRIORITY INC",
+    "product_type": "2",
+    "historical_sample_count": 477,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PRIORITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PROSIGNS LLC",
+    "product_type": "3",
+    "historical_sample_count": 120,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PROSIGNS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PROSYS INFORMATION SYSTEMS",
+    "product_type": "2",
+    "historical_sample_count": 604,
+    "historical_success_rate": 0.1573,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SYSTEMS",
+      "PROSYS",
+      "INFORMATION"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "PWR LLC",
+    "product_type": "2",
+    "historical_sample_count": 9,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PWR"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "QUALCOMM TECHNOLOGIES INC",
+    "product_type": "2",
+    "historical_sample_count": 24,
+    "historical_success_rate": 0.7083,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "QUALCOMM",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "QUALITAS MANUFACTURING INC",
+    "product_type": "2",
+    "historical_sample_count": 35,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "MANUFACTURING",
+      "QUALITAS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "QUALITY BUSINESS SYSTEMS",
+    "product_type": "2",
+    "historical_sample_count": 522,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "BUSINESS",
+      "QUALITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "QUENCH USA INC",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "QUENCH",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "REALNETWORKS INC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "REALNETWORKS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "REDAPT INC",
+    "product_type": "5",
+    "historical_sample_count": 4,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "REDAPT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "RENTACRATE ENTERPRISES LLC",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "RENTACRATE",
+      "ENTERPRISES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "RETAILNEXT INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "RETAILNEXT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "REVSPRING INC",
+    "product_type": "2",
+    "historical_sample_count": 24,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "REVSPRING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "RICOH USA INC",
+    "product_type": "2",
+    "historical_sample_count": 30,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "RICOH",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "RIVERA INTERIOR SYSTEM CORP",
+    "product_type": "2",
+    "historical_sample_count": 23,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "INTERIOR",
+      "SYSTEM",
+      "RIVERA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ROHDE & SCHWARZ USA INC",
+    "product_type": "2",
+    "historical_sample_count": 42,
+    "historical_success_rate": 0.6429,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SCHWARZ",
+      "ROHDE",
+      "USA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ROYAL MECHANICAL SERVICES INC",
+    "product_type": "2",
+    "historical_sample_count": 192,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ROYAL",
+      "MECHANICAL",
+      "SERVICES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SAGENT LLC",
+    "product_type": "5",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SAGENT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SAILPOINT TECHNOLOGIES INC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.8571,
+    "typical_refund_basis": "Non-taxable",
+    "vendor_keywords": [
+      "SAILPOINT",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SALESFORCE COM INC",
+    "product_type": "2",
+    "historical_sample_count": 8,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SALESFORCE",
+      "COM"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SANJOLE INC",
+    "product_type": "24",
+    "historical_sample_count": 23,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SANJOLE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SCHLOSSER GEOGRAPHIC SYSTEMS INC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "SCHLOSSER",
+      "GEOGRAPHIC"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SCHMITT ELECTRIC INC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELECTRIC",
+      "SCHMITT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SECURITY PEOPLE INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PEOPLE",
+      "SECURITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SEQUOYAH ELECTRIC LLC",
+    "product_type": "2",
+    "historical_sample_count": 154,
+    "historical_success_rate": 0.9286,
+    "typical_refund_basis": "Partial OOS services",
+    "vendor_keywords": [
+      "ELECTRIC",
+      "SEQUOYAH"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SERVICE COMMUNICATIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SERVICE",
+      "COMMUNICATIONS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SERVICENOW INC",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SERVICENOW"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SHAFFER WILSON SARVER & GRAY PC",
+    "product_type": "2",
+    "historical_sample_count": 121,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PC",
+      "WILSON",
+      "SHAFFER",
+      "SARVER",
+      "GRAY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SHAW INDUSTRIES INC",
+    "product_type": "2",
+    "historical_sample_count": 230,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "INDUSTRIES",
+      "SHAW"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SHI INTERNATIONAL CORP",
+    "product_type": "2",
+    "historical_sample_count": 16,
+    "historical_success_rate": 0.125,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "INTERNATIONAL",
+      "SHI"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SHOOTSTA INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SHOOTSTA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SHOPPAS MATERIAL HANDLING LTD",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "HANDLING",
+      "SHOPPAS",
+      "MATERIAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SHOPPERTRAK RCT CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SHOPPERTRAK",
+      "RCT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SIGN ENGINEERING CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 61,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SIGN",
+      "ENGINEERING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SIGN RESOURCE INC THE",
+    "product_type": "5",
+    "historical_sample_count": 57,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "RESOURCE",
+      "SIGN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SIGNAL PERFECTION LTD",
+    "product_type": "2",
+    "historical_sample_count": 72,
+    "historical_success_rate": 0.125,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "PERFECTION",
+      "SIGNAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SLACK TECHNOLOGIES INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SLACK",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SNOWFLAKE INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SNOWFLAKE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SOUTH WATER SIGNS",
+    "product_type": "2",
+    "historical_sample_count": 5400,
+    "historical_success_rate": 0.0002,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "WATER",
+      "SOUTH",
+      "SIGNS"
+    ],
+    "description_keywords": [
+      "005"
+    ]
+  },
+  {
+    "vendor_name": "SOUTHWEST SIGN GROUP INC",
+    "product_type": "2",
+    "historical_sample_count": 165,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOUTHWEST",
+      "SIGN",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SPARKS MARKETING CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 65,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SPARKS",
+      "MARKETING"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SPIRENT COMMUNICATIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 25,
+    "historical_success_rate": 0.08,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "COMMUNICATIONS",
+      "SPIRENT"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SPLUNK INC",
+    "product_type": "4",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.5,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SPLUNK"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "STALEY INC",
+    "product_type": "2",
+    "historical_sample_count": 140,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "STALEY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "STAPLES CONTRACT AND COMMERCIAL INC",
+    "product_type": "2",
+    "historical_sample_count": 292,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "COMMERCIAL",
+      "CONTRACT",
+      "STAPLES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SUBEX INC",
+    "product_type": "2",
+    "historical_sample_count": 16,
+    "historical_success_rate": 0.125,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "SUBEX"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SUNRISE BANKS NA",
+    "product_type": "2",
+    "historical_sample_count": 1071,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SUNRISE",
+      "NA",
+      "BANKS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SUNRISE CREATIVE GROUP INC",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SUNRISE",
+      "CREATIVE",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SUPERGRAPHICS LLC",
+    "product_type": "2",
+    "historical_sample_count": 31,
+    "historical_success_rate": 0.129,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "SUPERGRAPHICS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "SWINERTON BUILDERS",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SWINERTON",
+      "BUILDERS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TAILWIND VOICE & DATA INC",
+    "product_type": "4",
+    "historical_sample_count": 512,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "VOICE",
+      "DATA",
+      "TAILWIND"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TELCORDIA TECHNOLOGIES INC",
+    "product_type": "2",
+    "historical_sample_count": 16,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TELCORDIA",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TELECOM SITE SOLUTIONS LLC",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "SITE",
+      "TELECOM"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TELESTREAM HOLDINGS CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TELESTREAM",
+      "HOLDINGS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TELEZYGOLOGY INC",
+    "product_type": "2",
+    "historical_sample_count": 11,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TELEZYGOLOGY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TELLERMATE INC",
+    "product_type": "2",
+    "historical_sample_count": 41,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TELLERMATE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TEMPEST TECHNOLOGIES LLC",
+    "product_type": "2",
+    "historical_sample_count": 93,
+    "historical_success_rate": 0.086,
+    "typical_refund_basis": "Partial OOS services",
+    "vendor_keywords": [
+      "TEMPEST",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TEMPEST TELECOM SOLUTIONS LLC",
+    "product_type": "2",
+    "historical_sample_count": 383,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "TEMPEST",
+      "TELECOM"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TEOCO CORPORATION",
+    "product_type": "2",
+    "historical_sample_count": 7,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TEOCO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TERADATA CORPORATIONS",
+    "product_type": "2",
+    "historical_sample_count": 19,
+    "historical_success_rate": 0.1053,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "TERADATA",
+      "CORPORATIONS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TESSCO INCORPORATED",
+    "product_type": "2",
+    "historical_sample_count": 12,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TESSCO"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "THE NPD GROUP INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "NPD",
+      "GROUP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "THYSSENKRUPP ELEVATOR CORP",
+    "product_type": "2",
+    "historical_sample_count": 17,
+    "historical_success_rate": 0.1765,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "ELEVATOR",
+      "THYSSENKRUPP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TLP INC",
+    "product_type": "2",
+    "historical_sample_count": 25,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "TLP"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TRANS UNION LLC",
+    "product_type": "2",
+    "historical_sample_count": 26,
+    "historical_success_rate": 0.0769,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "UNION",
+      "TRANS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TRIAD MANUFACTURING INC",
+    "product_type": "2",
+    "historical_sample_count": 1006,
+    "historical_success_rate": 0.001,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "TRIAD",
+      "MANUFACTURING"
+    ],
+    "description_keywords": [
+      "003",
+      "002"
+    ]
+  },
+  {
+    "vendor_name": "TRIANGLE SIGN AND SERVICE LLC",
+    "product_type": "2",
+    "historical_sample_count": 2669,
+    "historical_success_rate": 0.0004,
+    "typical_refund_basis": "OOS services",
+    "vendor_keywords": [
+      "SERVICE",
+      "SIGN",
+      "TRIANGLE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TRIMBLE INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.3333,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "TRIMBLE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TRYG CRITICAL SOLUTIONS LLC",
+    "product_type": "2",
+    "historical_sample_count": 32,
+    "historical_success_rate": 0.0312,
+    "typical_refund_basis": "Wrong rate",
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "TRYG",
+      "CRITICAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "TUBE ART DISPLAYS INC",
+    "product_type": "2",
+    "historical_sample_count": 23,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "DISPLAYS",
+      "ART",
+      "TUBE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ULINE INC",
+    "product_type": "2",
+    "historical_sample_count": 32,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ULINE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "US SECURITY ASSOCIATES INC",
+    "product_type": "2",
+    "historical_sample_count": 89,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ASSOCIATES",
+      "US",
+      "SECURITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VECA ELECTRIC",
+    "product_type": "4",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELECTRIC",
+      "VECA"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VERACODE INC",
+    "product_type": "5",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "VERACODE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VERDIGRIS TECHNOLOGIES INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "VERDIGRIS",
+      "TECHNOLOGIES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VERTEX INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.3333,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "VERTEX"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VERVEBA TELECOM LLC",
+    "product_type": "2",
+    "historical_sample_count": 83,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "VERVEBA",
+      "TELECOM"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VIAVI SOLUTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 79,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SOLUTIONS",
+      "VIAVI"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VIRTUAL INSTRUMENTS CORPORATION",
+    "product_type": "6",
+    "historical_sample_count": 11,
+    "historical_success_rate": 0.6364,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "INSTRUMENTS",
+      "VIRTUAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VISUAL OPTIONS INC",
+    "product_type": "2",
+    "historical_sample_count": 439,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "OPTIONS",
+      "VISUAL"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "VLOCITY INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "VLOCITY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WACHTER INC",
+    "product_type": "2",
+    "historical_sample_count": 180,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "WACHTER"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WALKME INC",
+    "product_type": "2",
+    "historical_sample_count": 10,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "WALKME"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WALLS & FORMS INC",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "FORMS",
+      "WALLS"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WALTON ENTERPRISES LTD",
+    "product_type": "2",
+    "historical_sample_count": 1511,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "WALTON",
+      "ENTERPRISES"
+    ],
+    "description_keywords": [
+      "002",
+      "004"
+    ]
+  },
+  {
+    "vendor_name": "WALTON SIGNAGE LTD",
+    "product_type": "2",
+    "historical_sample_count": 2433,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "WALTON",
+      "SIGNAGE"
+    ],
+    "description_keywords": [
+      "005"
+    ]
+  },
+  {
+    "vendor_name": "WAVE SYSTEMS CORP",
+    "product_type": "3",
+    "historical_sample_count": 3,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "SYSTEMS",
+      "WAVE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WINDY WATERS INC",
+    "product_type": "2",
+    "historical_sample_count": 3,
+    "historical_success_rate": 1.0,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "WATERS",
+      "WINDY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WONGDOODY INC",
+    "product_type": "2",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "WONGDOODY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WORKDAY INC",
+    "product_type": "2",
+    "historical_sample_count": 21,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "WORKDAY"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WORKING SPACES PACIFIC INC",
+    "product_type": "2",
+    "historical_sample_count": 34,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "PACIFIC",
+      "WORKING",
+      "SPACES"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "WORLD WIDE TECHNOLOGY INC",
+    "product_type": "2",
+    "historical_sample_count": 25,
+    "historical_success_rate": 0.08,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "TECHNOLOGY",
+      "WIDE",
+      "WORLD"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "YOUNG ELECTRIC SIGN COMP",
+    "product_type": "2",
+    "historical_sample_count": 4,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ELECTRIC",
+      "COMP",
+      "YOUNG",
+      "SIGN"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ZABATT ENGINE SERVICES INC",
+    "product_type": "4",
+    "historical_sample_count": 6,
+    "historical_success_rate": 0.0,
+    "typical_refund_basis": null,
+    "vendor_keywords": [
+      "ZABATT",
+      "SERVICES",
+      "ENGINE"
+    ],
+    "description_keywords": []
+  },
+  {
+    "vendor_name": "ZONES INC",
+    "product_type": "2",
+    "historical_sample_count": 17626,
+    "historical_success_rate": 0.0138,
+    "typical_refund_basis": "MPU",
+    "vendor_keywords": [
+      "ZONES"
+    ],
+    "description_keywords": [
+      "002",
+      "003",
+      "004",
+      "005",
+      "006",
+      "007",
+      "009",
+      "008",
+      "011",
+      "010"
+    ]
+  }
+]

@@ -1,0 +1,81 @@
+[
+  {
+    "refund_basis": "MPU",
+    "usage_count": 705,
+    "example_cases": [
+      "ABF DATA SYSTEMS",
+      "ABF DATA SYSTEMS",
+      "ABF DATA SYSTEMS"
+    ]
+  },
+  {
+    "refund_basis": "Non-taxable",
+    "usage_count": 229,
+    "example_cases": [
+      "AC NIELSEN CORPORATION",
+      "AC NIELSEN CORPORATION",
+      "ALLNET LABS LLC"
+    ]
+  },
+  {
+    "refund_basis": "OOS services",
+    "usage_count": 99,
+    "example_cases": [
+      "ALLEN INDUSTRIES INC",
+      "ALLEN INDUSTRIES INC",
+      "ARCHITECTURAL GRAPHICS INC"
+    ]
+  },
+  {
+    "refund_basis": "Wrong rate",
+    "usage_count": 221,
+    "example_cases": [
+      "ANDERSEN CONSTRUCTION COMPANY OF",
+      "ANDERSEN CONSTRUCTION COMPANY OF",
+      "ANDERSEN CONSTRUCTION COMPANY OF"
+    ]
+  },
+  {
+    "refund_basis": "B&O tax",
+    "usage_count": 3,
+    "example_cases": [
+      "BTI SOLUTIONS INC",
+      "BTI SOLUTIONS INC",
+      "BTI SOLUTIONS INC"
+    ]
+  },
+  {
+    "refund_basis": "Partial OOS shipment",
+    "usage_count": 57,
+    "example_cases": [
+      "CONVERGENT MEDIA SYSTEMS",
+      "DIMENSION SYSTEMS",
+      "DIMENSION SYSTEMS"
+    ]
+  },
+  {
+    "refund_basis": "Partial OOS services",
+    "usage_count": 151,
+    "example_cases": [
+      "GENERAL DATATECH",
+      "MC SIGN COMPANY",
+      "MOREDIRECT INC"
+    ]
+  },
+  {
+    "refund_basis": "OOS shipment",
+    "usage_count": 3,
+    "example_cases": [
+      "MITEL MOBILITY INC",
+      "MITEL MOBILITY INC",
+      "SEQUOYAH ELECTRIC LLC"
+    ]
+  },
+  {
+    "refund_basis": "Refund Basis",
+    "usage_count": 1,
+    "example_cases": [
+      "name1_po_vendor_name"
+    ]
+  }
+]
