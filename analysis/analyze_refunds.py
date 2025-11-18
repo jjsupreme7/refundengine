@@ -50,6 +50,18 @@ class RefundAnalyzer:
         self.embedding_model = "text-embedding-3-small"
         self.analysis_model = "gpt-4o"  # Use GPT-4 for complex legal analysis
 
+        # Initialize historical pattern matchers
+        try:
+            from analysis.vendor_matcher import VendorMatcher
+            from analysis.keyword_matcher import KeywordMatcher
+
+            self.vendor_matcher = VendorMatcher()
+            self.keyword_matcher = KeywordMatcher()
+            self.matchers_available = True
+        except ImportError as e:
+            print(f"Warning: Pattern matchers not available: {e}")
+            self.matchers_available = False
+
     def validate_path(self, filename: str) -> Optional[Path]:
         """
         Validate that a filename doesn't contain path traversal attacks.
@@ -158,38 +170,50 @@ Return JSON:
     def check_vendor_learning(
         self, vendor_name: str, product_desc: str
     ) -> Optional[Dict]:
-        """Check if we've seen this vendor/product before and learned anything"""
+        """
+        Enhanced vendor/product lookup using fuzzy matching and keyword patterns.
+
+        Returns dict with:
+        - vendor_match: exact/fuzzy vendor match with historical stats
+        - pattern_match: keyword pattern match with success rate
+        - vendor_context: human-readable vendor precedent
+        - pattern_context: human-readable pattern precedent
+        """
+        # If matchers not available, fall back to basic lookup
+        if not self.matchers_available:
+            try:
+                response = (
+                    supabase.table("vendor_products")
+                    .select("*")
+                    .eq("vendor_name", vendor_name)
+                    .execute()
+                )
+                return response.data[0] if response.data else None
+            except Exception as e:
+                print(f"Error checking vendor learning: {e}")
+                return None
+
+        # Use enhanced matchers for fuzzy matching and keyword patterns
         try:
-            # Check vendor_products table
-            response = (
-                supabase.table("vendor_products")
-                .select("*")
-                .eq("vendor_name", vendor_name)
-                .ilike("product_description", f"%{product_desc[:50]}%")
-                .execute()
-            )
+            # Get vendor historical data (handles exact + fuzzy matching)
+            vendor_match = self.vendor_matcher.get_best_match(vendor_name)
 
-            if response.data:
-                return response.data[0]
+            # Get keyword pattern match for product description
+            pattern_match = self.keyword_matcher.match_description(product_desc)
 
-            # Check vendor_product_patterns
-            response = (
-                supabase.table("vendor_product_patterns")
-                .select("*")
-                .eq("vendor_name", vendor_name)
-                .eq("is_active", True)
-                .execute()
-            )
+            # Get human-readable contexts
+            vendor_context = self.vendor_matcher.get_vendor_historical_context(vendor_name)
+            pattern_context = self.keyword_matcher.get_pattern_context(product_desc)
 
-            if response.data:
-                # Find best matching pattern
-                for pattern in response.data:
-                    if pattern["product_keyword"].lower() in product_desc.lower():
-                        return pattern
-
-            return None
+            # Return combined results
+            return {
+                'vendor_match': vendor_match,
+                'pattern_match': pattern_match,
+                'vendor_context': vendor_context,
+                'pattern_context': pattern_context
+            }
         except Exception as e:
-            print(f"Error checking vendor learning: {e}")
+            print(f"Error in enhanced vendor learning: {e}")
             return None
 
     def analyze_refund_eligibility(
@@ -233,6 +257,13 @@ Consider: exemptions for manufacturing, resale, agricultural equipment, etc.
             ]
         )
 
+        # Extract historical context for AI prompt
+        vendor_context = ""
+        pattern_context = ""
+        if learned_info and isinstance(learned_info, dict):
+            vendor_context = learned_info.get('vendor_context', '')
+            pattern_context = learned_info.get('pattern_context', '')
+
         # Build prompt for AI analysis
         prompt = f"""You are a Washington State tax law expert analyzing use tax refund eligibility.
 
@@ -246,15 +277,25 @@ TRANSACTION DETAILS:
 RELEVANT TAX LAW:
 {legal_context[:3000]}
 
-PREVIOUSLY LEARNED (if applicable):
-{json.dumps(learned_info, indent=2) if learned_info else 'No prior learning for this vendor/product'}
+VENDOR HISTORICAL PRECEDENT:
+{vendor_context if vendor_context else 'No historical data for this vendor (novel vendor)'}
+
+PRODUCT PATTERN MATCH:
+{pattern_context if pattern_context else 'No historical pattern match for this product description (novel product type)'}
+
+INSTRUCTIONS:
+When analyzing this transaction, heavily weight historical precedent if available:
+- If vendor has high historical success rate (>85%), increase confidence accordingly
+- If product pattern matches historical data (>85% success), apply same refund basis
+- If both vendor and pattern match historical data, confidence should be VERY HIGH (>95%)
+- If no historical data exists (novel case), rely solely on legal analysis with moderate confidence
 
 ANALYSIS REQUIRED:
 1. Is this purchase eligible for a use tax refund under Washington State law?
 2. What is the legal basis (exemption type)?
 3. What RCW/WAC citation applies?
 4. What percentage of tax can be refunded?
-5. What is your confidence level (0-100)?
+5. What is your confidence level (0-100)? ADJUST CONFIDENCE BASED ON HISTORICAL PRECEDENT.
 
 Return JSON:
 {{
@@ -292,6 +333,69 @@ Return JSON:
                 "confidence": 0,
                 "explanation": f"Analysis failed: {str(e)}",
             }
+
+    def _format_historical_summary(self, learned_info: Optional[Dict]) -> Dict:
+        """
+        Format historical learning data for Excel output.
+
+        Returns dict with 6 historical fields:
+        - Historical_Vendor_Match
+        - Historical_Vendor_Cases
+        - Historical_Vendor_Success_Rate
+        - Historical_Pattern_Match
+        - Historical_Pattern_Success_Rate
+        - Historical_Context_Summary
+        """
+        if not learned_info or not isinstance(learned_info, dict):
+            return {
+                'Historical_Vendor_Match': 'None',
+                'Historical_Vendor_Cases': 0,
+                'Historical_Vendor_Success_Rate': 0,
+                'Historical_Pattern_Match': 'None',
+                'Historical_Pattern_Success_Rate': 0,
+                'Historical_Context_Summary': 'No historical data (novel vendor/product)'
+            }
+
+        # Extract vendor match data
+        vendor_match = learned_info.get('vendor_match')
+        vendor_match_type = 'None'
+        vendor_cases = 0
+        vendor_success = 0
+
+        if vendor_match:
+            vendor_match_type = vendor_match.get('match_type', 'unknown').title()
+            vendor_cases = vendor_match.get('historical_sample_count', 0)
+            vendor_success = vendor_match.get('historical_success_rate', 0)
+
+        # Extract pattern match data
+        pattern_match = learned_info.get('pattern_match')
+        pattern_match_type = 'None'
+        pattern_success = 0
+
+        if pattern_match:
+            pattern_match_type = 'Keyword Match'
+            pattern_success = pattern_match.get('success_rate', 0)
+
+        # Build context summary
+        vendor_context = learned_info.get('vendor_context', '')
+        pattern_context = learned_info.get('pattern_context', '')
+
+        context_parts = []
+        if vendor_context:
+            context_parts.append(vendor_context)
+        if pattern_context:
+            context_parts.append(pattern_context)
+
+        context_summary = ' | '.join(context_parts) if context_parts else 'No historical data'
+
+        return {
+            'Historical_Vendor_Match': vendor_match_type,
+            'Historical_Vendor_Cases': vendor_cases,
+            'Historical_Vendor_Success_Rate': f"{vendor_success:.1%}" if vendor_success > 0 else "0%",
+            'Historical_Pattern_Match': pattern_match_type,
+            'Historical_Pattern_Success_Rate': f"{pattern_success:.1%}" if pattern_success > 0 else "0%",
+            'Historical_Context_Summary': context_summary[:500]  # Truncate to 500 chars for Excel
+        }
 
     def analyze_row(self, row: pd.Series) -> Dict:
         """Analyze a single row from Excel"""
@@ -333,6 +437,16 @@ Return JSON:
         print(f"  Product found: {line_item.get('product_desc', 'Unknown')}")
         print(f"  Product type: {line_item.get('product_type', 'Unknown')}")
 
+        # Check for historical learning data
+        print(f"  Checking historical precedent...")
+        learned_info = self.check_vendor_learning(
+            vendor=row["Vendor"],
+            product_desc=line_item.get("product_desc", "Unknown")
+        )
+
+        # Format historical data for output
+        historical_fields = self._format_historical_summary(learned_info)
+
         # Analyze refund eligibility
         print(f"  Analyzing refund eligibility...")
         analysis = self.analyze_refund_eligibility(
@@ -349,7 +463,7 @@ Return JSON:
             f"  ✓ Analysis complete - Refund: ${analysis.get('estimated_refund', 0):,.2f}"
         )
 
-        # Combine results
+        # Combine results with historical data
         result = {
             "AI_Product_Desc": line_item.get("product_desc", "Unknown"),
             "AI_Product_Type": line_item.get("product_type", "Unknown"),
@@ -363,6 +477,8 @@ Return JSON:
             "AI_Estimated_Refund": analysis.get("estimated_refund", 0),
             "AI_Explanation": analysis.get("explanation", ""),
             "AI_Key_Factors": ", ".join(analysis.get("key_factors", [])),
+            # Add historical fields
+            **historical_fields
         }
 
         return result
@@ -455,6 +571,13 @@ def main():
         "AI_Estimated_Refund",
         "AI_Explanation",
         "AI_Key_Factors",
+        # Historical pattern learning columns
+        "Historical_Vendor_Match",
+        "Historical_Vendor_Cases",
+        "Historical_Vendor_Success_Rate",
+        "Historical_Pattern_Match",
+        "Historical_Pattern_Success_Rate",
+        "Historical_Context_Summary",
         # Human review columns
         "Review_Status",
         "Corrected_Product_Desc",
