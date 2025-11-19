@@ -27,20 +27,21 @@ Options:
     --limit: Number of documents to process (default: all)
 """
 
-import os
-import sys
-import re
 import argparse
-from pathlib import Path
-import pdfplumber
-from openai import OpenAI
-from dotenv import load_dotenv
 import json
-from tqdm import tqdm
-from typing import Dict, List, Any, Optional
-import pandas as pd
+import os
+import re
+import sys
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+import pdfplumber
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from openai import OpenAI
+from tqdm import tqdm
 
 # Import canonical chunking and cost tracker
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -78,6 +79,7 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Import centralized Supabase client
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 # Initialize cost tracker
@@ -113,10 +115,10 @@ def extract_text_from_html(html_path: str, max_chars: int = 10000) -> tuple[str,
     Returns: (text, estimated_pages)
     """
     try:
-        with open(html_path, 'r', encoding='utf-8') as f:
+        with open(html_path, "r", encoding="utf-8") as f:
             html_content = f.read()
 
-        soup = BeautifulSoup(html_content, 'html.parser')
+        soup = BeautifulSoup(html_content, "html.parser")
 
         # Remove script and style elements
         for script in soup(["script", "style"]):
@@ -130,7 +132,7 @@ def extract_text_from_html(html_path: str, max_chars: int = 10000) -> tuple[str,
         # Break multi-headlines into a line each
         chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
         # Drop blank lines
-        text = '\n'.join(chunk for chunk in chunks if chunk)
+        text = "\n".join(chunk for chunk in chunks if chunk)
 
         # Limit to max_chars for initial metadata extraction
         if max_chars > 0:
@@ -145,17 +147,19 @@ def extract_text_from_html(html_path: str, max_chars: int = 10000) -> tuple[str,
         return "", 0
 
 
-def extract_text_from_file(file_path: str, max_pages_or_chars: int = None) -> tuple[str, int]:
+def extract_text_from_file(
+    file_path: str, max_pages_or_chars: int = None
+) -> tuple[str, int]:
     """
     Extract text from either PDF or HTML file
     Returns: (text, pages_or_estimated)
     """
     file_path_obj = Path(file_path)
 
-    if file_path_obj.suffix.lower() == '.pdf':
+    if file_path_obj.suffix.lower() == ".pdf":
         max_pages = max_pages_or_chars if max_pages_or_chars else 3
         return extract_text_from_pdf(file_path, max_pages=max_pages)
-    elif file_path_obj.suffix.lower() in ['.html', '.htm']:
+    elif file_path_obj.suffix.lower() in [".html", ".htm"]:
         max_chars = max_pages_or_chars if max_pages_or_chars else 10000
         # For full extraction (e.g., 999 pages), use 0 for unlimited chars
         if max_pages_or_chars and max_pages_or_chars > 100:
@@ -354,7 +358,9 @@ def export_metadata_to_excel(
     for pdf_path in tqdm(pdf_files, desc="Analyzing files"):
         try:
             # Extract sample text
-            sample_text, total_pages = extract_text_from_file(str(pdf_path), max_pages_or_chars=3)
+            sample_text, total_pages = extract_text_from_file(
+                str(pdf_path), max_pages_or_chars=3
+            )
 
             if not sample_text:
                 print(f"⚠️  Skipping {pdf_path.name} - could not extract text")
@@ -548,7 +554,9 @@ def export_metadata_to_excel(
     print(f"{'='*70}\n")
 
 
-def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, force: bool = False):
+def import_metadata_from_excel(
+    excel_path: str, auto_confirm: bool = False, force: bool = False
+):
     """
     Import edited metadata from Excel and ingest to Supabase
 
@@ -600,7 +608,9 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
             print(
                 "Please edit the Excel file and set Status='Approved' for documents you want to ingest."
             )
-            print(f"   OR use --force flag to ingest ALL documents regardless of Status.")
+            print(
+                f"   OR use --force flag to ingest ALL documents regardless of Status."
+            )
             return
 
     # Confirm before ingesting
@@ -653,7 +663,11 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
                 else:
                     vendor_name = row.get("vendor_name", "Unknown Vendor")
                     # Clean vendor name for filename (can't use backslash in f-string)
-                    clean_name = vendor_name.replace(' ', '_').replace('/', '_').replace('\\', '_')
+                    clean_name = (
+                        vendor_name.replace(" ", "_")
+                        .replace("/", "_")
+                        .replace("\\", "_")
+                    )
                     synthetic_filename = f"{clean_name}.manual"
 
                 vendor_name = row.get("vendor_name", "Unknown Vendor")
@@ -695,7 +709,9 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
 
                 # Extract full text
                 print("📄 Extracting full document text...")
-                full_text, total_pages = extract_text_from_file(pdf_path, max_pages_or_chars=999)
+                full_text, total_pages = extract_text_from_file(
+                    pdf_path, max_pages_or_chars=999
+                )
 
                 if not full_text:
                     print("❌ Could not extract text")
@@ -795,7 +811,7 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
 
             # Smart chunk text
             # Check if it's an HTML file (PDFs have page numbers, HTML doesn't)
-            is_html = pdf_path.lower().endswith('.html')
+            is_html = pdf_path.lower().endswith(".html")
 
             if is_html:
                 # For HTML, use simple chunking without page tracking
@@ -806,7 +822,9 @@ def import_metadata_from_excel(excel_path: str, auto_confirm: bool = False, forc
                 total_pages_processed = total_pages
             else:
                 # For PDF, use page-tracked chunking
-                print("✂️  Chunking PDF text intelligently (with page number tracking)...")
+                print(
+                    "✂️  Chunking PDF text intelligently (with page number tracking)..."
+                )
                 chunks, total_pages_processed = chunk_document_with_pages(
                     pdf_path, target_words=800, max_words=1500, min_words=150
                 )
@@ -986,7 +1004,9 @@ def main():
             print(f"❌ No PDF or HTML files found in {folder_path}")
             return
 
-        print(f"\n🔍 Found {len(all_files)} files ({len(pdf_files)} PDFs, {len(html_files)} HTML)")
+        print(
+            f"\n🔍 Found {len(all_files)} files ({len(pdf_files)} PDFs, {len(html_files)} HTML)"
+        )
 
         export_metadata_to_excel(all_files, args.type, args.export_metadata, args.limit)
         return
@@ -997,7 +1017,9 @@ def main():
             print(f"❌ Excel file not found: {args.import_metadata}")
             return
 
-        import_metadata_from_excel(args.import_metadata, auto_confirm=args.yes, force=args.force)
+        import_metadata_from_excel(
+            args.import_metadata, auto_confirm=args.yes, force=args.force
+        )
         return
 
     else:

@@ -5,10 +5,11 @@ Handles all Discord webhook communications for agent discussions.
 """
 
 import os
-import requests
-from typing import Optional
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
+
+import requests
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -46,10 +47,7 @@ def post_to_discord(channel: str, message: str, username: Optional[str] = None) 
         return False
 
     # Prepare payload
-    payload = {
-        "content": message,
-        "username": username or "Refund Engine Agent"
-    }
+    payload = {"content": message, "username": username or "Refund Engine Agent"}
 
     try:
         response = requests.post(webhook_url, json=payload, timeout=10)
@@ -90,7 +88,9 @@ def create_discussion_thread(channel: str, title: str, messages: list) -> bool:
     return True
 
 
-def post_approval_needed(proposal_id: str, title: str, priority: str, impact: str) -> bool:
+def post_approval_needed(
+    proposal_id: str, title: str, priority: str, impact: str
+) -> bool:
     """
     Post an approval notification to the approvals channel.
 

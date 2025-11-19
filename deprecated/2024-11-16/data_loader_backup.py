@@ -7,10 +7,11 @@ Provides functions to load data from various sources:
 - Test data generation
 """
 
-import pandas as pd
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional
-import sys
+
+import pandas as pd
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

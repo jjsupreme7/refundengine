@@ -28,8 +28,9 @@ import os
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from openpyxl import load_workbook
+
 import pandas as pd
+from openpyxl import load_workbook
 
 
 class InvoiceLookup:
@@ -77,10 +78,10 @@ class InvoiceLookup:
                 if not self._validate_path(file):
                     print(f"Warning: Skipping file outside trusted directory: {file}")
                     continue
-                if file.suffix.lower() in ['.pdf', '.tif', '.tiff', '.xls', '.xlsx']:
+                if file.suffix.lower() in [".pdf", ".tif", ".tiff", ".xls", ".xlsx"]:
                     # Extract invoice number from filename
                     # Format: 000005000021-1.PDF -> 000005000021
-                    invoice_num = file.stem.split('-')[0]
+                    invoice_num = file.stem.split("-")[0]
                     self.invoice_cache[invoice_num] = file
 
         # Scan Purchase Orders folder
@@ -130,7 +131,9 @@ class InvoiceLookup:
                 if self._validate_path(path):
                     return path
                 else:
-                    print(f"Warning: Cached path validation failed for {invoice_number}")
+                    print(
+                        f"Warning: Cached path validation failed for {invoice_number}"
+                    )
                     return None
 
         return None
@@ -165,8 +168,16 @@ class InvoiceLookup:
 
         # Find relevant columns
         col_map = {}
-        for col_name in ['Inv-1 Hyperlink', 'Inv-2 Hyperlink', 'Inv-1PDF', 'Inv-2 PDF',
-                         'Vendor Name', 'INVNO', 'vendor', 'xblnr_invoice_number']:
+        for col_name in [
+            "Inv-1 Hyperlink",
+            "Inv-2 Hyperlink",
+            "Inv-1PDF",
+            "Inv-2 PDF",
+            "Vendor Name",
+            "INVNO",
+            "vendor",
+            "xblnr_invoice_number",
+        ]:
             if col_name in headers:
                 col_map[col_name] = headers.index(col_name) + 1
 
@@ -176,48 +187,50 @@ class InvoiceLookup:
             row_data = {}
 
             # Get vendor and invoice number
-            if 'Vendor Name' in col_map:
-                row_data['vendor'] = ws.cell(row_idx, col_map['Vendor Name']).value
-            elif 'vendor' in col_map:
-                row_data['vendor'] = ws.cell(row_idx, col_map['vendor']).value
+            if "Vendor Name" in col_map:
+                row_data["vendor"] = ws.cell(row_idx, col_map["Vendor Name"]).value
+            elif "vendor" in col_map:
+                row_data["vendor"] = ws.cell(row_idx, col_map["vendor"]).value
 
-            if 'INVNO' in col_map:
-                row_data['invoice_number'] = ws.cell(row_idx, col_map['INVNO']).value
-            elif 'xblnr_invoice_number' in col_map:
-                row_data['invoice_number'] = ws.cell(row_idx, col_map['xblnr_invoice_number']).value
+            if "INVNO" in col_map:
+                row_data["invoice_number"] = ws.cell(row_idx, col_map["INVNO"]).value
+            elif "xblnr_invoice_number" in col_map:
+                row_data["invoice_number"] = ws.cell(
+                    row_idx, col_map["xblnr_invoice_number"]
+                ).value
 
             # Get hyperlinks
             has_data = False
 
-            if 'Inv-1 Hyperlink' in col_map:
-                cell = ws.cell(row_idx, col_map['Inv-1 Hyperlink'])
+            if "Inv-1 Hyperlink" in col_map:
+                cell = ws.cell(row_idx, col_map["Inv-1 Hyperlink"])
                 if cell.hyperlink:
-                    row_data['inv1_link'] = cell.hyperlink.target
-                    row_data['inv1_text'] = cell.value
+                    row_data["inv1_link"] = cell.hyperlink.target
+                    row_data["inv1_text"] = cell.value
                     has_data = True
 
-            if 'Inv-2 Hyperlink' in col_map:
-                cell = ws.cell(row_idx, col_map['Inv-2 Hyperlink'])
+            if "Inv-2 Hyperlink" in col_map:
+                cell = ws.cell(row_idx, col_map["Inv-2 Hyperlink"])
                 if cell.hyperlink:
-                    row_data['inv2_link'] = cell.hyperlink.target
-                    row_data['inv2_text'] = cell.value
+                    row_data["inv2_link"] = cell.hyperlink.target
+                    row_data["inv2_text"] = cell.value
                     has_data = True
 
             # Check PDF columns too
-            if 'Inv-1PDF' in col_map:
-                val = ws.cell(row_idx, col_map['Inv-1PDF']).value
+            if "Inv-1PDF" in col_map:
+                val = ws.cell(row_idx, col_map["Inv-1PDF"]).value
                 if val:
-                    row_data['inv1_pdf'] = val
+                    row_data["inv1_pdf"] = val
                     has_data = True
 
-            if 'Inv-2 PDF' in col_map:
-                val = ws.cell(row_idx, col_map['Inv-2 PDF']).value
+            if "Inv-2 PDF" in col_map:
+                val = ws.cell(row_idx, col_map["Inv-2 PDF"]).value
                 if val:
-                    row_data['inv2_pdf'] = val
+                    row_data["inv2_pdf"] = val
                     has_data = True
 
             if has_data:
-                row_data['row'] = row_idx
+                row_data["row"] = row_idx
                 results.append(row_data)
 
         print(f"Extracted {len(results)} invoice links from {excel_path}")
@@ -249,40 +262,50 @@ class InvoiceLookup:
         site_info = {}
 
         # Cost center (often represents site/location)
-        site_info['cost_center'] = row_data.get('kost1_cost_center') or row_data.get('Cost Center')
-        site_info['cost_center_desc'] = row_data.get('ltext_cost_center_description')
+        site_info["cost_center"] = row_data.get("kost1_cost_center") or row_data.get(
+            "Cost Center"
+        )
+        site_info["cost_center_desc"] = row_data.get("ltext_cost_center_description")
 
         # Profit center
-        site_info['profit_center'] = row_data.get('prctr_profit_center') or row_data.get('Profit Center')
-        site_info['profit_center_desc'] = row_data.get('ltext_profit_center_description')
+        site_info["profit_center"] = row_data.get(
+            "prctr_profit_center"
+        ) or row_data.get("Profit Center")
+        site_info["profit_center_desc"] = row_data.get(
+            "ltext_profit_center_description"
+        )
 
         # WBS (Work Breakdown Structure) - project/site tracking
-        site_info['wbs'] = row_data.get('projk_wbs') or row_data.get('WBS')
-        site_info['wbs_desc'] = row_data.get('post1_wbs_description')
+        site_info["wbs"] = row_data.get("projk_wbs") or row_data.get("WBS")
+        site_info["wbs_desc"] = row_data.get("post1_wbs_description")
 
         # Tax jurisdiction
-        site_info['tax_jurisdiction'] = row_data.get('txjcd_po_jurisdiction_code')
-        site_info['jurisdiction_state'] = row_data.get('tax_jurisdiction_state') or row_data.get('STATE')
+        site_info["tax_jurisdiction"] = row_data.get("txjcd_po_jurisdiction_code")
+        site_info["jurisdiction_state"] = row_data.get(
+            "tax_jurisdiction_state"
+        ) or row_data.get("STATE")
 
         # Location from profit center region
-        site_info['location_state'] = row_data.get('regio_profit_center_region')
+        site_info["location_state"] = row_data.get("regio_profit_center_region")
 
         # Try to extract city from cost center description
-        desc = site_info.get('cost_center_desc', '')
+        desc = site_info.get("cost_center_desc", "")
         if desc:
             # Pattern: "GEORGE WA WAY & MCMURRAY ST 2" or "66929 - WALLA WALLA, WA (ALA)"
-            city_match = re.search(r'([A-Z\s]+),?\s+WA', desc)
+            city_match = re.search(r"([A-Z\s]+),?\s+WA", desc)
             if city_match:
-                site_info['location_city'] = city_match.group(1).strip()
+                site_info["location_city"] = city_match.group(1).strip()
             else:
                 # Try first word
                 words = desc.split()
                 if words:
-                    site_info['location_city'] = words[0]
+                    site_info["location_city"] = words[0]
 
         return site_info
 
-    def match_invoice_to_local_file(self, invoice_number: str, vendor_name: str = None) -> Dict:
+    def match_invoice_to_local_file(
+        self, invoice_number: str, vendor_name: str = None
+    ) -> Dict:
         """
         Try to match an invoice number to a local file in Test Data
 
@@ -299,20 +322,20 @@ class InvoiceLookup:
             }
         """
         result = {
-            'found': False,
-            'file_path': None,
-            'match_confidence': 'none',
-            'file_type': None
+            "found": False,
+            "file_path": None,
+            "match_confidence": "none",
+            "file_type": None,
         }
 
         # Try to find file
         file_path = self.find_invoice_file(invoice_number)
 
         if file_path:
-            result['found'] = True
-            result['file_path'] = file_path
-            result['match_confidence'] = 'exact'
-            result['file_type'] = file_path.suffix.lower().replace('.', '')
+            result["found"] = True
+            result["file_path"] = file_path
+            result["match_confidence"] = "exact"
+            result["file_type"] = file_path.suffix.lower().replace(".", "")
 
         return result
 
@@ -334,29 +357,48 @@ class InvoiceLookup:
         summary = {}
 
         # Count unique cost centers (sites)
-        cost_center_col = 'kost1_cost_center' if 'kost1_cost_center' in df.columns else 'Cost Center'
+        cost_center_col = (
+            "kost1_cost_center" if "kost1_cost_center" in df.columns else "Cost Center"
+        )
         if cost_center_col in df.columns:
-            summary['total_sites'] = df[cost_center_col].nunique()
+            summary["total_sites"] = df[cost_center_col].nunique()
 
             # Top cost centers by count
             top_centers = df[cost_center_col].value_counts().head(10)
-            summary['top_cost_centers'] = [(cc, None, count) for cc, count in top_centers.items()]
+            summary["top_cost_centers"] = [
+                (cc, None, count) for cc, count in top_centers.items()
+            ]
 
         # Count by state
-        state_col = 'tax_jurisdiction_state' if 'tax_jurisdiction_state' in df.columns else 'STATE'
+        state_col = (
+            "tax_jurisdiction_state"
+            if "tax_jurisdiction_state" in df.columns
+            else "STATE"
+        )
         if state_col in df.columns:
-            summary['sites_by_state'] = df[state_col].value_counts().to_dict()
+            summary["sites_by_state"] = df[state_col].value_counts().to_dict()
 
         # Tax amount by cost center
-        tax_col = 'hwste_tax_amount_lc' if 'hwste_tax_amount_lc' in df.columns else 'Total Tax'
+        tax_col = (
+            "hwste_tax_amount_lc"
+            if "hwste_tax_amount_lc" in df.columns
+            else "Total Tax"
+        )
         if cost_center_col in df.columns and tax_col in df.columns:
-            tax_by_site = df.groupby(cost_center_col)[tax_col].sum().sort_values(ascending=False).head(10)
-            summary['tax_by_site'] = [(site, amt) for site, amt in tax_by_site.items()]
+            tax_by_site = (
+                df.groupby(cost_center_col)[tax_col]
+                .sum()
+                .sort_values(ascending=False)
+                .head(10)
+            )
+            summary["tax_by_site"] = [(site, amt) for site, amt in tax_by_site.items()]
 
         return summary
 
 
-def create_invoice_download_script(invoice_links: List[Dict], output_folder: str = "downloaded_invoices"):
+def create_invoice_download_script(
+    invoice_links: List[Dict], output_folder: str = "downloaded_invoices"
+):
     """
     Create a script to download invoices from hyperlinks
 
@@ -372,10 +414,10 @@ def create_invoice_download_script(invoice_links: List[Dict], output_folder: str
 
     script_lines = [
         "#!/usr/bin/env python3",
-        "\"\"\"",
+        '"""',
         "Auto-generated invoice download script",
         "Downloads invoices from hyperlinks in Excel file",
-        "\"\"\"",
+        '"""',
         "",
         "import requests",
         "from pathlib import Path",
@@ -387,39 +429,45 @@ def create_invoice_download_script(invoice_links: List[Dict], output_folder: str
     ]
 
     for link_data in invoice_links:
-        if 'inv1_link' in link_data or 'inv2_link' in link_data:
+        if "inv1_link" in link_data or "inv2_link" in link_data:
             script_lines.append(f"    {{")
-            script_lines.append(f"        'vendor': '{link_data.get('vendor', 'Unknown')}',")
-            script_lines.append(f"        'invoice': '{link_data.get('invoice_number', 'Unknown')}',")
-            if 'inv1_link' in link_data:
+            script_lines.append(
+                f"        'vendor': '{link_data.get('vendor', 'Unknown')}',"
+            )
+            script_lines.append(
+                f"        'invoice': '{link_data.get('invoice_number', 'Unknown')}',"
+            )
+            if "inv1_link" in link_data:
                 script_lines.append(f"        'url1': '{link_data['inv1_link']}',")
-            if 'inv2_link' in link_data:
+            if "inv2_link" in link_data:
                 script_lines.append(f"        'url2': '{link_data['inv2_link']}',")
             script_lines.append(f"    }},")
 
-    script_lines.extend([
-        "]",
-        "",
-        "for invoice in invoices_to_download:",
-        "    vendor = invoice['vendor'].replace(' ', '_').replace('/', '_')",
-        "    inv_num = invoice['invoice']",
-        "    ",
-        "    if 'url1' in invoice:",
-        "        filename = output_folder / f'{vendor}_{inv_num}_1.pdf'",
-        "        print(f'Downloading {filename}...')",
-        "        # response = requests.get(invoice['url1'])",
-        "        # with open(filename, 'wb') as f:",
-        "        #     f.write(response.content)",
-        "    ",
-        "    if 'url2' in invoice:",
-        "        filename = output_folder / f'{vendor}_{inv_num}_2.pdf'",
-        "        print(f'Downloading {filename}...')",
-        "        # response = requests.get(invoice['url2'])",
-        "        # with open(filename, 'wb') as f:",
-        "        #     f.write(response.content)",
-        "",
-        "print('Download complete!')",
-    ])
+    script_lines.extend(
+        [
+            "]",
+            "",
+            "for invoice in invoices_to_download:",
+            "    vendor = invoice['vendor'].replace(' ', '_').replace('/', '_')",
+            "    inv_num = invoice['invoice']",
+            "    ",
+            "    if 'url1' in invoice:",
+            "        filename = output_folder / f'{vendor}_{inv_num}_1.pdf'",
+            "        print(f'Downloading {filename}...')",
+            "        # response = requests.get(invoice['url1'])",
+            "        # with open(filename, 'wb') as f:",
+            "        #     f.write(response.content)",
+            "    ",
+            "    if 'url2' in invoice:",
+            "        filename = output_folder / f'{vendor}_{inv_num}_2.pdf'",
+            "        print(f'Downloading {filename}...')",
+            "        # response = requests.get(invoice['url2'])",
+            "        # with open(filename, 'wb') as f:",
+            "        #     f.write(response.content)",
+            "",
+            "print('Download complete!')",
+        ]
+    )
 
     script_path = Path("scripts/download_invoices.py")
     script_path.write_text("\n".join(script_lines))
@@ -454,8 +502,10 @@ if __name__ == "__main__":
             print(f"Found {len(links)} invoice links")
             print("\nFirst 5 links:")
             for link in links[:5]:
-                print(f"  Row {link['row']}: {link.get('vendor')} - {link.get('invoice_number')}")
-                if 'inv1_link' in link:
+                print(
+                    f"  Row {link['row']}: {link.get('vendor')} - {link.get('invoice_number')}"
+                )
+                if "inv1_link" in link:
                     print(f"    Link 1: {link['inv1_link']}")
         else:
             print("No invoice hyperlinks found in file")

@@ -10,8 +10,8 @@ URL Strategy:
 - WTD PDFs: Link to Supabase Storage (public, accessible from anywhere)
 """
 
-import re
 import os
+import re
 from typing import Optional
 from urllib.parse import quote
 
@@ -39,7 +39,7 @@ def generate_wac_url(citation: str) -> Optional[str]:
     cleaned = citation.strip().upper().replace("WAC", "").strip()
 
     # Match WAC pattern: XXX-XX-XXX or XXX-XX-XXXXX (e.g., 458-20-100)
-    wac_pattern = r'^(\d{3}-\d{2,3}-\d{3,5}[A-Z]?)$'
+    wac_pattern = r"^(\d{3}-\d{2,3}-\d{3,5}[A-Z]?)$"
     match = re.match(wac_pattern, cleaned)
 
     if match:
@@ -72,7 +72,7 @@ def generate_rcw_url(citation: str) -> Optional[str]:
     cleaned = citation.strip().upper().replace("RCW", "").strip()
 
     # Match RCW pattern: XX.XX or XX.XX.XXX (e.g., 82.04 or 82.04.050)
-    rcw_pattern = r'^(\d{1,3}\.\d{2,3}(?:\.\d{3,4})?[A-Z]?)$'
+    rcw_pattern = r"^(\d{1,3}\.\d{2,3}(?:\.\d{3,4})?[A-Z]?)$"
     match = re.match(rcw_pattern, cleaned)
 
     if match:
@@ -82,8 +82,9 @@ def generate_rcw_url(citation: str) -> Optional[str]:
     return None
 
 
-def generate_document_url(citation: Optional[str], source_file: Optional[str],
-                         document_type: str = 'tax_law') -> Optional[str]:
+def generate_document_url(
+    citation: Optional[str], source_file: Optional[str], document_type: str = "tax_law"
+) -> Optional[str]:
     """
     Generate the appropriate URL for a document based on its citation and source file.
 
@@ -124,19 +125,21 @@ def generate_document_url(citation: Optional[str], source_file: Optional[str],
         source_file_lower = source_file.lower()
 
         # For HTML files from wa_tax_law, try to extract citation from filename
-        if source_file_lower.endswith('.html') and 'wa_tax_law' in source_file_lower:
+        if source_file_lower.endswith(".html") and "wa_tax_law" in source_file_lower:
             # Try to extract WAC or RCW from filename
             # Example: "458_20_100_HTML.html" -> "458-20-100"
 
             # WAC pattern in filename
-            wac_file_pattern = r'(\d{3})_(\d{2,3})_(\d{3,5}[A-Za-z]?)(?:_HTML)?\.html'
+            wac_file_pattern = r"(\d{3})_(\d{2,3})_(\d{3,5}[A-Za-z]?)(?:_HTML)?\.html"
             wac_match = re.search(wac_file_pattern, source_file)
             if wac_match:
-                wac_citation = f"{wac_match.group(1)}-{wac_match.group(2)}-{wac_match.group(3)}"
+                wac_citation = (
+                    f"{wac_match.group(1)}-{wac_match.group(2)}-{wac_match.group(3)}"
+                )
                 return generate_wac_url(wac_citation)
 
             # RCW pattern in filename
-            rcw_file_pattern = r'(\d{1,3})\.(\d{2,3})(?:\.(\d{3,4}))?(?:_HTML)?\.html'
+            rcw_file_pattern = r"(\d{1,3})\.(\d{2,3})(?:\.(\d{3,4}))?(?:_HTML)?\.html"
             rcw_match = re.search(rcw_file_pattern, source_file)
             if rcw_match:
                 if rcw_match.group(3):
@@ -146,24 +149,30 @@ def generate_document_url(citation: Optional[str], source_file: Optional[str],
                 return generate_rcw_url(rcw_citation)
 
         # For PDF files, generate Supabase Storage URL
-        if source_file_lower.endswith('.pdf'):
+        if source_file_lower.endswith(".pdf"):
             # Get Supabase URL from environment
-            supabase_url = os.getenv('SUPABASE_URL', 'https://yzycrptfkxszeutvhuhm.supabase.co')
+            supabase_url = os.getenv(
+                "SUPABASE_URL", "https://yzycrptfkxszeutvhuhm.supabase.co"
+            )
 
             # Extract path relative to knowledge_base/
             # Example: "knowledge_base/wa_tax_law/tax_decisions/2010/29 WTD 1.pdf"
             #       -> "wa_tax_law/tax_decisions/2010/29 WTD 1.pdf"
-            if 'knowledge_base/' in source_file:
-                storage_path = source_file.split('knowledge_base/')[-1]
+            if "knowledge_base/" in source_file:
+                storage_path = source_file.split("knowledge_base/")[-1]
             else:
                 # Fallback: use whole path
                 storage_path = source_file
 
             # URL encode the path for spaces and special characters
-            encoded_path = '/'.join(quote(part, safe='') for part in storage_path.split('/'))
+            encoded_path = "/".join(
+                quote(part, safe="") for part in storage_path.split("/")
+            )
 
             # Generate public Storage URL
-            return f"{supabase_url}/storage/v1/object/public/knowledge-base/{encoded_path}"
+            return (
+                f"{supabase_url}/storage/v1/object/public/knowledge-base/{encoded_path}"
+            )
 
     return None
 
@@ -185,13 +194,13 @@ def extract_citation_from_text(text: str) -> Optional[str]:
         'RCW 82.04.050'
     """
     # Try WAC pattern first
-    wac_pattern = r'WAC\s+(\d{3}-\d{2,3}-\d{3,5}[A-Z]?)'
+    wac_pattern = r"WAC\s+(\d{3}-\d{2,3}-\d{3,5}[A-Z]?)"
     wac_match = re.search(wac_pattern, text, re.IGNORECASE)
     if wac_match:
         return f"WAC {wac_match.group(1)}"
 
     # Try RCW pattern
-    rcw_pattern = r'RCW\s+(\d{1,3}\.\d{2,3}(?:\.\d{3,4})?[A-Z]?)'
+    rcw_pattern = r"RCW\s+(\d{1,3}\.\d{2,3}(?:\.\d{3,4})?[A-Z]?)"
     rcw_match = re.search(rcw_pattern, text, re.IGNORECASE)
     if rcw_match:
         return f"RCW {rcw_match.group(1)}"
@@ -217,9 +226,17 @@ if __name__ == "__main__":
     print("\nDocument URL Tests:")
     print(f"  WAC citation: {generate_document_url('WAC 458-20-100', None)}")
     print(f"  RCW citation: {generate_document_url('RCW 82.04', None)}")
-    print(f"  HTML file: {generate_document_url(None, 'knowledge_base/wa_tax_law/wac/458_20_100_HTML.html')}")
-    print(f"  PDF file: {generate_document_url(None, 'knowledge_base/wa_tax_law/some_document.pdf')}")
+    print(
+        f"  HTML file: {generate_document_url(None, 'knowledge_base/wa_tax_law/wac/458_20_100_HTML.html')}"
+    )
+    print(
+        f"  PDF file: {generate_document_url(None, 'knowledge_base/wa_tax_law/some_document.pdf')}"
+    )
 
     print("\nCitation Extraction Tests:")
-    print(f"  'See WAC 458-20-100': {extract_citation_from_text('See WAC 458-20-100 for details')}")
-    print(f"  'According to RCW 82.04.050': {extract_citation_from_text('According to RCW 82.04.050')}")
+    print(
+        f"  'See WAC 458-20-100': {extract_citation_from_text('See WAC 458-20-100 for details')}"
+    )
+    print(
+        f"  'According to RCW 82.04.050': {extract_citation_from_text('According to RCW 82.04.050')}"
+    )

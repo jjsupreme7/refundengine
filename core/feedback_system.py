@@ -13,6 +13,7 @@ import json
 import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
+
 from openai import OpenAI
 from supabase import Client
 
@@ -36,7 +37,7 @@ class FeedbackSystem:
         feedback_data: Dict,
         session_id: str = None,
         user_id: str = None,
-        rag_metadata: Dict = None
+        rag_metadata: Dict = None,
     ) -> str:
         """
         Save user feedback to database
@@ -63,16 +64,18 @@ class FeedbackSystem:
             "response_text": response_text,
             "session_id": session_id or str(uuid.uuid4()),
             "user_id": user_id,
-            **feedback_data
+            **feedback_data,
         }
 
         # Add RAG metadata if provided
         if rag_metadata:
-            feedback_record.update({
-                "decision_action": rag_metadata.get("action"),
-                "retrieved_chunks": rag_metadata.get("results"),
-                "confidence_score": rag_metadata.get("confidence")
-            })
+            feedback_record.update(
+                {
+                    "decision_action": rag_metadata.get("action"),
+                    "retrieved_chunks": rag_metadata.get("results"),
+                    "confidence_score": rag_metadata.get("confidence"),
+                }
+            )
 
         result = self.supabase.table("user_feedback").insert(feedback_record).execute()
 
@@ -89,10 +92,7 @@ class FeedbackSystem:
 
     def get_feedback_stats(self, days: int = 7) -> Dict:
         """Get feedback statistics for the last N days"""
-        result = self.supabase.rpc(
-            "get_feedback_stats",
-            {"days_back": days}
-        ).execute()
+        result = self.supabase.rpc("get_feedback_stats", {"days_back": days}).execute()
 
         if result.data:
             return result.data
@@ -145,14 +145,14 @@ class FeedbackSystem:
                 "improvement_type": analysis["improvement_type"],
                 "pattern_match": {
                     "query_contains": self._extract_key_terms(query),
-                    "query_category": analysis.get("category")
+                    "query_category": analysis.get("category"),
                 },
                 "action": {
                     "preferred_approach": analysis.get("preferred_approach"),
-                    "example_answer": suggested_answer
+                    "example_answer": suggested_answer,
                 },
                 "source_feedback_ids": [feedback_id],
-                "confidence": 0.6  # Start with medium confidence
+                "confidence": 0.6,  # Start with medium confidence
             }
 
             self.supabase.table("learned_improvements").insert(improvement).execute()
@@ -170,30 +170,39 @@ class FeedbackSystem:
         # Update citation preferences
         for citation in suggested_citations:
             # Check if citation preference exists
-            existing = self.supabase.table("citation_preferences")\
-                .select("*")\
-                .eq("citation", citation)\
+            existing = (
+                self.supabase.table("citation_preferences")
+                .select("*")
+                .eq("citation", citation)
                 .execute()
+            )
 
             if existing.data:
                 # Update existing
                 citation_id = existing.data[0]["id"]
-                self.supabase.table("citation_preferences")\
-                    .update({
-                        "times_suggested_by_user": existing.data[0]["times_suggested_by_user"] + 1,
-                        "preferred_for_topics": list(set(
-                            existing.data[0].get("preferred_for_topics", []) + topics
-                        ))
-                    })\
-                    .eq("id", citation_id)\
-                    .execute()
+                self.supabase.table("citation_preferences").update(
+                    {
+                        "times_suggested_by_user": existing.data[0][
+                            "times_suggested_by_user"
+                        ]
+                        + 1,
+                        "preferred_for_topics": list(
+                            set(
+                                existing.data[0].get("preferred_for_topics", [])
+                                + topics
+                            )
+                        ),
+                    }
+                ).eq("id", citation_id).execute()
             else:
                 # Create new
-                self.supabase.table("citation_preferences").insert({
-                    "citation": citation,
-                    "times_suggested_by_user": 1,
-                    "preferred_for_topics": topics
-                }).execute()
+                self.supabase.table("citation_preferences").insert(
+                    {
+                        "citation": citation,
+                        "times_suggested_by_user": 1,
+                        "preferred_for_topics": topics,
+                    }
+                ).execute()
 
         # Also track citations that were retrieved
         for chunk in retrieved_chunks:
@@ -201,35 +210,44 @@ class FeedbackSystem:
             if not citation:
                 continue
 
-            existing = self.supabase.table("citation_preferences")\
-                .select("*")\
-                .eq("citation", citation)\
+            existing = (
+                self.supabase.table("citation_preferences")
+                .select("*")
+                .eq("citation", citation)
                 .execute()
+            )
 
             # Determine if user liked or disliked this citation
-            liked = feedback_data.get("feedback_type") == "thumbs_up" or \
-                    feedback_data.get("rating", 0) >= 4
-            disliked = feedback_data.get("feedback_type") == "thumbs_down" or \
-                      feedback_data.get("rating", 0) <= 2
+            liked = (
+                feedback_data.get("feedback_type") == "thumbs_up"
+                or feedback_data.get("rating", 0) >= 4
+            )
+            disliked = (
+                feedback_data.get("feedback_type") == "thumbs_down"
+                or feedback_data.get("rating", 0) <= 2
+            )
 
             if existing.data:
                 citation_id = existing.data[0]["id"]
                 update_data = {}
 
                 if liked:
-                    update_data["times_retrieved_and_liked"] = \
+                    update_data["times_retrieved_and_liked"] = (
                         existing.data[0].get("times_retrieved_and_liked", 0) + 1
+                    )
                 elif disliked:
-                    update_data["times_retrieved_and_disliked"] = \
+                    update_data["times_retrieved_and_disliked"] = (
                         existing.data[0].get("times_retrieved_and_disliked", 0) + 1
+                    )
 
                 if update_data:
-                    self.supabase.table("citation_preferences")\
-                        .update(update_data)\
-                        .eq("id", citation_id)\
-                        .execute()
+                    self.supabase.table("citation_preferences").update(update_data).eq(
+                        "id", citation_id
+                    ).execute()
 
-        print(f"📊 Updated citation preferences for {len(suggested_citations)} citations")
+        print(
+            f"📊 Updated citation preferences for {len(suggested_citations)} citations"
+        )
 
     def _learn_answer_structure(self, feedback_id: str, feedback_data: Dict):
         """Learn preferred answer structure/format"""
@@ -244,30 +262,36 @@ class FeedbackSystem:
         category = self._extract_topics(query)
 
         # Check if we have a template for this query type
-        existing = self.supabase.table("answer_templates")\
-            .select("*")\
-            .contains("applies_to_query_types", [query_type])\
+        existing = (
+            self.supabase.table("answer_templates")
+            .select("*")
+            .contains("applies_to_query_types", [query_type])
             .execute()
+        )
 
         if existing.data:
             # Update existing template
             template_id = existing.data[0]["id"]
-            self.supabase.table("answer_templates")\
-                .update({
-                    "source_feedback_ids": existing.data[0].get("source_feedback_ids", []) + [feedback_id],
-                    "times_used": existing.data[0].get("times_used", 0) + 1
-                })\
-                .eq("id", template_id)\
-                .execute()
+            self.supabase.table("answer_templates").update(
+                {
+                    "source_feedback_ids": existing.data[0].get(
+                        "source_feedback_ids", []
+                    )
+                    + [feedback_id],
+                    "times_used": existing.data[0].get("times_used", 0) + 1,
+                }
+            ).eq("id", template_id).execute()
         else:
             # Create new template
-            self.supabase.table("answer_templates").insert({
-                "template_name": f"Template for {query_type}",
-                "template_structure": suggested_structure,
-                "applies_to_query_types": [query_type],
-                "applies_to_categories": category,
-                "source_feedback_ids": [feedback_id]
-            }).execute()
+            self.supabase.table("answer_templates").insert(
+                {
+                    "template_name": f"Template for {query_type}",
+                    "template_structure": suggested_structure,
+                    "applies_to_query_types": [query_type],
+                    "applies_to_categories": category,
+                    "source_feedback_ids": [feedback_id],
+                }
+            ).execute()
 
         print(f"📝 Learned answer structure for query type: {query_type}")
 
@@ -278,10 +302,14 @@ class FeedbackSystem:
         retrieved_chunks = feedback_data.get("retrieved_chunks", [])
 
         # Extract citations
-        citations = [chunk.get("citation") for chunk in retrieved_chunks if chunk.get("citation")]
+        citations = [
+            chunk.get("citation") for chunk in retrieved_chunks if chunk.get("citation")
+        ]
 
         # Classify query
-        category = self._extract_topics(query)[0] if self._extract_topics(query) else None
+        category = (
+            self._extract_topics(query)[0] if self._extract_topics(query) else None
+        )
         difficulty = self._assess_query_complexity(query)
 
         golden_pair = {
@@ -291,7 +319,7 @@ class FeedbackSystem:
             "created_from_feedback_id": feedback_id,
             "query_category": category,
             "difficulty": difficulty,
-            "is_verified": False  # Requires manual verification
+            "is_verified": False,  # Requires manual verification
         }
 
         self.supabase.table("golden_qa_pairs").insert(golden_pair).execute()
@@ -303,12 +331,14 @@ class FeedbackSystem:
         and create new improvement rules
         """
         # Get recent unresolved feedback
-        recent_feedback = self.supabase.table("user_feedback")\
-            .select("*")\
-            .eq("is_resolved", False)\
-            .order("created_at", desc=True)\
-            .limit(50)\
+        recent_feedback = (
+            self.supabase.table("user_feedback")
+            .select("*")
+            .eq("is_resolved", False)
+            .order("created_at", desc=True)
+            .limit(50)
             .execute()
+        )
 
         if not recent_feedback.data or len(recent_feedback.data) < 5:
             return
@@ -343,7 +373,7 @@ class FeedbackSystem:
                     "feedback_type": feedback_type,
                     "key_terms": key_terms,
                     "examples": [],
-                    "count": 0
+                    "count": 0,
                 }
 
             patterns[pattern_key]["examples"].append(feedback)
@@ -365,7 +395,7 @@ Examples:
 """
         for i, ex in enumerate(examples, 1):
             prompt += f"\n{i}. Query: {ex.get('query')}"
-            if ex.get('suggested_answer'):
+            if ex.get("suggested_answer"):
                 prompt += f"\n   Suggested: {ex.get('suggested_answer')[:100]}..."
 
         prompt += """
@@ -382,7 +412,7 @@ Create a rule in this format:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
             )
 
             rule = json.loads(response.choices[0].message.content)
@@ -392,11 +422,13 @@ Create a rule in this format:
                 **rule,
                 "source_feedback_ids": [ex["id"] for ex in examples],
                 "confidence": min(0.5 + (pattern["count"] * 0.1), 0.9),
-                "times_applied": 0
+                "times_applied": 0,
             }
 
             self.supabase.table("learned_improvements").insert(improvement).execute()
-            print(f"🎯 Created new improvement rule from pattern with {pattern['count']} instances")
+            print(
+                f"🎯 Created new improvement rule from pattern with {pattern['count']} instances"
+            )
 
         except Exception as e:
             print(f"Error creating improvement rule: {e}")
@@ -415,11 +447,13 @@ Create a rule in this format:
             List of applicable improvement rules
         """
         # Get all active improvements
-        improvements = self.supabase.table("learned_improvements")\
-            .select("*")\
-            .eq("is_active", True)\
-            .order("confidence", desc=True)\
+        improvements = (
+            self.supabase.table("learned_improvements")
+            .select("*")
+            .eq("is_active", True)
+            .order("confidence", desc=True)
             .execute()
+        )
 
         if not improvements.data:
             return []
@@ -451,11 +485,13 @@ Create a rule in this format:
         topics = self._extract_topics(query)
 
         # Get citations that match these topics
-        preferred = self.supabase.table("citation_preferences")\
-            .select("citation, preference_score")\
-            .gt("preference_score", 0)\
-            .order("preference_score", desc=True)\
+        preferred = (
+            self.supabase.table("citation_preferences")
+            .select("citation, preference_score")
+            .gt("preference_score", 0)
+            .order("preference_score", desc=True)
             .execute()
+        )
 
         if not preferred.data:
             return []
@@ -473,13 +509,15 @@ Create a rule in this format:
         """Get preferred answer template for this query type"""
         query_type = self._classify_query_type(query)
 
-        template = self.supabase.table("answer_templates")\
-            .select("*")\
-            .contains("applies_to_query_types", [query_type])\
-            .eq("is_active", True)\
-            .order("times_used", desc=True)\
-            .limit(1)\
+        template = (
+            self.supabase.table("answer_templates")
+            .select("*")
+            .contains("applies_to_query_types", [query_type])
+            .eq("is_active", True)
+            .order("times_used", desc=True)
+            .limit(1)
             .execute()
+        )
 
         if template.data:
             return template.data[0].get("template_structure")
@@ -498,10 +536,12 @@ Create a rule in this format:
             List of golden Q&A pairs
         """
         # Get verified golden pairs
-        golden = self.supabase.table("golden_qa_pairs")\
-            .select("*")\
-            .eq("is_verified", True)\
+        golden = (
+            self.supabase.table("golden_qa_pairs")
+            .select("*")
+            .eq("is_verified", True)
             .execute()
+        )
 
         if not golden.data:
             return []
@@ -511,7 +551,9 @@ Create a rule in this format:
 
         scored = []
         for qa in golden.data:
-            qa_topics = set([qa.get("query_category")] if qa.get("query_category") else [])
+            qa_topics = set(
+                [qa.get("query_category")] if qa.get("query_category") else []
+            )
             overlap = len(query_topics & qa_topics)
 
             if overlap > 0:
@@ -553,7 +595,7 @@ Return JSON:
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
-                max_tokens=300
+                max_tokens=300,
             )
 
             return json.loads(response.choices[0].message.content)
@@ -564,7 +606,21 @@ Return JSON:
     def _extract_key_terms(self, text: str) -> List[str]:
         """Extract key terms from text"""
         # Simple extraction - could be improved with NLP
-        stopwords = {'is', 'are', 'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or'}
+        stopwords = {
+            "is",
+            "are",
+            "the",
+            "a",
+            "an",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "and",
+            "or",
+        }
         words = text.lower().split()
         return [w for w in words if w not in stopwords and len(w) > 3]
 
@@ -577,7 +633,7 @@ Return JSON:
             "use_tax": ["use tax", "out-of-state", "remote"],
             "sales_tax": ["sales tax", "retail", "purchase"],
             "exemption": ["exempt", "exemption", "non-taxable"],
-            "services": ["service", "consulting", "professional"]
+            "services": ["service", "consulting", "professional"],
         }
 
         text_lower = text.lower()

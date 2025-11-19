@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment
@@ -25,9 +26,12 @@ print("=" * 80)
 print()
 
 # Read the SQL migration file
-migration_file = Path(__file__).parent.parent / "database/migrations/add_source_file_to_search_tax_law.sql"
+migration_file = (
+    Path(__file__).parent.parent
+    / "database/migrations/add_source_file_to_search_tax_law.sql"
+)
 
-with open(migration_file, 'r') as f:
+with open(migration_file, "r") as f:
     sql = f.read()
 
 print(f"📊 Applying migration: {migration_file.name}")
@@ -35,7 +39,7 @@ print()
 
 try:
     # Execute the SQL
-    supabase.rpc('query', {'query_text': sql}).execute()
+    supabase.rpc("query", {"query_text": sql}).execute()
 
     print("=" * 80)
     print("✅ Migration applied successfully!")

@@ -6,9 +6,9 @@ Ask questions about Washington State tax law and get AI-powered answers
 
 import os
 import sys
-from pathlib import Path
-from typing import List, Dict
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -16,16 +16,19 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load environment
 try:
     from dotenv import load_dotenv
-    load_dotenv(Path(__file__).parent.parent / '.env')
+
+    load_dotenv(Path(__file__).parent.parent / ".env")
 except:
     pass
 
 # OpenAI
 from openai import OpenAI
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Supabase - using centralized client
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 
@@ -39,21 +42,21 @@ class SimpleTaxChatbot:
 
         # Active filters
         self.filters = {
-            'law_category': None,
-            'tax_types': None,      # Array filter
-            'industries': None,     # Array filter
-            'citation': None
+            "law_category": None,
+            "tax_types": None,  # Array filter
+            "industries": None,  # Array filter
+            "citation": None,
         }
 
     def clear_screen(self):
         """Clear the terminal screen"""
-        os.system('clear' if os.name != 'nt' else 'cls')
+        os.system("clear" if os.name != "nt" else "cls")
 
     def print_header(self):
         """Print chatbot header"""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("  💬 WASHINGTON TAX LAW CHATBOT")
-        print("="*80)
+        print("=" * 80)
 
         # Show active filters if any
         active = {k: v for k, v in self.filters.items() if v}
@@ -71,14 +74,11 @@ class SimpleTaxChatbot:
         print("    • /stats - Knowledge base stats")
         print("    • /help - Show help")
         print("    • /quit - Exit")
-        print("="*80 + "\n")
+        print("=" * 80 + "\n")
 
     def get_embedding(self, text: str) -> List[float]:
         """Generate query embedding"""
-        response = client.embeddings.create(
-            input=text,
-            model=self.embedding_model
-        )
+        response = client.embeddings.create(input=text, model=self.embedding_model)
         return response.data[0].embedding
 
     def search_knowledge_base(self, query: str, top_k: int = 3) -> List[Dict]:
@@ -87,40 +87,44 @@ class SimpleTaxChatbot:
 
         # Build RPC params
         rpc_params = {
-            'query_embedding': query_embedding,
-            'match_threshold': 0.3,
-            'match_count': top_k
+            "query_embedding": query_embedding,
+            "match_threshold": 0.3,
+            "match_count": top_k,
         }
 
         # Add filters if set
-        if self.filters.get('law_category'):
-            rpc_params['law_category_filter'] = self.filters['law_category']
+        if self.filters.get("law_category"):
+            rpc_params["law_category_filter"] = self.filters["law_category"]
 
-        if self.filters.get('tax_types'):
-            rpc_params['tax_types_filter'] = self.filters['tax_types']
+        if self.filters.get("tax_types"):
+            rpc_params["tax_types_filter"] = self.filters["tax_types"]
 
-        if self.filters.get('industries'):
-            rpc_params['industries_filter'] = self.filters['industries']
+        if self.filters.get("industries"):
+            rpc_params["industries_filter"] = self.filters["industries"]
 
         try:
-            results = supabase.rpc('search_tax_law', rpc_params).execute()
+            results = supabase.rpc("search_tax_law", rpc_params).execute()
 
             chunks = []
             for r in results.data:
                 # Apply citation filter (client-side since not in RPC yet)
-                if self.filters.get('citation') and self.filters['citation'] not in r.get('citation', ''):
+                if self.filters.get("citation") and self.filters[
+                    "citation"
+                ] not in r.get("citation", ""):
                     continue
 
-                chunks.append({
-                    'text': r.get('chunk_text', ''),
-                    'citation': r.get('citation', ''),
-                    'category': r.get('law_category', ''),
-                    'section': r.get('section_title', ''),
-                    'tax_types': r.get('tax_types', []),
-                    'industries': r.get('industries', []),
-                    'topic_tags': r.get('topic_tags', []),
-                    'similarity': r.get('similarity', 0)
-                })
+                chunks.append(
+                    {
+                        "text": r.get("chunk_text", ""),
+                        "citation": r.get("citation", ""),
+                        "category": r.get("law_category", ""),
+                        "section": r.get("section_title", ""),
+                        "tax_types": r.get("tax_types", []),
+                        "industries": r.get("industries", []),
+                        "topic_tags": r.get("topic_tags", []),
+                        "similarity": r.get("similarity", 0),
+                    }
+                )
 
             return chunks
 
@@ -145,7 +149,7 @@ class SimpleTaxChatbot:
         context = ""
         for i, doc in enumerate(relevant_docs, 1):
             context += f"\n[Source {i}: {doc['citation']}"
-            if doc['section']:
+            if doc["section"]:
                 context += f", {doc['section']}"
             context += f"]\n{doc['text']}\n"
 
@@ -167,12 +171,15 @@ RESPONSE FORMAT:
 
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": f"""Context from Washington tax law:
+            {
+                "role": "user",
+                "content": f"""Context from Washington tax law:
 {context}
 
 Question: {question}
 
-Please answer based on the context above."""}
+Please answer based on the context above.""",
+            },
         ]
 
         # Add conversation history
@@ -184,7 +191,7 @@ Please answer based on the context above."""}
                 model=self.chat_model,
                 messages=messages,
                 temperature=0.2,
-                max_tokens=800
+                max_tokens=800,
             )
 
             answer = response.choices[0].message.content
@@ -199,15 +206,15 @@ Please answer based on the context above."""}
 
             for i, doc in enumerate(relevant_docs, 1):
                 tags = []
-                if doc['tax_types']:
+                if doc["tax_types"]:
                     tags.append(f"Tax: {', '.join(doc['tax_types'])}")
-                if doc['industries']:
+                if doc["industries"]:
                     tags.append(f"Industry: {', '.join(doc['industries'])}")
 
                 tags_str = f" ({'; '.join(tags)})" if tags else ""
 
                 result += f"     [{i}] {doc['citation']}"
-                if doc['section']:
+                if doc["section"]:
                     result += f" - {doc['section']}"
                 result += f"{tags_str} (relevance: {doc['similarity']:.2f})\n"
 
@@ -223,9 +230,9 @@ Please answer based on the context above."""}
 
     def manage_filters(self):
         """Interactive filter management"""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("  🔍 FILTER MANAGEMENT")
-        print("="*80)
+        print("=" * 80)
 
         # Show current filters
         print("\n  Current Filters:")
@@ -246,25 +253,35 @@ Please answer based on the context above."""}
         if choice == "1":
             print("\n  Common categories: software, digital_goods, exemption, general")
             value = input("  Enter law_category (or blank to clear): ").strip()
-            self.filters['law_category'] = value if value else None
+            self.filters["law_category"] = value if value else None
             print(f"  ✅ law_category set to: {self.filters['law_category']}")
 
         elif choice == "2":
             print("\n  Common tax types: sales tax, use tax, B&O tax")
-            value = input("  Enter tax_types (comma-separated, or blank to clear): ").strip()
-            self.filters['tax_types'] = [t.strip() for t in value.split(',')] if value else None
+            value = input(
+                "  Enter tax_types (comma-separated, or blank to clear): "
+            ).strip()
+            self.filters["tax_types"] = (
+                [t.strip() for t in value.split(",")] if value else None
+            )
             print(f"  ✅ tax_types set to: {self.filters['tax_types']}")
 
         elif choice == "3":
-            print("\n  Common industries: general, retail, technology, software development")
-            value = input("  Enter industries (comma-separated, or blank to clear): ").strip()
-            self.filters['industries'] = [i.strip() for i in value.split(',')] if value else None
+            print(
+                "\n  Common industries: general, retail, technology, software development"
+            )
+            value = input(
+                "  Enter industries (comma-separated, or blank to clear): "
+            ).strip()
+            self.filters["industries"] = (
+                [i.strip() for i in value.split(",")] if value else None
+            )
             print(f"  ✅ industries set to: {self.filters['industries']}")
 
         elif choice == "4":
             print("\n  Example: WAC 458-20-15503")
             value = input("  Enter citation (or blank to clear): ").strip()
-            self.filters['citation'] = value if value else None
+            self.filters["citation"] = value if value else None
             print(f"  ✅ citation set to: {self.filters['citation']}")
 
         elif choice == "5":
@@ -276,21 +293,27 @@ Please answer based on the context above."""}
     def show_stats(self):
         """Show knowledge base statistics"""
         try:
-            docs = supabase.table('knowledge_documents').select('*').execute()
-            chunks = supabase.table('tax_law_chunks').select('id', count='exact').execute()
+            docs = supabase.table("knowledge_documents").select("*").execute()
+            chunks = (
+                supabase.table("tax_law_chunks").select("id", count="exact").execute()
+            )
 
-            print("\n" + "="*80)
+            print("\n" + "=" * 80)
             print("  📊 KNOWLEDGE BASE STATISTICS")
-            print("="*80)
+            print("=" * 80)
             print(f"\n  Documents: {len(docs.data)}")
-            print(f"  Total Chunks: {chunks.count if hasattr(chunks, 'count') else len(chunks.data)}")
+            print(
+                f"  Total Chunks: {chunks.count if hasattr(chunks, 'count') else len(chunks.data)}"
+            )
 
             print("\n  Available Documents:")
             for doc in docs.data:
                 print(f"     • {doc.get('citation', 'N/A')}: {doc.get('title', 'N/A')}")
-                print(f"       Category: {doc.get('law_category', 'N/A')}, Chunks: {doc.get('total_chunks', 'N/A')}")
+                print(
+                    f"       Category: {doc.get('law_category', 'N/A')}, Chunks: {doc.get('total_chunks', 'N/A')}"
+                )
 
-            print("="*80)
+            print("=" * 80)
         except Exception as e:
             print(f"\n  ❌ Error fetching stats: {e}")
 
@@ -298,10 +321,11 @@ Please answer based on the context above."""}
 
     def show_help(self):
         """Show help information"""
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("  ℹ️  HELP")
-        print("="*80)
-        print("""
+        print("=" * 80)
+        print(
+            """
   ASK QUESTIONS:
   Just type your question naturally, for example:
     • How are digital products taxed in Washington?
@@ -320,8 +344,9 @@ Please answer based on the context above."""}
     • Use filters to focus on specific areas
     • The chatbot uses RAG to find relevant legal text
     • All answers are based on ingested Washington tax law documents
-""")
-        print("="*80)
+"""
+        )
+        print("=" * 80)
         input("\n  Press Enter to continue...")
 
     def run(self):
@@ -338,11 +363,11 @@ Please answer based on the context above."""}
                     continue
 
                 # Commands
-                if user_input.lower() in ['/quit', '/exit', '/q']:
+                if user_input.lower() in ["/quit", "/exit", "/q"]:
                     print("\n  👋 Goodbye!\n")
                     break
 
-                elif user_input.lower() == '/clear':
+                elif user_input.lower() == "/clear":
                     self.conversation_history = []
                     self.clear_screen()
                     print("\n  ✅ Conversation cleared\n")
@@ -350,17 +375,17 @@ Please answer based on the context above."""}
                     self.clear_screen()
                     continue
 
-                elif user_input.lower() == '/filter':
+                elif user_input.lower() == "/filter":
                     self.manage_filters()
                     self.clear_screen()
                     continue
 
-                elif user_input.lower() == '/stats':
+                elif user_input.lower() == "/stats":
                     self.show_stats()
                     self.clear_screen()
                     continue
 
-                elif user_input.lower() in ['/help', '/h', '/?']:
+                elif user_input.lower() in ["/help", "/h", "/?"]:
                     self.show_help()
                     self.clear_screen()
                     continue
@@ -386,5 +411,5 @@ def main():
     chatbot.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

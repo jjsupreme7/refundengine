@@ -2,11 +2,13 @@
 """
 Auto-approve all documents in Excel metadata files and ingest to Supabase
 """
-import pandas as pd
-import sys
-from pathlib import Path
 import subprocess
+import sys
 import time
+from pathlib import Path
+
+import pandas as pd
+
 
 def auto_approve_excel(excel_path: str):
     """Change all Status values to 'Approved'"""
@@ -15,15 +17,15 @@ def auto_approve_excel(excel_path: str):
     df = pd.read_excel(excel_path, sheet_name="Metadata")
 
     # Change all Status to 'Approved'
-    df['Status'] = 'Approved'
+    df["Status"] = "Approved"
 
     # Save back to Excel
-    with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='Metadata', index=False)
+    with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="Metadata", index=False)
 
         # Get workbook and worksheet for formatting
         workbook = writer.book
-        worksheet = writer.sheets['Metadata']
+        worksheet = writer.sheets["Metadata"]
 
         # Auto-adjust column widths
         for column in worksheet.columns:
@@ -41,6 +43,7 @@ def auto_approve_excel(excel_path: str):
     print(f"✅ Approved {len(df)} documents")
     return len(df)
 
+
 def wait_for_file(file_path: str, timeout: int = 3600):
     """Wait for a file to exist"""
     print(f"\n⏳ Waiting for {file_path} to be created...")
@@ -55,16 +58,19 @@ def wait_for_file(file_path: str, timeout: int = 3600):
     print(f"✅ Found {file_path}")
     return True
 
+
 def ingest_excel(excel_path: str):
     """Run the import command"""
     print(f"\n🚀 Ingesting {excel_path} to Supabase...")
     print("=" * 70)
 
     cmd = [
-        "python", "core/ingest_documents.py",
-        "--import-metadata", excel_path,
+        "python",
+        "core/ingest_documents.py",
+        "--import-metadata",
+        excel_path,
         "--yes",  # Auto-confirm
-        "--force"  # Force all documents regardless of Status
+        "--force",  # Force all documents regardless of Status
     ]
 
     result = subprocess.run(cmd, capture_output=False, text=True)
@@ -76,11 +82,12 @@ def ingest_excel(excel_path: str):
         print(f"❌ Failed to ingest {excel_path}")
         return False
 
+
 def main():
     excel_files = [
         "outputs/WA_ETAs_Metadata.xlsx",
         "outputs/WA_ESSB_5814_Metadata.xlsx",
-        "outputs/WA_Other_Guidance_Metadata.xlsx"
+        "outputs/WA_Other_Guidance_Metadata.xlsx",
     ]
 
     print("=" * 70)
@@ -124,6 +131,7 @@ def main():
     print(f"❌ Failed: {failed}/{len(excel_files)} files")
     print(f"📊 Total documents processed: {total_docs}")
     print("=" * 70)
+
 
 if __name__ == "__main__":
     main()

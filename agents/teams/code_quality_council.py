@@ -10,25 +10,25 @@ Team Members:
 - Performance: Identifies optimization opportunities
 """
 
-import os
 import json
-from pathlib import Path
+import os
 from datetime import datetime
-from typing import List, Dict, Optional
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from agents.core.agent_base import Agent
 from agents.core.approval_queue import ApprovalQueue
-from agents.core.communication import post_to_discord, create_discussion_thread
+from agents.core.communication import create_discussion_thread, post_to_discord
 from agents.core.usage_tracker import UsageTracker
 
 
 def extract_json(response: str) -> dict:
     """Extract JSON from Claude response, handling markdown code blocks."""
     result_clean = response.strip()
-    if result_clean.startswith('```'):
+    if result_clean.startswith("```"):
         # Extract from markdown code block
-        result_clean = result_clean.split('```')[1]
-        if result_clean.startswith('json'):
+        result_clean = result_clean.split("```")[1]
+        if result_clean.startswith("json"):
             result_clean = result_clean[4:]
         result_clean = result_clean.strip()
     return json.loads(result_clean)
@@ -49,20 +49,11 @@ class CodeQualityCouncil:
         self.team_name = "code_quality_council"
 
         # Initialize agents
-        self.architect = Agent(
-            name="architect",
-            team=self.team_name
-        )
+        self.architect = Agent(name="architect", team=self.team_name)
 
-        self.security = Agent(
-            name="security",
-            team=self.team_name
-        )
+        self.security = Agent(name="security", team=self.team_name)
 
-        self.performance = Agent(
-            name="performance",
-            team=self.team_name
-        )
+        self.performance = Agent(name="performance", team=self.team_name)
 
         self.approval_queue = ApprovalQueue(workspace_path)
         self.usage_tracker = UsageTracker(workspace_path)
@@ -79,7 +70,7 @@ class CodeQualityCouncil:
         post_to_discord(
             "code_quality",
             f"🏛️ **Code Quality Council** - Starting review cycle at {start_time.strftime('%I:%M %p')}",
-            username="Code Quality Council"
+            username="Code Quality Council",
         )
 
         # Phase 1: Individual Reviews
@@ -89,9 +80,7 @@ class CodeQualityCouncil:
 
         # Phase 2: Team Discussion
         proposals = self._team_discussion(
-            architect_findings,
-            security_findings,
-            performance_findings
+            architect_findings, security_findings, performance_findings
         )
 
         # Phase 3: Generate Proposals
@@ -109,13 +98,13 @@ class CodeQualityCouncil:
             "proposals_created": len(proposals),
             "architect_findings": len(architect_findings),
             "security_findings": len(security_findings),
-            "performance_findings": len(performance_findings)
+            "performance_findings": len(performance_findings),
         }
 
         post_to_discord(
             "code_quality",
             f"✅ **Review Complete** - Generated {len(proposals)} proposals in {duration:.1f}s",
-            username="Code Quality Council"
+            username="Code Quality Council",
         )
 
         return summary
@@ -127,25 +116,29 @@ class CodeQualityCouncil:
         Returns:
             List of findings
         """
-        post_to_discord("code_quality", "**[Architect]** Starting architecture review...", username="Architect Agent")
+        post_to_discord(
+            "code_quality",
+            "**[Architect]** Starting architecture review...",
+            username="Architect Agent",
+        )
 
         # Define review areas
         areas = [
             {
                 "name": "Core Architecture",
                 "paths": ["core/*.py", "api/*.py"],
-                "focus": "Separation of concerns, SOLID principles, dependency injection"
+                "focus": "Separation of concerns, SOLID principles, dependency injection",
             },
             {
                 "name": "Agent System",
                 "paths": ["agents/core/*.py", "agents/teams/*.py"],
-                "focus": "Agent communication patterns, proposal workflow, error handling"
+                "focus": "Agent communication patterns, proposal workflow, error handling",
             },
             {
                 "name": "Database Layer",
                 "paths": ["scripts/*supabase*.py", "scripts/db*.py"],
-                "focus": "Connection pooling, query optimization, transaction management"
-            }
+                "focus": "Connection pooling, query optimization, transaction management",
+            },
         ]
 
         findings = []
@@ -180,7 +173,9 @@ Return findings in JSON format:
 """
 
             try:
-                result = self.architect.claude_analyze(prompt, context="architecture_review")
+                result = self.architect.claude_analyze(
+                    prompt, context="architecture_review"
+                )
                 self.usage_tracker.record_usage(self.team_name, "architect")
 
                 # Parse findings
@@ -191,13 +186,13 @@ Return findings in JSON format:
                 post_to_discord(
                     "code_quality",
                     f"⚠️ **[Architect]** Error reviewing {area['name']}: {str(e)}",
-                    username="Architect Agent"
+                    username="Architect Agent",
                 )
 
         post_to_discord(
             "code_quality",
             f"**[Architect]** Found {len(findings)} architectural improvements",
-            username="Architect Agent"
+            username="Architect Agent",
         )
 
         return findings
@@ -209,35 +204,39 @@ Return findings in JSON format:
         Returns:
             List of security findings
         """
-        post_to_discord("code_quality", "**[Security]** Starting security scan...", username="Security Agent")
+        post_to_discord(
+            "code_quality",
+            "**[Security]** Starting security scan...",
+            username="Security Agent",
+        )
 
         # Security review checklist
         checks = [
             {
                 "name": "SQL Injection",
                 "pattern": r"execute\(|executemany\(|cursor\.",
-                "focus": "Ensure parameterized queries, no string concatenation"
+                "focus": "Ensure parameterized queries, no string concatenation",
             },
             {
                 "name": "PII Exposure",
                 "pattern": r"email|ssn|social_security|phone|address",
-                "focus": "Verify encryption and proper handling of sensitive data"
+                "focus": "Verify encryption and proper handling of sensitive data",
             },
             {
                 "name": "API Key Security",
                 "pattern": r"OPENAI_API_KEY|ANTHROPIC_API_KEY|SUPABASE",
-                "focus": "Ensure keys are in .env, never hardcoded or logged"
+                "focus": "Ensure keys are in .env, never hardcoded or logged",
             },
             {
                 "name": "Input Validation",
                 "pattern": r"request\.|input\(|raw_input\(",
-                "focus": "Validate and sanitize all user inputs"
+                "focus": "Validate and sanitize all user inputs",
             },
             {
                 "name": "Unsafe Deserialization",
                 "pattern": r"pickle\.load|yaml\.load|eval\(",
-                "focus": "Avoid unsafe deserialization, use safe alternatives"
-            }
+                "focus": "Avoid unsafe deserialization, use safe alternatives",
+            },
         ]
 
         findings = []
@@ -278,7 +277,7 @@ Return findings in JSON format:
                 post_to_discord(
                     "code_quality",
                     f"⚠️ **[Security]** Error in {check['name']} check: {str(e)}",
-                    username="Security Agent"
+                    username="Security Agent",
                 )
 
         # Auto-reject critical security issues
@@ -287,13 +286,13 @@ Return findings in JSON format:
             post_to_discord(
                 "code_quality",
                 f"🔴 **CRITICAL**: Found {critical_count} critical security issues!",
-                username="Security Agent"
+                username="Security Agent",
             )
 
         post_to_discord(
             "code_quality",
             f"**[Security]** Completed scan - {len(findings)} issues found",
-            username="Security Agent"
+            username="Security Agent",
         )
 
         return findings
@@ -305,30 +304,34 @@ Return findings in JSON format:
         Returns:
             List of performance findings
         """
-        post_to_discord("code_quality", "**[Performance]** Starting performance analysis...", username="Performance Agent")
+        post_to_discord(
+            "code_quality",
+            "**[Performance]** Starting performance analysis...",
+            username="Performance Agent",
+        )
 
         # Performance review areas
         areas = [
             {
                 "name": "Database Queries",
                 "pattern": r"execute\(|query\(|search\(",
-                "focus": "N+1 queries, missing indexes, inefficient joins"
+                "focus": "N+1 queries, missing indexes, inefficient joins",
             },
             {
                 "name": "Vector Search",
                 "pattern": r"match_documents|similarity_search",
-                "focus": "Chunk size optimization, embedding caching, batch processing"
+                "focus": "Chunk size optimization, embedding caching, batch processing",
             },
             {
                 "name": "API Calls",
                 "pattern": r"requests\.|http\.|openai\.|anthropic\.",
-                "focus": "Rate limiting, retry logic, connection pooling, caching"
+                "focus": "Rate limiting, retry logic, connection pooling, caching",
             },
             {
                 "name": "File I/O",
                 "pattern": r"open\(|read\(|write\(",
-                "focus": "Buffering, batch operations, async I/O opportunities"
-            }
+                "focus": "Buffering, batch operations, async I/O opportunities",
+            },
         ]
 
         findings = []
@@ -364,7 +367,9 @@ Return findings in JSON format:
 """
 
             try:
-                result = self.performance.claude_analyze(prompt, context="performance_review")
+                result = self.performance.claude_analyze(
+                    prompt, context="performance_review"
+                )
                 self.usage_tracker.record_usage(self.team_name, "performance")
 
                 area_findings = extract_json(result)
@@ -374,33 +379,40 @@ Return findings in JSON format:
                 post_to_discord(
                     "code_quality",
                     f"⚠️ **[Performance]** Error analyzing {area['name']}: {str(e)}",
-                    username="Performance Agent"
+                    username="Performance Agent",
                 )
 
         post_to_discord(
             "code_quality",
             f"**[Performance]** Analysis complete - {len(findings)} optimizations identified",
-            username="Performance Agent"
+            username="Performance Agent",
         )
 
         return findings
 
-    def _team_discussion(self, architect_findings: List[Dict],
-                        security_findings: List[Dict],
-                        performance_findings: List[Dict]) -> List[Dict]:
+    def _team_discussion(
+        self,
+        architect_findings: List[Dict],
+        security_findings: List[Dict],
+        performance_findings: List[Dict],
+    ) -> List[Dict]:
         """
         Agents discuss findings and prioritize proposals.
 
         Returns:
             List of prioritized proposals
         """
-        post_to_discord("code_quality", "💬 **Team Discussion** - Reviewing findings...", username="Code Quality Council")
+        post_to_discord(
+            "code_quality",
+            "💬 **Team Discussion** - Reviewing findings...",
+            username="Code Quality Council",
+        )
 
         # Combine all findings
         all_findings = {
             "architect": architect_findings,
             "security": security_findings,
-            "performance": performance_findings
+            "performance": performance_findings,
         }
 
         discussion_prompt = f"""You are participating in a Code Quality Council discussion.
@@ -443,8 +455,7 @@ Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "dis
         try:
             # Use architect to analyze and create proposals
             result_text = self.architect.claude_analyze(
-                discussion_prompt,
-                context="team_discussion"
+                discussion_prompt, context="team_discussion"
             )
 
             self.usage_tracker.record_usage(self.team_name, "team_discussion")
@@ -457,7 +468,7 @@ Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "dis
                 post_to_discord(
                     "code_quality",
                     f"💬 **Discussion Summary**: {result['discussion_summary']}",
-                    username="Code Quality Council"
+                    username="Code Quality Council",
                 )
 
             return result.get("proposals", [])
@@ -466,7 +477,7 @@ Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "dis
             post_to_discord(
                 "code_quality",
                 f"⚠️ Error in team discussion: {str(e)}",
-                username="Code Quality Council"
+                username="Code Quality Council",
             )
             return []
 
@@ -486,8 +497,8 @@ Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "dis
                 metadata={
                     "effort": proposal_data.get("effort", "unknown"),
                     "affected_files": proposal_data.get("affected_files", []),
-                    "related_findings": proposal_data.get("related_findings", [])
-                }
+                    "related_findings": proposal_data.get("related_findings", []),
+                },
             )
 
             post_to_discord(
@@ -500,14 +511,14 @@ Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "dis
 
 Review in dashboard: http://localhost:8501
 """,
-                username="Code Quality Council"
+                username="Code Quality Council",
             )
 
         except Exception as e:
             post_to_discord(
                 "code_quality",
                 f"⚠️ Error creating proposal: {str(e)}",
-                username="Code Quality Council"
+                username="Code Quality Council",
             )
 
 

@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.database import get_supabase_client
 
+
 def deploy_schema():
     """Deploy feedback schema to Supabase"""
 
@@ -38,7 +39,7 @@ def deploy_schema():
         print(f"❌ SQL file not found: {sql_path}")
         return False
 
-    with open(sql_path, 'r') as f:
+    with open(sql_path, "r") as f:
         sql_content = f.read()
 
     # Split into individual statements
@@ -46,17 +47,17 @@ def deploy_schema():
     statements = []
     current_statement = []
 
-    for line in sql_content.split('\n'):
+    for line in sql_content.split("\n"):
         # Skip comment-only lines
-        if line.strip().startswith('--'):
+        if line.strip().startswith("--"):
             continue
 
         current_statement.append(line)
 
         # If line ends with semicolon, it's the end of a statement
-        if line.strip().endswith(';'):
-            statement = '\n'.join(current_statement).strip()
-            if statement and not statement.startswith('--'):
+        if line.strip().endswith(";"):
+            statement = "\n".join(current_statement).strip()
+            if statement and not statement.startswith("--"):
                 statements.append(statement)
             current_statement = []
 
@@ -73,7 +74,7 @@ def deploy_schema():
             continue
 
         # Get first few words for display
-        preview = ' '.join(statement.split()[:5])
+        preview = " ".join(statement.split()[:5])
         print(f"  [{i}/{len(statements)}] Executing: {preview}...", end=" ")
 
         try:
@@ -82,14 +83,16 @@ def deploy_schema():
             # Alternative: Use PostgreSQL connection
 
             # For now, let's execute table creation statements directly
-            if 'CREATE TABLE' in statement:
+            if "CREATE TABLE" in statement:
                 # Extract table name
-                table_name = statement.split('CREATE TABLE')[1].split('(')[0].strip().split()[-1]
+                table_name = (
+                    statement.split("CREATE TABLE")[1].split("(")[0].strip().split()[-1]
+                )
                 print(f"(Table: {table_name})", end=" ")
 
             # Try to execute via RPC
             try:
-                result = supabase.rpc('exec_sql', {'sql': statement}).execute()
+                result = supabase.rpc("exec_sql", {"sql": statement}).execute()
                 print("✅")
                 success_count += 1
             except:
@@ -130,16 +133,16 @@ def deploy_schema():
     # Verify tables exist
     print("Step 3: Verifying tables...")
     tables_to_check = [
-        'user_feedback',
-        'learned_improvements',
-        'golden_qa_pairs',
-        'citation_preferences',
-        'answer_templates'
+        "user_feedback",
+        "learned_improvements",
+        "golden_qa_pairs",
+        "citation_preferences",
+        "answer_templates",
     ]
 
     for table in tables_to_check:
         try:
-            result = supabase.table(table).select('*').limit(1).execute()
+            result = supabase.table(table).select("*").limit(1).execute()
             print(f"  ✅ {table} exists")
         except Exception as e:
             print(f"  ❌ {table} not found - needs manual creation")

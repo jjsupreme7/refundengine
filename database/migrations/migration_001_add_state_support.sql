@@ -1,16 +1,16 @@
 
 -- Add state support to existing schema
-ALTER TABLE legal_documents 
+ALTER TABLE legal_documents
 ADD COLUMN IF NOT EXISTS state_code VARCHAR(2) DEFAULT 'WA';
 
 ALTER TABLE document_chunks
 ADD COLUMN IF NOT EXISTS state_code VARCHAR(2) DEFAULT 'WA';
 
 -- Add indexes
-CREATE INDEX IF NOT EXISTS idx_legal_docs_state 
+CREATE INDEX IF NOT EXISTS idx_legal_docs_state
 ON legal_documents(state_code);
 
-CREATE INDEX IF NOT EXISTS idx_chunks_state 
+CREATE INDEX IF NOT EXISTS idx_chunks_state
 ON document_chunks(state_code);
 
 -- Update existing records

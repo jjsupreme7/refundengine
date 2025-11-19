@@ -20,10 +20,11 @@ Usage:
     df = processor.load_file("Phase_3_2023_Use Tax_10-17-25.xlsx")
 """
 
-import pandas as pd
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import warnings
+
+import pandas as pd
 
 
 class DenodoSalesTaxProcessor:
@@ -40,66 +41,65 @@ class DenodoSalesTaxProcessor:
 
     # Key columns for refund analysis
     DECISION_COLUMNS = [
-        'Final Decision',
-        'Recon Analysis',
-        'Notes',
-        'Tax Category',
+        "Final Decision",
+        "Recon Analysis",
+        "Notes",
+        "Tax Category",
         "Add'l info",
-        'Refund Basis',
-        'Rate'
+        "Refund Basis",
+        "Rate",
     ]
 
     FINANCIAL_COLUMNS = [
-        'hwste_tax_amount_lc',  # Tax amount in local currency (CRITICAL)
-        'hwbas_tax_base_lc',    # Tax base in local currency
-        'fwste_tax_amount_dc',  # Tax amount in document currency
-        'fwbas_tax_base_dc',    # Tax base in document currency
-        'sales_tax_line',
-        'sales_tax_tot_inv_bset',
-        'use_tax_line',
-        'use_tax_tot_inv',
-        'total_tax_amount'
+        "hwste_tax_amount_lc",  # Tax amount in local currency (CRITICAL)
+        "hwbas_tax_base_lc",  # Tax base in local currency
+        "fwste_tax_amount_dc",  # Tax amount in document currency
+        "fwbas_tax_base_dc",  # Tax base in document currency
+        "sales_tax_line",
+        "sales_tax_tot_inv_bset",
+        "use_tax_line",
+        "use_tax_tot_inv",
+        "total_tax_amount",
     ]
 
     IDENTIFICATION_COLUMNS = [
-        'xblnr_invoice_number',
-        'belnr_accounting_document_number',
-        'ebeln_po_number',
-        'ebelp_po_line_item',
-        'vendor',
-        'lifnr_po_vendor',
-        'name1_po_vendor_name',
-        'bukrs_company_code',
-        'bukrs_company_code_desc'
+        "xblnr_invoice_number",
+        "belnr_accounting_document_number",
+        "ebeln_po_number",
+        "ebelp_po_line_item",
+        "vendor",
+        "lifnr_po_vendor",
+        "name1_po_vendor_name",
+        "bukrs_company_code",
+        "bukrs_company_code_desc",
     ]
 
-    DATE_COLUMNS = [
-        'bldat_document_date',
-        'budat_posting_date'
-    ]
+    DATE_COLUMNS = ["bldat_document_date", "budat_posting_date"]
 
     TAX_CLASSIFICATION_COLUMNS = [
-        'mwskz_tax_code',
-        'derived_tax_code',
-        'sales_tax_tax_code',
-        'use_tax_tax_code',
-        'tax_jurisdiction_state',
-        'taxjcd_wbs_tax_jurisdiction'
+        "mwskz_tax_code",
+        "derived_tax_code",
+        "sales_tax_tax_code",
+        "use_tax_tax_code",
+        "tax_jurisdiction_state",
+        "taxjcd_wbs_tax_jurisdiction",
     ]
 
     PRODUCT_COLUMNS = [
-        'txz01_po_description',
-        'maktx_material_description',
-        'matk1_po_material_group',
-        'matk1_po_material_group_desc',
-        'txt50_account_description'
+        "txz01_po_description",
+        "maktx_material_description",
+        "matk1_po_material_group",
+        "matk1_po_material_group_desc",
+        "txt50_account_description",
     ]
 
     def __init__(self):
         """Initialize the Denodo Sales Tax processor"""
         pass
 
-    def load_file(self, filepath: str, sheet_name: Optional[str] = None) -> pd.DataFrame:
+    def load_file(
+        self, filepath: str, sheet_name: Optional[str] = None
+    ) -> pd.DataFrame:
         """
         Load Denodo sales tax Excel file
 
@@ -125,7 +125,11 @@ class DenodoSalesTaxProcessor:
         if sheet_name is None:
             # Look for sheet with "tax items" or largest sheet
             for sheet in excel_file.sheet_names:
-                if 'tax items' in sheet.lower() or 'q1' in sheet.lower() or 'q2' in sheet.lower():
+                if (
+                    "tax items" in sheet.lower()
+                    or "q1" in sheet.lower()
+                    or "q2" in sheet.lower()
+                ):
                     sheet_name = sheet
                     break
             if sheet_name is None:
@@ -144,11 +148,7 @@ class DenodoSalesTaxProcessor:
     def _validate_denodo_structure(self, df: pd.DataFrame):
         """Validate that the DataFrame has expected Denodo structure"""
         # Check for some key columns
-        key_columns_to_check = [
-            'xblnr_invoice_number',
-            'vendor',
-            'Final Decision'
-        ]
+        key_columns_to_check = ["xblnr_invoice_number", "vendor", "Final Decision"]
 
         missing = [col for col in key_columns_to_check if col not in df.columns]
 
@@ -171,12 +171,12 @@ class DenodoSalesTaxProcessor:
         """
         # Combine all key column lists
         key_columns = (
-            self.IDENTIFICATION_COLUMNS +
-            self.FINANCIAL_COLUMNS +
-            self.DECISION_COLUMNS +
-            self.DATE_COLUMNS +
-            self.TAX_CLASSIFICATION_COLUMNS +
-            self.PRODUCT_COLUMNS
+            self.IDENTIFICATION_COLUMNS
+            + self.FINANCIAL_COLUMNS
+            + self.DECISION_COLUMNS
+            + self.DATE_COLUMNS
+            + self.TAX_CLASSIFICATION_COLUMNS
+            + self.PRODUCT_COLUMNS
         )
 
         # Filter to only columns that exist in the DataFrame
@@ -192,11 +192,23 @@ class DenodoSalesTaxProcessor:
             Dictionary with key statistics
         """
         stats = {
-            'total_rows': len(df),
-            'total_tax_amount': df['hwste_tax_amount_lc'].sum() if 'hwste_tax_amount_lc' in df.columns else 0,
-            'unique_vendors': df['vendor'].nunique() if 'vendor' in df.columns else 0,
-            'unique_invoices': df['xblnr_invoice_number'].nunique() if 'xblnr_invoice_number' in df.columns else 0,
-            'decision_breakdown': df['Final Decision'].value_counts().to_dict() if 'Final Decision' in df.columns else {},
+            "total_rows": len(df),
+            "total_tax_amount": (
+                df["hwste_tax_amount_lc"].sum()
+                if "hwste_tax_amount_lc" in df.columns
+                else 0
+            ),
+            "unique_vendors": df["vendor"].nunique() if "vendor" in df.columns else 0,
+            "unique_invoices": (
+                df["xblnr_invoice_number"].nunique()
+                if "xblnr_invoice_number" in df.columns
+                else 0
+            ),
+            "decision_breakdown": (
+                df["Final Decision"].value_counts().to_dict()
+                if "Final Decision" in df.columns
+                else {}
+            ),
         }
         return stats
 
@@ -213,16 +225,20 @@ class DenodoSalesTaxProcessor:
         filtered = df.copy()
 
         # Remove rows already marked as "NO OPP" or similar
-        if 'Final Decision' in filtered.columns:
+        if "Final Decision" in filtered.columns:
             filtered = filtered[
-                ~filtered['Final Decision'].str.upper().str.contains('NO OPP|PASS', na=False)
+                ~filtered["Final Decision"]
+                .str.upper()
+                .str.contains("NO OPP|PASS", na=False)
             ]
 
         # Filter for non-zero tax amounts
-        if 'hwste_tax_amount_lc' in filtered.columns:
-            filtered = filtered[filtered['hwste_tax_amount_lc'] > 0]
+        if "hwste_tax_amount_lc" in filtered.columns:
+            filtered = filtered[filtered["hwste_tax_amount_lc"] > 0]
 
-        print(f"Filtered to {len(filtered)} potential refund opportunities (from {len(df)} total)")
+        print(
+            f"Filtered to {len(filtered)} potential refund opportunities (from {len(df)} total)"
+        )
         return filtered
 
 
@@ -239,60 +255,55 @@ class UseTaxProcessor:
 
     # Key columns
     IDENTIFICATION_COLUMNS = [
-        'Vendor Number',
-        'Vendor Name',
-        'INVNO',
-        'Voucher Number',
-        'PO Number',
-        'Company Code'
+        "Vendor Number",
+        "Vendor Name",
+        "INVNO",
+        "Voucher Number",
+        "PO Number",
+        "Company Code",
     ]
 
     FINANCIAL_COLUMNS = [
-        'Total Tax',      # CRITICAL - the tax amount
-        'Tax Remit',
-        'Tax Rate Charged'
+        "Total Tax",  # CRITICAL - the tax amount
+        "Tax Remit",
+        "Tax Rate Charged",
     ]
 
-    LOCATION_COLUMNS = [
-        'STATE'
-    ]
+    LOCATION_COLUMNS = ["STATE"]
 
     RESEARCH_COLUMNS = [
-        'Invoices to Research',
-        'Status',
-        'R&D Assignment',
-        'Checked for sales tax paid?',
-        'KOM Analysis & Notes'
+        "Invoices to Research",
+        "Status",
+        "R&D Assignment",
+        "Checked for sales tax paid?",
+        "KOM Analysis & Notes",
     ]
 
     DECISION_COLUMNS = [
-        'Final Decision',
-        'Tax Category',
+        "Final Decision",
+        "Tax Category",
         "Add'l Info",
-        'Refund Basis',
-        'Tower vendor invoice description',
-        'Back up argument for SIRC risk'
+        "Refund Basis",
+        "Tower vendor invoice description",
+        "Back up argument for SIRC risk",
     ]
 
     CLASSIFICATION_COLUMNS = [
-        'INDICATOR',
-        'Vertex Category',
-        'Description',
-        'Invoice Line Item'
+        "INDICATOR",
+        "Vertex Category",
+        "Description",
+        "Invoice Line Item",
     ]
 
-    DOCUMENT_COLUMNS = [
-        'Inv-1PDF',
-        'Inv-2 PDF',
-        'Inv-1 Hyperlink',
-        'Inv-2 Hyperlink'
-    ]
+    DOCUMENT_COLUMNS = ["Inv-1PDF", "Inv-2 PDF", "Inv-1 Hyperlink", "Inv-2 Hyperlink"]
 
     def __init__(self):
         """Initialize the Use Tax processor"""
         pass
 
-    def load_file(self, filepath: str, sheet_name: Optional[str] = None) -> pd.DataFrame:
+    def load_file(
+        self, filepath: str, sheet_name: Optional[str] = None
+    ) -> pd.DataFrame:
         """
         Load Use Tax Excel file
 
@@ -331,11 +342,7 @@ class UseTaxProcessor:
 
     def _validate_use_tax_structure(self, df: pd.DataFrame):
         """Validate that the DataFrame has expected Use Tax structure"""
-        key_columns_to_check = [
-            'Vendor Name',
-            'INVNO',
-            'Total Tax'
-        ]
+        key_columns_to_check = ["Vendor Name", "INVNO", "Total Tax"]
 
         missing = [col for col in key_columns_to_check if col not in df.columns]
 
@@ -354,12 +361,12 @@ class UseTaxProcessor:
             DataFrame with only key columns
         """
         key_columns = (
-            self.IDENTIFICATION_COLUMNS +
-            self.FINANCIAL_COLUMNS +
-            self.LOCATION_COLUMNS +
-            self.RESEARCH_COLUMNS +
-            self.DECISION_COLUMNS +
-            self.CLASSIFICATION_COLUMNS
+            self.IDENTIFICATION_COLUMNS
+            + self.FINANCIAL_COLUMNS
+            + self.LOCATION_COLUMNS
+            + self.RESEARCH_COLUMNS
+            + self.DECISION_COLUMNS
+            + self.CLASSIFICATION_COLUMNS
         )
 
         available_columns = [col for col in key_columns if col in df.columns]
@@ -368,12 +375,22 @@ class UseTaxProcessor:
     def get_summary_stats(self, df: pd.DataFrame) -> Dict:
         """Get summary statistics for the use tax dataset"""
         stats = {
-            'total_rows': len(df),
-            'total_tax_amount': df['Total Tax'].sum() if 'Total Tax' in df.columns else 0,
-            'unique_vendors': df['Vendor Name'].nunique() if 'Vendor Name' in df.columns else 0,
-            'unique_invoices': df['INVNO'].nunique() if 'INVNO' in df.columns else 0,
-            'status_breakdown': df['Status'].value_counts().to_dict() if 'Status' in df.columns else {},
-            'decision_breakdown': df['Final Decision'].value_counts().to_dict() if 'Final Decision' in df.columns else {},
+            "total_rows": len(df),
+            "total_tax_amount": (
+                df["Total Tax"].sum() if "Total Tax" in df.columns else 0
+            ),
+            "unique_vendors": (
+                df["Vendor Name"].nunique() if "Vendor Name" in df.columns else 0
+            ),
+            "unique_invoices": df["INVNO"].nunique() if "INVNO" in df.columns else 0,
+            "status_breakdown": (
+                df["Status"].value_counts().to_dict() if "Status" in df.columns else {}
+            ),
+            "decision_breakdown": (
+                df["Final Decision"].value_counts().to_dict()
+                if "Final Decision" in df.columns
+                else {}
+            ),
         }
         return stats
 
@@ -386,18 +403,24 @@ class UseTaxProcessor:
         """
         filtered = df.copy()
 
-        if 'Invoices to Research' in filtered.columns:
+        if "Invoices to Research" in filtered.columns:
             filtered = filtered[
-                filtered['Invoices to Research'].str.upper().str.contains('RESEARCH', na=False)
+                filtered["Invoices to Research"]
+                .str.upper()
+                .str.contains("RESEARCH", na=False)
             ]
 
-        if 'Status' in filtered.columns:
+        if "Status" in filtered.columns:
             # Keep rows without final status
             filtered = filtered[
-                ~filtered['Status'].str.upper().str.contains('COMPLETE|DONE|CLOSED', na=False)
+                ~filtered["Status"]
+                .str.upper()
+                .str.contains("COMPLETE|DONE|CLOSED", na=False)
             ]
 
-        print(f"Filtered to {len(filtered)} items needing research (from {len(df)} total)")
+        print(
+            f"Filtered to {len(filtered)} items needing research (from {len(df)} total)"
+        )
         return filtered
 
 
@@ -416,18 +439,22 @@ def auto_detect_file_type(filepath: str) -> str:
         df = pd.read_excel(filepath, nrows=1)
 
         # Check for Denodo columns
-        if 'xblnr_invoice_number' in df.columns or 'hwste_tax_amount_lc' in df.columns:
-            return 'denodo_sales_tax'
+        if "xblnr_invoice_number" in df.columns or "hwste_tax_amount_lc" in df.columns:
+            return "denodo_sales_tax"
 
         # Check for Use Tax columns
-        if 'Vendor Name' in df.columns and 'INVNO' in df.columns and 'Total Tax' in df.columns:
-            return 'use_tax'
+        if (
+            "Vendor Name" in df.columns
+            and "INVNO" in df.columns
+            and "Total Tax" in df.columns
+        ):
+            return "use_tax"
 
-        return 'unknown'
+        return "unknown"
 
     except Exception as e:
         print(f"Error auto-detecting file type: {e}")
-        return 'unknown'
+        return "unknown"
 
 
 if __name__ == "__main__":
@@ -447,7 +474,7 @@ if __name__ == "__main__":
         print(f"Detected file type: {file_type}")
 
         # Process based on type
-        if file_type == 'denodo_sales_tax':
+        if file_type == "denodo_sales_tax":
             processor = DenodoSalesTaxProcessor()
             df = processor.load_file(test_file)
             print("\nSummary Statistics:")
@@ -455,7 +482,7 @@ if __name__ == "__main__":
             for key, value in stats.items():
                 print(f"  {key}: {value}")
 
-        elif file_type == 'use_tax':
+        elif file_type == "use_tax":
             processor = UseTaxProcessor()
             df = processor.load_file(test_file)
             print("\nSummary Statistics:")
@@ -469,5 +496,9 @@ if __name__ == "__main__":
     else:
         print("\nUsage: python excel_processors.py <path_to_excel_file>")
         print("\nExample:")
-        print('  python excel_processors.py "Test Data/2023 Records in Denodo not in Master_2-2-24.xlsx"')
-        print('  python excel_processors.py "Test Data/Phase_3_2023_Use Tax_10-17-25.xlsx"')
+        print(
+            '  python excel_processors.py "Test Data/2023 Records in Denodo not in Master_2-2-24.xlsx"'
+        )
+        print(
+            '  python excel_processors.py "Test Data/Phase_3_2023_Use Tax_10-17-25.xlsx"'
+        )

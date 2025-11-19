@@ -10,13 +10,14 @@ Usage:
     python scripts/import_metadata_excel.py --file metadata.xlsx --auto-confirm
 """
 
+import argparse
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
+
 from dotenv import load_dotenv
-import argparse
 from openpyxl import load_workbook
 
 # Add parent directory to path for imports

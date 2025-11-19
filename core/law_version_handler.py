@@ -9,6 +9,7 @@ Handles filtering and comparison between:
 
 from datetime import datetime
 from typing import Dict, List, Optional
+
 from supabase import Client
 
 
@@ -27,16 +28,14 @@ class LawVersionHandler:
         "temporary staffing",
         "investigation services",
         "security services",
-        "live presentations"
+        "live presentations",
     ]
 
     def __init__(self, supabase_client: Client):
         self.supabase = supabase_client
 
     def filter_by_law_version(
-        self,
-        chunks: List[Dict],
-        law_version: str = "new_law"
+        self, chunks: List[Dict], law_version: str = "new_law"
     ) -> List[Dict]:
         """
         Filter chunks by law version
@@ -55,27 +54,24 @@ class LawVersionHandler:
 
         for chunk in chunks:
             # Get document info
-            doc_id = chunk.get('document_id')
-            effective_date_str = chunk.get('effective_date')
-            citation = chunk.get('citation', '')
-            source_file = chunk.get('source_file', '')
+            doc_id = chunk.get("document_id")
+            effective_date_str = chunk.get("effective_date")
+            citation = chunk.get("citation", "")
+            source_file = chunk.get("source_file", "")
 
             # Determine if this is old or new law
             is_new_law = self._is_new_law_document(
-                source_file,
-                effective_date_str,
-                citation,
-                chunk.get('chunk_text', '')
+                source_file, effective_date_str, citation, chunk.get("chunk_text", "")
             )
 
             # Filter based on version requested
             if law_version == "new_law" and is_new_law:
-                chunk['law_version'] = 'new_law'
-                chunk['law_version_label'] = '📘 New Law (ESSB 5814, Oct 2025+)'
+                chunk["law_version"] = "new_law"
+                chunk["law_version_label"] = "📘 New Law (ESSB 5814, Oct 2025+)"
                 filtered.append(chunk)
             elif law_version == "old_law" and not is_new_law:
-                chunk['law_version'] = 'old_law'
-                chunk['law_version_label'] = '📕 Old Law (Pre-Oct 2025)'
+                chunk["law_version"] = "old_law"
+                chunk["law_version_label"] = "📕 Old Law (Pre-Oct 2025)"
                 filtered.append(chunk)
 
         return filtered
@@ -85,7 +81,7 @@ class LawVersionHandler:
         source_file: str,
         effective_date_str: Optional[str],
         citation: str,
-        text: str
+        text: str,
     ) -> bool:
         """
         Determine if document represents new law
@@ -118,7 +114,9 @@ class LawVersionHandler:
         # Check effective date
         if effective_date_str:
             try:
-                effective_date = datetime.fromisoformat(effective_date_str.replace('Z', '+00:00'))
+                effective_date = datetime.fromisoformat(
+                    effective_date_str.replace("Z", "+00:00")
+                )
                 if effective_date >= self.ESSB_5814_EFFECTIVE_DATE:
                     return True
             except:
@@ -128,10 +126,7 @@ class LawVersionHandler:
         return False
 
     def compare_old_vs_new(
-        self,
-        query: str,
-        old_law_chunks: List[Dict],
-        new_law_chunks: List[Dict]
+        self, query: str, old_law_chunks: List[Dict], new_law_chunks: List[Dict]
     ) -> Dict:
         """
         Generate a comparison between old and new law
@@ -148,14 +143,16 @@ class LawVersionHandler:
             "query": query,
             "old_law": {
                 "chunks": old_law_chunks,
-                "summary": self._summarize_position(old_law_chunks, "old")
+                "summary": self._summarize_position(old_law_chunks, "old"),
             },
             "new_law": {
                 "chunks": new_law_chunks,
-                "summary": self._summarize_position(new_law_chunks, "new")
+                "summary": self._summarize_position(new_law_chunks, "new"),
             },
             "key_changes": self._identify_key_changes(old_law_chunks, new_law_chunks),
-            "refund_implications": self._assess_refund_implications(query, old_law_chunks, new_law_chunks)
+            "refund_implications": self._assess_refund_implications(
+                query, old_law_chunks, new_law_chunks
+            ),
         }
 
         return comparison
@@ -166,16 +163,14 @@ class LawVersionHandler:
             return f"No {version} law information found."
 
         # Extract key text
-        texts = [c.get('chunk_text', '')[:300] for c in chunks[:3]]
-        citations = [c.get('citation', 'N/A') for c in chunks[:3]]
+        texts = [c.get("chunk_text", "")[:300] for c in chunks[:3]]
+        citations = [c.get("citation", "N/A") for c in chunks[:3]]
 
         summary = f"Based on {len(chunks)} source(s): {', '.join(citations)}"
         return summary
 
     def _identify_key_changes(
-        self,
-        old_law_chunks: List[Dict],
-        new_law_chunks: List[Dict]
+        self, old_law_chunks: List[Dict], new_law_chunks: List[Dict]
     ) -> List[str]:
         """Identify key changes between old and new law"""
         changes = []
@@ -183,19 +178,20 @@ class LawVersionHandler:
         # Check if query is about a service affected by ESSB 5814
         for service in self.ESSB_5814_AFFECTED_SERVICES:
             # Check if mentioned in new law chunks
-            if any(service in c.get('chunk_text', '').lower() for c in new_law_chunks):
-                changes.append(f"🔄 {service.title()} is now subject to retail sales tax (effective Oct 1, 2025)")
+            if any(service in c.get("chunk_text", "").lower() for c in new_law_chunks):
+                changes.append(
+                    f"🔄 {service.title()} is now subject to retail sales tax (effective Oct 1, 2025)"
+                )
 
         if not changes:
-            changes.append("Analysis in progress - compare the sources below to identify changes")
+            changes.append(
+                "Analysis in progress - compare the sources below to identify changes"
+            )
 
         return changes
 
     def _assess_refund_implications(
-        self,
-        query: str,
-        old_law_chunks: List[Dict],
-        new_law_chunks: List[Dict]
+        self, query: str, old_law_chunks: List[Dict], new_law_chunks: List[Dict]
     ) -> Optional[str]:
         """Assess if there are refund implications"""
         query_lower = query.lower()
@@ -248,11 +244,25 @@ TRANSITION PERIOD: Contracts signed before Oct 1, 2025 have special rules throug
             return True
 
         # Include if asking about recent changes
-        if any(kw in query_lower for kw in ["new law", "essb", "5814", "october", "2025", "recent", "changed"]):
+        if any(
+            kw in query_lower
+            for kw in [
+                "new law",
+                "essb",
+                "5814",
+                "october",
+                "2025",
+                "recent",
+                "changed",
+            ]
+        ):
             return True
 
         # Include if asking about refunds for services
-        if "refund" in query_lower and any(kw in query_lower for kw in ["service", "software", "advertising", "it", "tech"]):
+        if "refund" in query_lower and any(
+            kw in query_lower
+            for kw in ["service", "software", "advertising", "it", "tech"]
+        ):
             return True
 
         return False

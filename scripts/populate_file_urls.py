@@ -15,14 +15,15 @@ Usage:
 import os
 import sys
 from pathlib import Path
+from typing import Dict, List
+
 from dotenv import load_dotenv
-from typing import List, Dict
 from tqdm import tqdm
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.document_urls import generate_document_url
 from core.database import get_supabase_client
+from core.document_urls import generate_document_url
 
 # Load environment variables
 load_dotenv()
@@ -38,9 +39,11 @@ def fetch_all_documents() -> List[Dict]:
     print("📥 Fetching all documents from database...")
 
     try:
-        result = supabase.table("knowledge_documents").select(
-            "id, document_type, citation, source_file, file_url, title"
-        ).execute()
+        result = (
+            supabase.table("knowledge_documents")
+            .select("id, document_type, citation, source_file, file_url, title")
+            .execute()
+        )
 
         print(f"✅ Found {len(result.data)} documents in database")
         return result.data
@@ -79,13 +82,15 @@ def generate_urls_for_documents(documents: List[Dict]) -> List[Dict]:
         file_url = generate_document_url(citation, source_file, document_type)
 
         if file_url:
-            updates.append({
-                "id": doc_id,
-                "file_url": file_url,
-                "title": title,
-                "citation": citation,
-                "source_file": source_file
-            })
+            updates.append(
+                {
+                    "id": doc_id,
+                    "file_url": file_url,
+                    "title": title,
+                    "citation": citation,
+                    "source_file": source_file,
+                }
+            )
         else:
             skipped_count += 1
             print(f"\n⚠️  Could not generate URL for: {title}")
@@ -128,7 +133,9 @@ def apply_updates(updates: List[Dict], dry_run: bool = False):
         return
 
     if not updates:
-        print("\n✅ No updates needed - all documents already have URLs or cannot generate URLs")
+        print(
+            "\n✅ No updates needed - all documents already have URLs or cannot generate URLs"
+        )
         return
 
     # Show preview and ask for confirmation
@@ -148,9 +155,9 @@ def apply_updates(updates: List[Dict], dry_run: bool = False):
 
     for update in tqdm(updates, desc="Updating documents"):
         try:
-            supabase.table("knowledge_documents").update({
-                "file_url": update["file_url"]
-            }).eq("id", update["id"]).execute()
+            supabase.table("knowledge_documents").update(
+                {"file_url": update["file_url"]}
+            ).eq("id", update["id"]).execute()
 
             successful += 1
 
@@ -175,7 +182,7 @@ def main():
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Preview changes without updating database"
+        help="Preview changes without updating database",
     )
 
     args = parser.parse_args()

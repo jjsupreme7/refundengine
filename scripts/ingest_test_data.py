@@ -23,38 +23,43 @@ Usage:
     python scripts/ingest_test_data.py --excel-only
 """
 
+import argparse
 import os
 import sys
-from pathlib import Path
-from typing import List, Dict, Tuple
-import argparse
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Tuple
 
 # Optional progress bar
 try:
     from tqdm import tqdm
+
     TQDM_AVAILABLE = True
 except ImportError:
     TQDM_AVAILABLE = False
+
     # Fallback: simple pass-through iterator
     def tqdm(iterable, desc="Processing"):
         print(f"{desc}...")
         return iterable
 
+
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# Import our custom modules
-from core.document_extractors import extract_text_from_file, check_dependencies
 from analysis.excel_processors import (
     DenodoSalesTaxProcessor,
     UseTaxProcessor,
-    auto_detect_file_type
+    auto_detect_file_type,
 )
+
+# Import our custom modules
+from core.document_extractors import check_dependencies, extract_text_from_file
 
 # Supabase for database storage
 try:
     from dotenv import load_dotenv
+
     from core.database import get_supabase_client
 
     load_dotenv()
@@ -79,11 +84,11 @@ class TestDataIngester:
         self.test_data_root = Path(test_data_root)
         self.dry_run = dry_run
         self.stats = {
-            'invoices_processed': 0,
-            'purchase_orders_processed': 0,
-            'excel_files_processed': 0,
-            'errors': 0,
-            'total_files': 0
+            "invoices_processed": 0,
+            "purchase_orders_processed": 0,
+            "excel_files_processed": 0,
+            "errors": 0,
+            "total_files": 0,
         }
 
         if not self.test_data_root.exists():
@@ -108,8 +113,9 @@ class TestDataIngester:
         # Find all files
         files = list(invoices_folder.glob("*"))
         supported_files = [
-            f for f in files
-            if f.suffix.lower() in ['.pdf', '.tif', '.tiff', '.xls', '.xlsx']
+            f
+            for f in files
+            if f.suffix.lower() in [".pdf", ".tif", ".tiff", ".xls", ".xlsx"]
         ]
 
         print(f"Found {len(supported_files)} files to process")
@@ -117,10 +123,10 @@ class TestDataIngester:
         for file in tqdm(supported_files, desc="Processing invoices"):
             try:
                 self._process_invoice_file(file)
-                self.stats['invoices_processed'] += 1
+                self.stats["invoices_processed"] += 1
             except Exception as e:
                 print(f"\n[ERROR] Error processing {file.name}: {e}")
-                self.stats['errors'] += 1
+                self.stats["errors"] += 1
 
         print(f"\n[OK] Processed {self.stats['invoices_processed']} invoices")
 
@@ -138,20 +144,20 @@ class TestDataIngester:
 
         # Prepare document metadata
         doc_metadata = {
-            'document_type': 'invoice',
-            'title': f"Invoice {invoice_number}",
-            'source_file': str(file_path),
-            'file_type': file_path.suffix,
-            'total_pages': pages,
-            'extracted_text': text[:1000],  # First 1000 chars for preview
-            'processing_status': 'extracted'
+            "document_type": "invoice",
+            "title": f"Invoice {invoice_number}",
+            "source_file": str(file_path),
+            "file_type": file_path.suffix,
+            "total_pages": pages,
+            "extracted_text": text[:1000],  # First 1000 chars for preview
+            "processing_status": "extracted",
         }
 
         # Store in database if not dry run
         if not self.dry_run and SUPABASE_AVAILABLE:
             self._store_document(doc_metadata, text)
 
-        self.stats['total_files'] += 1
+        self.stats["total_files"] += 1
 
     def process_purchase_orders_folder(self):
         """Process all files in Purchase Orders folder"""
@@ -168,8 +174,9 @@ class TestDataIngester:
         # Find all files
         files = list(po_folder.glob("*"))
         supported_files = [
-            f for f in files
-            if f.suffix.lower() in ['.pdf', '.msg', '.xls', '.xlsx', '.doc', '.docx']
+            f
+            for f in files
+            if f.suffix.lower() in [".pdf", ".msg", ".xls", ".xlsx", ".doc", ".docx"]
         ]
 
         print(f"Found {len(supported_files)} files to process")
@@ -177,12 +184,14 @@ class TestDataIngester:
         for file in tqdm(supported_files, desc="Processing POs"):
             try:
                 self._process_po_file(file)
-                self.stats['purchase_orders_processed'] += 1
+                self.stats["purchase_orders_processed"] += 1
             except Exception as e:
                 print(f"\n[ERROR] Error processing {file.name}: {e}")
-                self.stats['errors'] += 1
+                self.stats["errors"] += 1
 
-        print(f"\n[OK] Processed {self.stats['purchase_orders_processed']} purchase orders")
+        print(
+            f"\n[OK] Processed {self.stats['purchase_orders_processed']} purchase orders"
+        )
 
     def _process_po_file(self, file_path: Path):
         """Process a single purchase order file"""
@@ -202,21 +211,21 @@ class TestDataIngester:
 
         # Prepare document metadata
         doc_metadata = {
-            'document_type': 'purchase_order',
-            'title': f"PO {po_number}",
-            'source_file': str(file_path),
-            'file_type': file_path.suffix,
-            'total_pages': pages,
-            'extracted_text': text[:1000],
-            'processing_status': 'extracted',
-            'po_number': po_number
+            "document_type": "purchase_order",
+            "title": f"PO {po_number}",
+            "source_file": str(file_path),
+            "file_type": file_path.suffix,
+            "total_pages": pages,
+            "extracted_text": text[:1000],
+            "processing_status": "extracted",
+            "po_number": po_number,
         }
 
         # Store in database if not dry run
         if not self.dry_run and SUPABASE_AVAILABLE:
             self._store_document(doc_metadata, text)
 
-        self.stats['total_files'] += 1
+        self.stats["total_files"] += 1
 
     def process_excel_tax_files(self):
         """Process all Denodo and Use Tax Excel files"""
@@ -234,19 +243,19 @@ class TestDataIngester:
             try:
                 file_type = auto_detect_file_type(str(file))
 
-                if file_type == 'denodo_sales_tax':
+                if file_type == "denodo_sales_tax":
                     self._process_denodo_file(file)
-                elif file_type == 'use_tax':
+                elif file_type == "use_tax":
                     self._process_use_tax_file(file)
                 else:
                     print(f"\n[WARN]  Unknown Excel file type: {file.name}")
                     continue
 
-                self.stats['excel_files_processed'] += 1
+                self.stats["excel_files_processed"] += 1
 
             except Exception as e:
                 print(f"\n[ERROR] Error processing {file.name}: {e}")
-                self.stats['errors'] += 1
+                self.stats["errors"] += 1
 
     def _process_denodo_file(self, file_path: Path):
         """Process a Denodo Sales Tax file"""
@@ -273,18 +282,18 @@ class TestDataIngester:
         # Store summary in database if not dry run
         if not self.dry_run and SUPABASE_AVAILABLE:
             summary = {
-                'file_name': file_path.name,
-                'file_type': 'denodo_sales_tax',
-                'total_rows': stats['total_rows'],
-                'total_tax_amount': float(stats['total_tax_amount']),
-                'unique_vendors': stats['unique_vendors'],
-                'refund_opportunities': len(refund_df),
-                'processed_at': datetime.now().isoformat()
+                "file_name": file_path.name,
+                "file_type": "denodo_sales_tax",
+                "total_rows": stats["total_rows"],
+                "total_tax_amount": float(stats["total_tax_amount"]),
+                "unique_vendors": stats["unique_vendors"],
+                "refund_opportunities": len(refund_df),
+                "processed_at": datetime.now().isoformat(),
             }
             # Store summary (you may want to create a tax_data_summary table)
             print(f"   [OK] Would store summary in database")
 
-        self.stats['total_files'] += 1
+        self.stats["total_files"] += 1
 
     def _process_use_tax_file(self, file_path: Path):
         """Process a Use Tax Phase 3 file"""
@@ -308,17 +317,17 @@ class TestDataIngester:
         # Store summary in database if not dry run
         if not self.dry_run and SUPABASE_AVAILABLE:
             summary = {
-                'file_name': file_path.name,
-                'file_type': 'use_tax',
-                'total_rows': stats['total_rows'],
-                'total_tax_amount': float(stats['total_tax_amount']),
-                'unique_vendors': stats['unique_vendors'],
-                'items_needing_research': len(research_df),
-                'processed_at': datetime.now().isoformat()
+                "file_name": file_path.name,
+                "file_type": "use_tax",
+                "total_rows": stats["total_rows"],
+                "total_tax_amount": float(stats["total_tax_amount"]),
+                "unique_vendors": stats["unique_vendors"],
+                "items_needing_research": len(research_df),
+                "processed_at": datetime.now().isoformat(),
             }
             print(f"   [OK] Would store summary in database")
 
-        self.stats['total_files'] += 1
+        self.stats["total_files"] += 1
 
     def _store_document(self, metadata: Dict, full_text: str):
         """Store document in Supabase database"""
@@ -375,26 +384,21 @@ def main():
     parser.add_argument(
         "--folder",
         default="Test Data",
-        help="Path to Test Data folder (default: 'Test Data')"
+        help="Path to Test Data folder (default: 'Test Data')",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Don't write to database, just analyze"
+        "--dry-run", action="store_true", help="Don't write to database, just analyze"
     )
     parser.add_argument(
         "--excel-only",
         action="store_true",
-        help="Process only Excel tax files, skip documents"
+        help="Process only Excel tax files, skip documents",
     )
 
     args = parser.parse_args()
 
     try:
-        ingester = TestDataIngester(
-            test_data_root=args.folder,
-            dry_run=args.dry_run
-        )
+        ingester = TestDataIngester(test_data_root=args.folder, dry_run=args.dry_run)
         ingester.run_full_ingestion(excel_only=args.excel_only)
 
     except FileNotFoundError as e:
@@ -403,6 +407,7 @@ def main():
     except Exception as e:
         print(f"\n[ERROR] Unexpected error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

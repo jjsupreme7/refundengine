@@ -10,17 +10,19 @@ This will take ~30-60 minutes to complete due to rate limiting.
 
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Dict, List
+
 import pandas as pd
 from tqdm import tqdm
-import time
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
 from openai import OpenAI
+
 from core.database import get_supabase_client
 
 # Load environment
@@ -85,15 +87,16 @@ Guidelines:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert business analyst specializing in vendor classification and Washington State sales tax refund analysis."
+                        "content": "You are an expert business analyst specializing in vendor classification and Washington State sales tax refund analysis.",
                     },
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
                 temperature=0.3,
             )
 
             import json
+
             metadata = json.loads(response.choices[0].message.content)
             return metadata
 
@@ -109,18 +112,20 @@ Guidelines:
                 "tax_notes": "Requires manual research",
                 "confidence_score": 0,
                 "data_source": "failed",
-                "notes": f"Error: {str(e)}"
+                "notes": f"Error: {str(e)}",
             }
 
     def check_if_vendor_exists(self, vendor_name: str) -> bool:
         """Check if vendor already in database"""
         try:
-            result = self.supabase.table("knowledge_documents") \
-                .select("id") \
-                .eq("vendor_name", vendor_name) \
-                .eq("document_type", "vendor_background") \
-                .limit(1) \
+            result = (
+                self.supabase.table("knowledge_documents")
+                .select("id")
+                .eq("vendor_name", vendor_name)
+                .eq("document_type", "vendor_background")
+                .limit(1)
                 .execute()
+            )
 
             return len(result.data) > 0
         except:
@@ -141,11 +146,11 @@ Guidelines:
         metadata = self.research_vendor_with_ai(vendor_name)
 
         # Prepare data for insertion
-        primary_products = metadata.get('primary_products', [])
+        primary_products = metadata.get("primary_products", [])
         if isinstance(primary_products, str):
-            primary_products = [p.strip() for p in primary_products.split(',')]
+            primary_products = [p.strip() for p in primary_products.split(",")]
 
-        confidence_score = metadata.get('confidence_score', 50.0)
+        confidence_score = metadata.get("confidence_score", 50.0)
         if isinstance(confidence_score, str):
             confidence_score = float(confidence_score)
 
@@ -153,26 +158,28 @@ Guidelines:
             "document_type": "vendor_background",
             "title": f"Vendor: {vendor_name}",
             "vendor_name": vendor_name,
-            "vendor_category": metadata.get('vendor_category', 'service_provider'),
-            "industry": metadata.get('industry'),
-            "business_model": metadata.get('business_model'),
+            "vendor_category": metadata.get("vendor_category", "service_provider"),
+            "industry": metadata.get("industry"),
+            "business_model": metadata.get("business_model"),
             "primary_products": primary_products,
-            "typical_delivery": metadata.get('typical_delivery'),
-            "tax_notes": metadata.get('tax_notes'),
+            "typical_delivery": metadata.get("typical_delivery"),
+            "tax_notes": metadata.get("tax_notes"),
             "confidence_score": confidence_score,
-            "data_source": metadata.get('data_source', 'ai_inference'),
+            "data_source": metadata.get("data_source", "ai_inference"),
         }
 
         # Remove None values
         data = {k: v for k, v in data.items() if v is not None}
 
         try:
-            result = self.supabase.table("knowledge_documents") \
-                .insert(data) \
-                .execute()
+            result = self.supabase.table("knowledge_documents").insert(data).execute()
 
             self.processed_count += 1
-            conf_emoji = "🟢" if confidence_score >= 70 else "🟡" if confidence_score >= 50 else "🔴"
+            conf_emoji = (
+                "🟢"
+                if confidence_score >= 70
+                else "🟡" if confidence_score >= 50 else "🔴"
+            )
             print(f"  ✅ Ingested {conf_emoji} ({int(confidence_score)}% confidence)")
             if transaction_count:
                 print(f"     Transactions in data: {int(transaction_count)}")
@@ -181,13 +188,15 @@ Guidelines:
             print(f"  ❌ Error ingesting: {e}")
             self.error_count += 1
 
-    def ingest_from_excel(self, excel_path: str, limit: int = None, batch_size: int = 10):
+    def ingest_from_excel(
+        self, excel_path: str, limit: int = None, batch_size: int = 10
+    ):
         """
         Ingest all vendors from Excel file with batching and rate limiting
         """
-        print("="*80)
+        print("=" * 80)
         print("VENDOR AI RESEARCH & INGESTION")
-        print("="*80)
+        print("=" * 80)
         print()
 
         # Read vendor list
@@ -202,8 +211,8 @@ Guidelines:
 
         # Process in batches with progress bar
         for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing vendors"):
-            vendor_name = row['Row Labels']
-            transaction_count = row.get('Count of Vendor Name')
+            vendor_name = row["Row Labels"]
+            transaction_count = row.get("Count of Vendor Name")
 
             # Skip if blank
             if pd.isna(vendor_name) or not vendor_name or vendor_name == "(blank)":
@@ -213,7 +222,9 @@ Guidelines:
 
             # Rate limiting: pause every batch_size vendors
             if (idx + 1) % batch_size == 0:
-                print(f"\n  ⏸️  Processed {idx + 1} vendors, pausing 5 seconds for rate limiting...")
+                print(
+                    f"\n  ⏸️  Processed {idx + 1} vendors, pausing 5 seconds for rate limiting..."
+                )
                 time.sleep(5)
             else:
                 # Small delay between requests
@@ -221,18 +232,22 @@ Guidelines:
 
         # Final summary
         print()
-        print("="*80)
+        print("=" * 80)
         print("FINAL SUMMARY")
-        print("="*80)
+        print("=" * 80)
         print(f"✅ Successfully processed: {self.processed_count}")
         print(f"⏭️  Skipped (already exists): {self.skipped_count}")
         print(f"❌ Errors: {self.error_count}")
-        print(f"📊 Total: {self.processed_count + self.skipped_count + self.error_count}")
+        print(
+            f"📊 Total: {self.processed_count + self.skipped_count + self.error_count}"
+        )
         print()
 
         # Calculate cost estimate
         total_requests = self.processed_count + self.error_count
-        estimated_cost = total_requests * 0.00015  # ~$0.00015 per request with GPT-4o-mini
+        estimated_cost = (
+            total_requests * 0.00015
+        )  # ~$0.00015 per request with GPT-4o-mini
         print(f"💰 Estimated API cost: ${estimated_cost:.2f}")
         print()
 
@@ -242,15 +257,24 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Ingest vendors with AI research")
-    parser.add_argument("--limit", type=int, help="Limit number of vendors (for testing)")
-    parser.add_argument("--batch-size", type=int, default=10, help="Batch size for rate limiting")
+    parser.add_argument(
+        "--limit", type=int, help="Limit number of vendors (for testing)"
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=10, help="Batch size for rate limiting"
+    )
 
     args = parser.parse_args()
 
     researcher = VendorAIResearcher()
 
     # Path to vendor file
-    vendor_file = Path(__file__).parent.parent / "knowledge_base" / "vendors" / "Common_Vendor.xlsx"
+    vendor_file = (
+        Path(__file__).parent.parent
+        / "knowledge_base"
+        / "vendors"
+        / "Common_Vendor.xlsx"
+    )
 
     if not vendor_file.exists():
         print(f"❌ Vendor file not found: {vendor_file}")
@@ -258,9 +282,7 @@ def main():
         sys.exit(1)
 
     researcher.ingest_from_excel(
-        str(vendor_file),
-        limit=args.limit,
-        batch_size=args.batch_size
+        str(vendor_file), limit=args.limit, batch_size=args.batch_size
     )
 
 

@@ -24,6 +24,7 @@ print()
 # Check for psycopg2
 try:
     import psycopg2
+
     print("✅ psycopg2 found")
 except ImportError:
     print("❌ psycopg2 not installed")
@@ -34,8 +35,8 @@ except ImportError:
     sys.exit(1)
 
 # Get database connection string
-db_password = os.getenv('SUPABASE_DB_PASSWORD')
-supabase_url = os.getenv('SUPABASE_URL')
+db_password = os.getenv("SUPABASE_DB_PASSWORD")
+supabase_url = os.getenv("SUPABASE_URL")
 
 if not db_password or not supabase_url:
     print("❌ Missing environment variables")
@@ -44,7 +45,7 @@ if not db_password or not supabase_url:
 
 # Extract project ID from Supabase URL
 # Format: https://nkxmhicubxltifpdhgby.supabase.co
-project_id = supabase_url.replace('https://', '').split('.')[0]
+project_id = supabase_url.replace("https://", "").split(".")[0]
 
 # Build connection string
 # Supabase uses pooler: aws-0-us-west-1.pooler.supabase.com
@@ -62,11 +63,7 @@ print()
 # Connect to database
 try:
     conn = psycopg2.connect(
-        host=db_host,
-        database=db_name,
-        user=db_user,
-        password=db_password,
-        port=db_port
+        host=db_host, database=db_name, user=db_user, password=db_password, port=db_port
     )
     conn.autocommit = True
     print("✅ Connected to database")
@@ -80,7 +77,12 @@ except Exception as e:
     sys.exit(1)
 
 # Read SQL file
-sql_file = Path(__file__).parent.parent / "database" / "schema" / "migration_excel_versioning.sql"
+sql_file = (
+    Path(__file__).parent.parent
+    / "database"
+    / "schema"
+    / "migration_excel_versioning.sql"
+)
 
 if not sql_file.exists():
     print(f"❌ SQL file not found: {sql_file}")
@@ -89,7 +91,7 @@ if not sql_file.exists():
 print(f"📄 Reading SQL from: {sql_file.name}")
 print()
 
-with open(sql_file, 'r') as f:
+with open(sql_file, "r") as f:
     sql_content = f.read()
 
 # Execute SQL
@@ -109,10 +111,7 @@ except Exception as e:
 print()
 print("🔍 Verifying tables...")
 
-tables_to_check = [
-    'excel_file_versions',
-    'excel_cell_changes'
-]
+tables_to_check = ["excel_file_versions", "excel_cell_changes"]
 
 for table in tables_to_check:
     try:
@@ -126,18 +125,16 @@ for table in tables_to_check:
 print()
 print("🔍 Verifying functions...")
 
-functions_to_check = [
-    'acquire_file_lock',
-    'release_file_lock',
-    'create_file_version'
-]
+functions_to_check = ["acquire_file_lock", "release_file_lock", "create_file_version"]
 
 for func in functions_to_check:
     try:
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT COUNT(*) FROM pg_proc
             WHERE proname = '{func}'
-        """)
+        """
+        )
         count = cursor.fetchone()[0]
         if count > 0:
             print(f"   ✅ {func}()")

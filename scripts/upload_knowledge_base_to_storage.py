@@ -12,11 +12,12 @@ Usage:
     python scripts/upload_knowledge_base_to_storage.py [--dry-run]
 """
 
+import argparse
 import os
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
-import argparse
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -25,6 +26,7 @@ load_dotenv()
 
 # Import centralized Supabase client
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 # Storage bucket name
@@ -66,7 +68,9 @@ def upload_file(local_path: Path, storage_path: str):
 
         # Upload to Supabase Storage
         supabase.storage.from_(BUCKET_NAME).upload(
-            storage_path, file_data, {"content-type": "application/pdf", "upsert": "true"}
+            storage_path,
+            file_data,
+            {"content-type": "application/pdf", "upsert": "true"},
         )
 
         # Get public URL (even though bucket is private, this is the path)
@@ -96,7 +100,9 @@ def upload_knowledge_base(dry_run=False):
         return
 
     print(f"\n📁 Found {len(pdf_files)} PDF files to upload")
-    print(f"   Total size: {sum(f.stat().st_size for f in pdf_files) / 1024 / 1024:.1f} MB")
+    print(
+        f"   Total size: {sum(f.stat().st_size for f in pdf_files) / 1024 / 1024:.1f} MB"
+    )
 
     if dry_run:
         print("\n🔍 DRY RUN MODE - No files will be uploaded")
@@ -148,7 +154,11 @@ def upload_knowledge_base(dry_run=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload PDFs to Supabase Storage")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be uploaded without uploading")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be uploaded without uploading",
+    )
     args = parser.parse_args()
 
     print("🚀 Knowledge Base Upload to Supabase Storage")

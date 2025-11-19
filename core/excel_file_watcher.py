@@ -13,18 +13,20 @@ Database Schema Required:
 - excel_row_tracking table (row-level hashes)
 """
 
+import hashlib
 import os
 import sys
-import hashlib
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from datetime import datetime
+
 import pandas as pd
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment
@@ -74,11 +76,13 @@ class ExcelFileWatcher:
         current_hash = self.get_file_hash(file_path)
 
         # Query database for previous tracking record
-        result = self.supabase.table("excel_file_tracking") \
-            .select("*") \
-            .eq("file_path", file_path) \
-            .limit(1) \
+        result = (
+            self.supabase.table("excel_file_tracking")
+            .select("*")
+            .eq("file_path", file_path)
+            .limit(1)
             .execute()
+        )
 
         if not result.data or len(result.data) == 0:
             # File not yet tracked
@@ -92,7 +96,9 @@ class ExcelFileWatcher:
 
         return False, previous
 
-    def get_changed_rows(self, file_path: str, df: pd.DataFrame) -> List[Tuple[int, str, bool]]:
+    def get_changed_rows(
+        self, file_path: str, df: pd.DataFrame
+    ) -> List[Tuple[int, str, bool]]:
         """
         Identify which rows have been added or modified
 
@@ -102,10 +108,12 @@ class ExcelFileWatcher:
         changed_rows = []
 
         # Get previous row hashes from database
-        result = self.supabase.table("excel_row_tracking") \
-            .select("row_index, row_hash") \
-            .eq("file_path", file_path) \
+        result = (
+            self.supabase.table("excel_row_tracking")
+            .select("row_index, row_hash")
+            .eq("file_path", file_path)
             .execute()
+        )
 
         # Build lookup dict of previous hashes
         previous_hashes = {}
@@ -144,9 +152,11 @@ class ExcelFileWatcher:
         }
 
         # Upsert (insert or update)
-        result = self.supabase.table("excel_file_tracking") \
-            .upsert(data, on_conflict="file_path") \
+        result = (
+            self.supabase.table("excel_file_tracking")
+            .upsert(data, on_conflict="file_path")
             .execute()
+        )
 
         return result
 
@@ -163,9 +173,11 @@ class ExcelFileWatcher:
         }
 
         # Upsert
-        result = self.supabase.table("excel_row_tracking") \
-            .upsert(data, on_conflict="file_path,row_index") \
+        result = (
+            self.supabase.table("excel_row_tracking")
+            .upsert(data, on_conflict="file_path,row_index")
             .execute()
+        )
 
         return result
 
@@ -236,7 +248,9 @@ class ExcelFileWatcher:
             row_data = df.iloc[row_idx]
 
             status = "new" if is_new else "modified"
-            print(f"   [{processed_count + 1}/{len(changed_rows)}] Row {row_idx} ({status})")
+            print(
+                f"   [{processed_count + 1}/{len(changed_rows)}] Row {row_idx} ({status})"
+            )
 
             # Call processor callback if provided
             if processor_callback:
@@ -279,7 +293,9 @@ class ExcelFileWatcher:
             "errors": error_count,
         }
 
-    def watch_directory(self, directory: str, pattern: str = "*.xlsx", processor_callback=None):
+    def watch_directory(
+        self, directory: str, pattern: str = "*.xlsx", processor_callback=None
+    ):
         """
         Watch a directory for Excel files matching pattern
 
@@ -295,8 +311,8 @@ class ExcelFileWatcher:
         print(f"Pattern: {pattern}")
         print()
 
-        from pathlib import Path
         import glob
+        from pathlib import Path
 
         # Find matching files
         search_path = Path(directory) / pattern
@@ -315,10 +331,12 @@ class ExcelFileWatcher:
         results = []
         for file_path in files:
             result = self.process_excel_file(file_path, processor_callback)
-            results.append({
-                "file": Path(file_path).name,
-                "result": result,
-            })
+            results.append(
+                {
+                    "file": Path(file_path).name,
+                    "result": result,
+                }
+            )
 
         return results
 
@@ -358,10 +376,14 @@ def main():
     """
     import argparse
 
-    parser = argparse.ArgumentParser(description="Excel file change detection and processing")
+    parser = argparse.ArgumentParser(
+        description="Excel file change detection and processing"
+    )
     parser.add_argument("--file", help="Single Excel file to process")
     parser.add_argument("--watch", help="Directory to watch for Excel files")
-    parser.add_argument("--pattern", default="*.xlsx", help="File pattern to match (default: *.xlsx)")
+    parser.add_argument(
+        "--pattern", default="*.xlsx", help="File pattern to match (default: *.xlsx)"
+    )
 
     args = parser.parse_args()
 
@@ -369,10 +391,14 @@ def main():
 
     if args.file:
         # Process single file
-        result = watcher.process_excel_file(args.file, processor_callback=example_processor)
+        result = watcher.process_excel_file(
+            args.file, processor_callback=example_processor
+        )
     elif args.watch:
         # Watch directory
-        results = watcher.watch_directory(args.watch, args.pattern, processor_callback=example_processor)
+        results = watcher.watch_directory(
+            args.watch, args.pattern, processor_callback=example_processor
+        )
     else:
         # Show usage
         parser.print_help()

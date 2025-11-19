@@ -17,17 +17,18 @@ Usage:
     python scripts/async_analyzer.py --check-progress <batch_id>
 """
 import argparse
+import json
 import os
 import sys
 import time
 from pathlib import Path
 from typing import List
-import json
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from tasks import analyze_batch, get_batch_progress, analyze_single_invoice
 from celery.result import AsyncResult
+
+from tasks import analyze_batch, analyze_single_invoice, get_batch_progress
 
 
 def queue_batch(excel_path: str, start_row: int = 0, num_rows: int = None):

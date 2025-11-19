@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment variables
@@ -25,7 +26,7 @@ def execute_sql_statement(sql: str) -> bool:
     """Execute a single SQL statement via RPC"""
     try:
         # Use Supabase RPC to execute SQL
-        result = supabase.rpc('exec_sql', {'query': sql}).execute()
+        result = supabase.rpc("exec_sql", {"query": sql}).execute()
         return True
     except Exception as e:
         # Try direct table creation via postgrest if RPC fails
@@ -37,13 +38,18 @@ def execute_sql_statement(sql: str) -> bool:
 def apply_migration():
     """Apply Excel tracking migration"""
 
-    print("="*80)
+    print("=" * 80)
     print("EXCEL FILE TRACKING MIGRATION")
-    print("="*80)
+    print("=" * 80)
     print()
 
     # Read migration file
-    migration_file = Path(__file__).parent.parent / "database" / "schema" / "migration_excel_file_tracking.sql"
+    migration_file = (
+        Path(__file__).parent.parent
+        / "database"
+        / "schema"
+        / "migration_excel_file_tracking.sql"
+    )
 
     print(f"📋 Migration file: {migration_file.name}")
 
@@ -51,7 +57,7 @@ def apply_migration():
         print(f"❌ Migration file not found: {migration_file}")
         return False
 
-    with open(migration_file, 'r') as f:
+    with open(migration_file, "r") as f:
         sql_full = f.read()
 
     # Split into individual statements
@@ -59,13 +65,13 @@ def apply_migration():
     lines = []
     in_block_comment = False
 
-    for line in sql_full.split('\n'):
+    for line in sql_full.split("\n"):
         stripped = line.strip()
 
         # Handle block comments
-        if '/*' in stripped:
+        if "/*" in stripped:
             in_block_comment = True
-        if '*/' in stripped:
+        if "*/" in stripped:
             in_block_comment = False
             continue
 
@@ -73,7 +79,7 @@ def apply_migration():
             continue
 
         # Skip single-line comments
-        if stripped.startswith('--'):
+        if stripped.startswith("--"):
             continue
 
         # Skip empty lines
@@ -83,8 +89,8 @@ def apply_migration():
         lines.append(line)
 
     # Rejoin and split by semicolon
-    sql_cleaned = '\n'.join(lines)
-    statements = [s.strip() for s in sql_cleaned.split(';') if s.strip()]
+    sql_cleaned = "\n".join(lines)
+    statements = [s.strip() for s in sql_cleaned.split(";") if s.strip()]
 
     print(f"📊 Total SQL statements: {len(statements)}")
     print()
@@ -111,9 +117,9 @@ def apply_migration():
         print("    Note: Table creation requires direct database access")
 
     print()
-    print("="*80)
+    print("=" * 80)
     print("MIGRATION STATUS")
-    print("="*80)
+    print("=" * 80)
     print()
     print("✅ Excel file tracking schema is ready to deploy")
     print()
@@ -130,7 +136,7 @@ def apply_migration():
     print("  1. Install PostgreSQL client tools")
     print("  2. Run: ./scripts/deploy_excel_tracking_schema.sh")
     print()
-    print("="*80)
+    print("=" * 80)
 
 
 if __name__ == "__main__":

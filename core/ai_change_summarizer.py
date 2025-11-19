@@ -6,10 +6,11 @@ using AI to analyze cell-level modifications.
 """
 
 import os
-from typing import List, Dict, Any
-from openai import OpenAI
 from collections import defaultdict
+from typing import Any, Dict, List
+
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
@@ -18,7 +19,9 @@ load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
-def generate_change_summary(changes: List[Dict[str, Any]], max_detail: int = None) -> str:
+def generate_change_summary(
+    changes: List[Dict[str, Any]], max_detail: int = None
+) -> str:
     """
     Generate an AI-powered summary of Excel file changes
 
@@ -49,9 +52,9 @@ def generate_change_summary(changes: List[Dict[str, Any]], max_detail: int = Non
     rows_affected = set()
 
     for change in changes:
-        column = change.get('column_name', 'Unknown')
-        change_type = change.get('change_type', 'modified')
-        row_idx = change.get('row_index', 0)
+        column = change.get("column_name", "Unknown")
+        change_type = change.get("change_type", "modified")
+        row_idx = change.get("row_index", 0)
 
         changes_by_column[column].append(change)
         changes_by_type[change_type] += 1
@@ -59,25 +62,28 @@ def generate_change_summary(changes: List[Dict[str, Any]], max_detail: int = Non
 
     # Build structured data for AI
     summary_data = {
-        'total_changes': len(changes),
-        'rows_affected': len(rows_affected),
-        'changes_by_type': dict(changes_by_type),
-        'changes_by_column': {
-            col: len(changes)
-            for col, changes in changes_by_column.items()
+        "total_changes": len(changes),
+        "rows_affected": len(rows_affected),
+        "changes_by_type": dict(changes_by_type),
+        "changes_by_column": {
+            col: len(changes) for col, changes in changes_by_column.items()
         },
-        'sample_changes': []
+        "sample_changes": [],
     }
 
     # Add detailed samples (up to max_detail)
     for i, change in enumerate(changes[:max_detail]):
-        summary_data['sample_changes'].append({
-            'row': change.get('row_index'),
-            'column': change.get('column_name'),
-            'old_value': str(change.get('old_value', ''))[:100],  # Truncate long values
-            'new_value': str(change.get('new_value', ''))[:100],
-            'type': change.get('change_type')
-        })
+        summary_data["sample_changes"].append(
+            {
+                "row": change.get("row_index"),
+                "column": change.get("column_name"),
+                "old_value": str(change.get("old_value", ""))[
+                    :100
+                ],  # Truncate long values
+                "new_value": str(change.get("new_value", ""))[:100],
+                "type": change.get("change_type"),
+            }
+        )
 
     # Create prompt for AI (adjust verbosity based on change count)
     if len(changes) > 100:
@@ -123,15 +129,12 @@ Format the response as plain text with bullet points."""
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a data analyst creating concise summaries of spreadsheet changes. Focus on what changed and why it matters, not technical details."
+                    "content": "You are a data analyst creating concise summaries of spreadsheet changes. Focus on what changed and why it matters, not technical details.",
                 },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "user", "content": prompt},
             ],
             temperature=0.3,  # Lower temperature for more consistent summaries
-            max_tokens=300
+            max_tokens=300,
         )
 
         summary = response.choices[0].message.content.strip()
@@ -158,18 +161,16 @@ def generate_basic_summary(data: Dict[str, Any]) -> str:
     ]
 
     # Add changes by type
-    if data['changes_by_type']:
+    if data["changes_by_type"]:
         type_summary = []
-        for change_type, count in data['changes_by_type'].items():
+        for change_type, count in data["changes_by_type"].items():
             type_summary.append(f"{count} {change_type}")
         lines.append(f"Changes: {', '.join(type_summary)}")
 
     # Add top changed columns
-    if data['changes_by_column']:
+    if data["changes_by_column"]:
         top_columns = sorted(
-            data['changes_by_column'].items(),
-            key=lambda x: x[1],
-            reverse=True
+            data["changes_by_column"].items(), key=lambda x: x[1], reverse=True
         )[:5]
 
         column_summary = [f"{col} ({count})" for col, count in top_columns]
@@ -187,8 +188,8 @@ def format_sample_changes(samples: List[Dict]) -> str:
     """Format sample changes for prompt"""
     lines = []
     for sample in samples:
-        old_val = sample['old_value'] or '(empty)'
-        new_val = sample['new_value'] or '(empty)'
+        old_val = sample["old_value"] or "(empty)"
+        new_val = sample["new_value"] or "(empty)"
         lines.append(
             f"  Row {sample['row']}, {sample['column']}: "
             f"{old_val} → {new_val} [{sample['type']}]"
@@ -197,8 +198,7 @@ def format_sample_changes(samples: List[Dict]) -> str:
 
 
 def generate_snapshot_summary(
-    version_data: Dict[str, Any],
-    changes: List[Dict[str, Any]]
+    version_data: Dict[str, Any], changes: List[Dict[str, Any]]
 ) -> str:
     """
     Generate a summary for a manual snapshot (more contextual)
@@ -215,8 +215,8 @@ def generate_snapshot_summary(
     change_summary = generate_change_summary(changes)
 
     # Add snapshot context
-    version_num = version_data.get('version_number', 'Unknown')
-    created_by = version_data.get('created_by', 'Unknown')
+    version_num = version_data.get("version_number", "Unknown")
+    created_by = version_data.get("created_by", "Unknown")
 
     summary = f"""Snapshot #{version_num} created by {created_by}
 
@@ -232,26 +232,26 @@ if __name__ == "__main__":
     # Test with sample changes
     sample_changes = [
         {
-            'row_index': 23,
-            'column_name': 'Product_Type',
-            'old_value': 'SaaS',
-            'new_value': 'Professional Services',
-            'change_type': 'modified'
+            "row_index": 23,
+            "column_name": "Product_Type",
+            "old_value": "SaaS",
+            "new_value": "Professional Services",
+            "change_type": "modified",
         },
         {
-            'row_index': 45,
-            'column_name': 'Estimated_Refund',
-            'old_value': '5000',
-            'new_value': '8500',
-            'change_type': 'modified'
+            "row_index": 45,
+            "column_name": "Estimated_Refund",
+            "old_value": "5000",
+            "new_value": "8500",
+            "change_type": "modified",
         },
         {
-            'row_index': 67,
-            'column_name': 'Your_Answer',
-            'old_value': '',
-            'new_value': '85% of users outside WA',
-            'change_type': 'added'
-        }
+            "row_index": 67,
+            "column_name": "Your_Answer",
+            "old_value": "",
+            "new_value": "85% of users outside WA",
+            "change_type": "added",
+        },
     ]
 
     print("Testing AI Change Summarizer...")

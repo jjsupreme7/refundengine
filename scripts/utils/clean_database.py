@@ -20,6 +20,7 @@ except ImportError:
 # Import centralized Supabase client
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 

@@ -5,9 +5,10 @@ Provides field-level encryption for sensitive data in database storage.
 Uses Fernet (symmetric encryption) for performance and simplicity.
 """
 
-import os
 import base64
+import os
 from typing import Optional, Union
+
 from cryptography.fernet import Fernet, InvalidToken
 
 

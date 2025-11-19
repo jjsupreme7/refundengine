@@ -4,20 +4,21 @@ Enhanced Refund Analysis Script with Improved RAG
 Integrates Corrective RAG, Reranking, Query Expansion, and Hybrid Search
 """
 
+import argparse
+import json
 import os
 import sys
-import pandas as pd
 from datetime import datetime
 from pathlib import Path
-import json
 from typing import Dict, List, Optional, Tuple
-import argparse
+
+import pandas as pd
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from openai import OpenAI
 import PyPDF2
+from openai import OpenAI
 
 # Import centralized database client
 from core.database import get_supabase_client
@@ -41,19 +42,27 @@ class EnhancedRefundAnalyzer:
     - Hybrid search (vector + keyword)
     """
 
-    def __init__(self, docs_folder: str = "client_docs"):
+    def __init__(self, docs_folder: str = "client_docs", enable_dynamic_models: bool = True):
         self.docs_folder = Path(docs_folder)
         self.embedding_model = "text-embedding-3-small"
         self.analysis_model = "gpt-4o"
 
-        # Initialize Enhanced RAG
-        self.rag = EnhancedRAG(supabase)
+        # Initialize Enhanced RAG with dynamic model selection
+        self.rag = EnhancedRAG(supabase, enable_dynamic_models=enable_dynamic_models)
 
         print("✅ Enhanced Refund Analyzer initialized")
         print("   - Corrective RAG: ON")
         print("   - Reranking: ON")
         print("   - Query Expansion: ON")
-        print("   - Hybrid Search: ON\n")
+        print("   - Hybrid Search: ON")
+        if enable_dynamic_models:
+            print("   - Dynamic Model Selection: ON")
+            print(f"     • High stakes (>${self.rag.stakes_threshold_high:,}): Claude Sonnet 4.5")
+            print(f"     • Medium stakes (${self.rag.stakes_threshold_medium:,}-${self.rag.stakes_threshold_high:,}): GPT-4o")
+            print(f"     • Low stakes (<${self.rag.stakes_threshold_medium:,}): gpt-4o-mini")
+        else:
+            print("   - Dynamic Model Selection: OFF")
+        print()
 
     # ==================== PDF & EXTRACTION ====================
 
@@ -226,24 +235,30 @@ IMPORTANT - Check for common errors:
         if rag_method == "agentic":
             print(f"\n🤖 Using Agentic RAG (intelligent decision-making)...\n")
 
-            # Build context for decision-making
+            # Assess query complexity for dynamic model selection
+            complexity = self.rag._assess_query_complexity(query, {})
+
+            # Build context for decision-making (includes stakes for dynamic models)
             context = {
                 "vendor": vendor,
                 "product": product_desc,
                 "product_type": product_type,
                 "amount": amount,
                 "tax_paid": tax,
-                "prior_analysis": learned_info if learned_info else None
+                "complexity": complexity,  # For stakes calculation
+                "prior_analysis": learned_info if learned_info else None,
             }
 
             # Let the agent decide how to retrieve
-            decision_result = self.rag.search_with_decision(query, context=context, top_k=5)
+            decision_result = self.rag.search_with_decision(
+                query, context=context, top_k=5
+            )
 
             # Extract results and add decision metadata
-            legal_chunks = decision_result.get('results', [])
-            decision_action = decision_result.get('action', 'UNKNOWN')
-            decision_confidence = decision_result.get('confidence', 0.0)
-            cost_saved = decision_result.get('cost_saved', 0.0)
+            legal_chunks = decision_result.get("results", [])
+            decision_action = decision_result.get("action", "UNKNOWN")
+            decision_confidence = decision_result.get("confidence", 0.0)
+            cost_saved = decision_result.get("cost_saved", 0.0)
 
             print(f"\n✅ Decision: {decision_action}")
             print(f"   Confidence: {decision_confidence:.2f}")
@@ -265,7 +280,9 @@ IMPORTANT - Check for common errors:
             elif rag_method == "hybrid":
                 legal_chunks = self.rag.search_hybrid(query, top_k=5)
             else:  # enhanced (default)
-                legal_chunks = self.rag.search_enhanced(query, top_k=5, vendor_name=vendor)
+                legal_chunks = self.rag.search_enhanced(
+                    query, top_k=5, vendor_name=vendor
+                )
 
             print(f"\n✅ Retrieved {len(legal_chunks)} legal chunks\n")
 
@@ -287,9 +304,13 @@ This vendor/product has been analyzed before:
         vendor_background_context = ""
         if legal_chunks and len(legal_chunks) > 0:
             first_chunk = legal_chunks[0]
-            if 'vendor_background' in first_chunk and first_chunk['vendor_background']:
-                vb = first_chunk['vendor_background']
-                products_str = ", ".join(vb.get('primary_products', [])[:3]) if vb.get('primary_products') else "N/A"
+            if "vendor_background" in first_chunk and first_chunk["vendor_background"]:
+                vb = first_chunk["vendor_background"]
+                products_str = (
+                    ", ".join(vb.get("primary_products", [])[:3])
+                    if vb.get("primary_products")
+                    else "N/A"
+                )
                 vendor_background_context = f"""
 VENDOR BACKGROUND:
 Understanding the vendor's business helps interpret ambiguous descriptions:
@@ -364,12 +385,31 @@ ANALYSIS REQUIRED:
 
 7. **Confidence**: How confident are you in this analysis (0-100)?
 
-8. **Next Steps**: What additional information is needed?
+8. **Information Gaps**: Identify specific information needed to improve confidence or determine refund eligibility
+
+   CRITICAL: If confidence < 70% OR refund eligibility is uncertain, you MUST identify information gaps.
+
+   For each gap, specify:
+   - **Category**: SERVICE_LOCATION|MPU_USERS|DELIVERY_ADDRESS|CUSTOM_VS_PREWRITTEN|VENDOR_STATE|CONTRACT_TERMS|OTHER
+   - **Description**: What specific information is missing (be specific!)
+   - **Impact**: How this affects the refund determination
+   - **Refund Potential**: HIGH (>$5K potential)|MEDIUM ($1K-$5K)|LOW (<$1K) if information found
+   - **Example Query**: Specific question to ask the client
+
+   Common scenarios requiring additional information:
+   - **Out-of-state services**: Need service location (construction, installation performed where?)
+   - **MPU allocation**: Need user distribution, usage data by location, equipment locations
+   - **Custom vs. prewritten software**: Need SOW, contract terms, uniqueness of deliverable
+   - **Wrong jurisdiction rate**: Need delivery address, facility codes, project site locations
+   - **Professional services classification**: Need to verify "primarily human effort" vs. automated
+   - **Vendor location**: If vendor state unknown, affects sales/use tax determination
+
+9. **Next Steps**: Quick action items based on current information
 
 Return JSON:
 {{
     "is_taxable": true/false,
-    "refund_eligible": true/false,
+    "refund_eligible": "YES|NO|UNCERTAIN",
     "refund_basis": "MPU|Non-taxable|Exemption|OOS Delivery|Double-Charge|Wrong-Rate|None",
     "refund_percentage": 0-100,
     "estimated_refund": dollar amount,
@@ -379,6 +419,19 @@ Return JSON:
     "allocation_method": "User location|Equipment location|N/A",
     "confidence": 0-100,
     "reasoning": "detailed explanation",
+    "information_needed": {{
+        "has_gaps": true/false,
+        "gap_severity": "CRITICAL|HIGH|MEDIUM|LOW|NONE",
+        "gaps": [
+            {{
+                "category": "SERVICE_LOCATION|MPU_USERS|DELIVERY_ADDRESS|CUSTOM_VS_PREWRITTEN|VENDOR_STATE|CONTRACT_TERMS|OTHER",
+                "description": "specific information missing",
+                "impact": "how this affects refund determination",
+                "refund_potential_if_found": "HIGH|MEDIUM|LOW",
+                "example_query": "exact question to ask client"
+            }}
+        ]
+    }},
     "next_steps": ["action1", "action2"],
     "common_errors_detected": {{
         "double_charging": {{

@@ -16,16 +16,18 @@ Matches the format expected by DocumentsPage.tsx:
 """
 
 import os
-import sys
-from pathlib import Path
-from datetime import datetime, timedelta
 import random
+import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+
 import pandas as pd
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment
@@ -59,9 +61,9 @@ class DashboardTestDataGenerator:
                         "refund_basis": "MPU",
                         "confidence": 0.95,
                         "tax_amount": 1155.00,
-                        "notes": "Multi-state organization with <10% employees in WA"
+                        "notes": "Multi-state organization with <10% employees in WA",
                     }
-                ]
+                ],
             },
             {
                 "file_name": "INV-10022.pdf",
@@ -79,11 +81,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "MPU",
                         "confidence": 0.92,
                         "tax_amount": 1890.00,
-                        "notes": "National sales team, MPU exemption applies"
+                        "notes": "National sales team, MPU exemption applies",
                     }
-                ]
+                ],
             },
-
             # TANGIBLE GOODS - Out of State Shipment
             {
                 "file_name": "INV-10023.pdf",
@@ -101,11 +102,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "Out of State - Shipment",
                         "confidence": 0.98,
                         "tax_amount": 10710.00,
-                        "notes": "Shipped to Oregon datacenter - delivery address outside WA"
+                        "notes": "Shipped to Oregon datacenter - delivery address outside WA",
                     }
-                ]
+                ],
             },
-
             # PROFESSIONAL SERVICES - Non-Taxable
             {
                 "file_name": "INV-10024.pdf",
@@ -123,11 +123,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "Non-Taxable",
                         "confidence": 0.96,
                         "tax_amount": 7350.00,
-                        "notes": "Professional services - human effort, not subject to sales tax"
+                        "notes": "Professional services - human effort, not subject to sales tax",
                     }
-                ]
+                ],
             },
-
             # CUSTOM SOFTWARE DEVELOPMENT - Non-Taxable (OLD LAW)
             {
                 "file_name": "INV-10025.pdf",
@@ -145,11 +144,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "Non-Taxable",
                         "confidence": 0.94,
                         "tax_amount": 8925.00,
-                        "notes": "Custom software created for single client - not prewritten"
+                        "notes": "Custom software created for single client - not prewritten",
                     }
-                ]
+                ],
             },
-
             # AMBIGUOUS - Installation bundled with equipment
             {
                 "file_name": "INV-10026.pdf",
@@ -167,7 +165,7 @@ class DashboardTestDataGenerator:
                         "refund_basis": None,
                         "confidence": 0.97,
                         "tax_amount": 2646.00,
-                        "notes": "Tangible goods, properly taxed"
+                        "notes": "Tangible goods, properly taxed",
                     },
                     {
                         "desc": "Installation & cabling for servers",
@@ -178,7 +176,7 @@ class DashboardTestDataGenerator:
                         "refund_basis": None,
                         "confidence": 0.73,
                         "tax_amount": 630.00,
-                        "notes": "Bundled installation - taxability depends on contract structure"
+                        "notes": "Bundled installation - taxability depends on contract structure",
                     },
                     {
                         "desc": "Post-install performance tuning (remote)",
@@ -189,11 +187,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "Non-Taxable",
                         "confidence": 0.95,
                         "tax_amount": 210.00,
-                        "notes": "Separately stated professional service"
-                    }
-                ]
+                        "notes": "Separately stated professional service",
+                    },
+                ],
             },
-
             # CLOUD SERVICES - Out of State
             {
                 "file_name": "INV-10027.pdf",
@@ -211,11 +208,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "Out of State - Services",
                         "confidence": 0.91,
                         "tax_amount": 1312.50,
-                        "notes": "Infrastructure hosted in Oregon, not Washington"
+                        "notes": "Infrastructure hosted in Oregon, not Washington",
                     }
-                ]
+                ],
             },
-
             # TELECOM - Properly Taxed (NO REFUND)
             {
                 "file_name": "INV-10028.pdf",
@@ -233,11 +229,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": None,
                         "confidence": 0.99,
                         "tax_amount": 446.25,
-                        "notes": "Telecom services in WA, properly taxed"
+                        "notes": "Telecom services in WA, properly taxed",
                     }
-                ]
+                ],
             },
-
             # LICENSE vs SAAS - Needs Review
             {
                 "file_name": "INV-10029.pdf",
@@ -255,11 +250,10 @@ class DashboardTestDataGenerator:
                         "refund_basis": "Non-Taxable",
                         "confidence": 0.68,
                         "tax_amount": 4987.50,
-                        "notes": "License vs SaaS distinction - requires contract review"
+                        "notes": "License vs SaaS distinction - requires contract review",
                     }
-                ]
+                ],
             },
-
             # SMALL DOLLAR - Office Supplies (NO REFUND)
             {
                 "file_name": "INV-10030.pdf",
@@ -277,9 +271,9 @@ class DashboardTestDataGenerator:
                         "refund_basis": None,
                         "confidence": 0.99,
                         "tax_amount": 88.73,
-                        "notes": "Tangible goods delivered in WA, properly taxed"
+                        "notes": "Tangible goods delivered in WA, properly taxed",
                     }
-                ]
+                ],
             },
         ]
 
@@ -294,13 +288,15 @@ class DashboardTestDataGenerator:
         for tx in self.test_transactions:
             # For now, create one row per invoice (not per line item)
             # Line items will be parsed from the PDF later
-            rows.append({
-                "file name": tx["file_name"],
-                "Vendor name": tx["vendor"],
-                "Invoice number": tx["invoice_number"],
-                "Purchase order": tx["purchase_order"],
-                "Description of the date": tx["date"],
-            })
+            rows.append(
+                {
+                    "file name": tx["file_name"],
+                    "Vendor name": tx["vendor"],
+                    "Invoice number": tx["invoice_number"],
+                    "Purchase order": tx["purchase_order"],
+                    "Description of the date": tx["date"],
+                }
+            )
 
         df = pd.DataFrame(rows)
 
@@ -341,7 +337,7 @@ class DashboardTestDataGenerator:
         Calculate summary statistics
         """
         print("\n📈 Summary Statistics:")
-        print("="*60)
+        print("=" * 60)
 
         total_invoices = len(self.test_transactions)
         total_line_items = sum(len(tx["line_items"]) for tx in self.test_transactions)
@@ -360,7 +356,10 @@ class DashboardTestDataGenerator:
                 if line["refund_basis"]:
                     refund_lines.append(line)
                     total_estimated_refund += tax
-                elif line["taxability"] == "needs review" or line["taxability"] == "depends by state facts":
+                elif (
+                    line["taxability"] == "needs review"
+                    or line["taxability"] == "depends by state facts"
+                ):
                     needs_review_lines.append(line)
                 else:
                     properly_taxed_lines.append(line)
@@ -384,18 +383,20 @@ class DashboardTestDataGenerator:
             cat = line["category"]
             category_refunds[cat] = category_refunds.get(cat, 0) + line["tax_amount"]
 
-        for cat, amount in sorted(category_refunds.items(), key=lambda x: x[1], reverse=True):
+        for cat, amount in sorted(
+            category_refunds.items(), key=lambda x: x[1], reverse=True
+        ):
             print(f"  {cat:25s} ${amount:>10,.2f}")
 
-        print("="*60)
+        print("=" * 60)
 
     def generate_all(self):
         """
         Generate all test data
         """
-        print("="*70)
+        print("=" * 70)
         print("DASHBOARD TEST DATA GENERATION")
-        print("="*70)
+        print("=" * 70)
 
         # Create Excel manifest
         excel_path = self.create_excel_manifest()
@@ -407,9 +408,9 @@ class DashboardTestDataGenerator:
         self.calculate_summary_stats()
 
         print()
-        print("="*70)
+        print("=" * 70)
         print("✅ TEST DATA GENERATION COMPLETE")
-        print("="*70)
+        print("=" * 70)
         print()
         print(f"📁 Output directory: {self.output_dir}")
         print(f"📄 Excel manifest: {excel_path}")

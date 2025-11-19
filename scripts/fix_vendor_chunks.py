@@ -9,18 +9,19 @@ Problem: Vendor documents exist in knowledge_documents but have 0 chunks
 Solution: Generate meaningful text from vendor metadata, chunk it, embed it
 """
 
+import json
 import os
 import sys
 from pathlib import Path
-from typing import List, Dict
-import json
+from typing import Dict, List
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
-from core.database import get_supabase_client
 from openai import OpenAI
+
+from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -35,12 +36,12 @@ def generate_vendor_text(vendor_doc: Dict) -> str:
     Generate comprehensive text from vendor metadata
     This creates a rich, searchable description of the vendor
     """
-    vendor_name = vendor_doc.get('vendor_name', 'Unknown Vendor')
-    industry = vendor_doc.get('industry', '')
-    business_model = vendor_doc.get('business_model', '')
-    primary_products = vendor_doc.get('primary_products', [])
-    typical_delivery = vendor_doc.get('typical_delivery', '')
-    tax_notes = vendor_doc.get('tax_notes', '')
+    vendor_name = vendor_doc.get("vendor_name", "Unknown Vendor")
+    industry = vendor_doc.get("industry", "")
+    business_model = vendor_doc.get("business_model", "")
+    primary_products = vendor_doc.get("primary_products", [])
+    typical_delivery = vendor_doc.get("typical_delivery", "")
+    tax_notes = vendor_doc.get("tax_notes", "")
 
     # Build comprehensive vendor description
     text_parts = []
@@ -50,15 +51,21 @@ def generate_vendor_text(vendor_doc: Dict) -> str:
 
     # Industry and business model
     if industry:
-        text_parts.append(f"## Industry\n{vendor_name} operates in the {industry} industry.\n")
+        text_parts.append(
+            f"## Industry\n{vendor_name} operates in the {industry} industry.\n"
+        )
 
     if business_model:
-        text_parts.append(f"## Business Model\n{vendor_name} follows a {business_model} business model.\n")
+        text_parts.append(
+            f"## Business Model\n{vendor_name} follows a {business_model} business model.\n"
+        )
 
     # Primary products/services
     if primary_products and len(primary_products) > 0:
         text_parts.append(f"## Primary Products and Services\n")
-        text_parts.append(f"{vendor_name} provides the following products and services:\n")
+        text_parts.append(
+            f"{vendor_name} provides the following products and services:\n"
+        )
         for product in primary_products:
             if isinstance(product, str):
                 text_parts.append(f"- {product}\n")
@@ -66,7 +73,9 @@ def generate_vendor_text(vendor_doc: Dict) -> str:
     # Delivery method
     if typical_delivery:
         text_parts.append(f"## Typical Delivery Method\n")
-        text_parts.append(f"{vendor_name} typically delivers products/services via {typical_delivery}.\n")
+        text_parts.append(
+            f"{vendor_name} typically delivers products/services via {typical_delivery}.\n"
+        )
 
     # Tax treatment notes
     if tax_notes:
@@ -75,15 +84,23 @@ def generate_vendor_text(vendor_doc: Dict) -> str:
 
     # Additional searchable keywords for RAG
     text_parts.append(f"\n## Vendor Summary\n")
-    text_parts.append(f"When analyzing invoices or purchase orders from {vendor_name}, consider ")
-    text_parts.append(f"their {business_model} model " if business_model else "their business model ")
-    text_parts.append(f"and typical {typical_delivery} delivery method. " if typical_delivery else "delivery methods. ")
+    text_parts.append(
+        f"When analyzing invoices or purchase orders from {vendor_name}, consider "
+    )
+    text_parts.append(
+        f"their {business_model} model " if business_model else "their business model "
+    )
+    text_parts.append(
+        f"and typical {typical_delivery} delivery method. "
+        if typical_delivery
+        else "delivery methods. "
+    )
 
     if primary_products:
-        products_str = ', '.join([str(p) for p in primary_products[:3]])
+        products_str = ", ".join([str(p) for p in primary_products[:3]])
         text_parts.append(f"Common products include: {products_str}. ")
 
-    return '\n'.join(text_parts)
+    return "\n".join(text_parts)
 
 
 def create_embedding(text: str) -> List[float]:
@@ -92,9 +109,7 @@ def create_embedding(text: str) -> List[float]:
     """
     try:
         response = openai_client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text,
-            dimensions=1536
+            model="text-embedding-3-small", input=text, dimensions=1536
         )
         return response.data[0].embedding
     except Exception as e:
@@ -111,14 +126,16 @@ def chunk_vendor_text(text: str, vendor_name: str) -> List[Dict]:
 
     # For most vendors, the entire text is small enough for one chunk
     if len(text) < 1500:
-        chunks.append({
-            'chunk_text': text,
-            'chunk_number': 1,
-            'document_category': 'vendor_profile'
-        })
+        chunks.append(
+            {
+                "chunk_text": text,
+                "chunk_number": 1,
+                "document_category": "vendor_profile",
+            }
+        )
     else:
         # If text is longer, split into logical sections
-        sections = text.split('## ')
+        sections = text.split("## ")
         current_chunk = []
         chunk_num = 1
         current_length = 0
@@ -132,11 +149,13 @@ def chunk_vendor_text(text: str, vendor_name: str) -> List[Dict]:
 
             if current_length + section_length > 1500 and current_chunk:
                 # Save current chunk
-                chunks.append({
-                    'chunk_text': '\n\n'.join(current_chunk),
-                    'chunk_number': chunk_num,
-                    'document_category': 'vendor_profile'
-                })
+                chunks.append(
+                    {
+                        "chunk_text": "\n\n".join(current_chunk),
+                        "chunk_number": chunk_num,
+                        "document_category": "vendor_profile",
+                    }
+                )
                 chunk_num += 1
                 current_chunk = [section_text]
                 current_length = section_length
@@ -146,11 +165,13 @@ def chunk_vendor_text(text: str, vendor_name: str) -> List[Dict]:
 
         # Add remaining chunk
         if current_chunk:
-            chunks.append({
-                'chunk_text': '\n\n'.join(current_chunk),
-                'chunk_number': chunk_num,
-                'document_category': 'vendor_profile'
-            })
+            chunks.append(
+                {
+                    "chunk_text": "\n\n".join(current_chunk),
+                    "chunk_number": chunk_num,
+                    "document_category": "vendor_profile",
+                }
+            )
 
     return chunks
 
@@ -159,16 +180,18 @@ def process_vendor(vendor_doc: Dict) -> bool:
     """
     Process a single vendor: generate text, create chunks, embed, and insert
     """
-    vendor_name = vendor_doc.get('vendor_name', 'Unknown')
-    doc_id = vendor_doc['id']
+    vendor_name = vendor_doc.get("vendor_name", "Unknown")
+    doc_id = vendor_doc["id"]
 
     print(f"\n📦 Processing: {vendor_name}")
 
     # Check if chunks already exist
-    existing_chunks = supabase.table('vendor_background_chunks') \
-        .select('id', count='exact') \
-        .eq('document_id', doc_id) \
+    existing_chunks = (
+        supabase.table("vendor_background_chunks")
+        .select("id", count="exact")
+        .eq("document_id", doc_id)
         .execute()
+    )
 
     if existing_chunks.count > 0:
         print(f"  ℹ️  Already has {existing_chunks.count} chunks, skipping...")
@@ -189,8 +212,8 @@ def process_vendor(vendor_doc: Dict) -> bool:
 
     # Process each chunk
     for chunk_data in chunks:
-        chunk_text = chunk_data['chunk_text']
-        chunk_num = chunk_data['chunk_number']
+        chunk_text = chunk_data["chunk_text"]
+        chunk_num = chunk_data["chunk_number"]
 
         print(f"  🔢 Processing chunk {chunk_num}/{len(chunks)}...")
 
@@ -205,16 +228,18 @@ def process_vendor(vendor_doc: Dict) -> bool:
         # Insert into database
         try:
             insert_data = {
-                'document_id': doc_id,
-                'chunk_text': chunk_text,
-                'chunk_number': chunk_num,
-                'vendor_name': vendor_name,
-                'vendor_category': vendor_doc.get('vendor_category'),
-                'document_category': chunk_data['document_category'],
-                'embedding': embedding
+                "document_id": doc_id,
+                "chunk_text": chunk_text,
+                "chunk_number": chunk_num,
+                "vendor_name": vendor_name,
+                "vendor_category": vendor_doc.get("vendor_category"),
+                "document_category": chunk_data["document_category"],
+                "embedding": embedding,
             }
 
-            result = supabase.table('vendor_background_chunks').insert(insert_data).execute()
+            result = (
+                supabase.table("vendor_background_chunks").insert(insert_data).execute()
+            )
             print(f"     ✅ Chunk {chunk_num} inserted successfully")
 
         except Exception as e:
@@ -223,10 +248,9 @@ def process_vendor(vendor_doc: Dict) -> bool:
 
     # Update document metadata
     try:
-        supabase.table('knowledge_documents') \
-            .update({'total_chunks': len(chunks), 'processing_status': 'completed'}) \
-            .eq('id', doc_id) \
-            .execute()
+        supabase.table("knowledge_documents").update(
+            {"total_chunks": len(chunks), "processing_status": "completed"}
+        ).eq("id", doc_id).execute()
         print(f"  ✅ Document metadata updated")
     except Exception as e:
         print(f"  ⚠️  Warning: Could not update document metadata: {e}")
@@ -246,10 +270,12 @@ def main():
     print("📂 Fetching vendor documents from database...")
 
     try:
-        vendor_docs = supabase.table('knowledge_documents') \
-            .select('*') \
-            .eq('document_type', 'vendor_background') \
+        vendor_docs = (
+            supabase.table("knowledge_documents")
+            .select("*")
+            .eq("document_type", "vendor_background")
             .execute()
+        )
 
         vendors = vendor_docs.data
         print(f"📊 Found {len(vendors)} vendor documents")
@@ -271,7 +297,7 @@ def main():
             else:
                 skip_count += 1
         except Exception as e:
-            vendor_name = vendor_doc.get('vendor_name', 'Unknown')
+            vendor_name = vendor_doc.get("vendor_name", "Unknown")
             print(f"  ❌ Error processing {vendor_name}: {e}")
             error_count += 1
 
@@ -288,9 +314,11 @@ def main():
     # Verify final state
     print("🔍 Verifying final state...")
     try:
-        chunk_count = supabase.table('vendor_background_chunks') \
-            .select('id', count='exact') \
+        chunk_count = (
+            supabase.table("vendor_background_chunks")
+            .select("id", count="exact")
             .execute()
+        )
         print(f"📊 Total vendor chunks in database: {chunk_count.count}")
     except Exception as e:
         print(f"⚠️  Could not verify chunk count: {e}")

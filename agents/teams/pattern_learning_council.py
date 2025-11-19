@@ -10,25 +10,25 @@ Team Members:
 - Edge Case: Identifies exceptions and boundary conditions
 """
 
-import os
 import json
-from pathlib import Path
+import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from agents.core.agent_base import Agent
 from agents.core.approval_queue import ApprovalQueue
-from agents.core.communication import post_to_discord, create_discussion_thread
+from agents.core.communication import create_discussion_thread, post_to_discord
 from agents.core.usage_tracker import UsageTracker
 
 
 def extract_json(response: str) -> dict:
     """Extract JSON from Claude response, handling markdown code blocks."""
     result_clean = response.strip()
-    if result_clean.startswith('```'):
+    if result_clean.startswith("```"):
         # Extract from markdown code block
-        result_clean = result_clean.split('```')[1]
-        if result_clean.startswith('json'):
+        result_clean = result_clean.split("```")[1]
+        if result_clean.startswith("json"):
             result_clean = result_clean[4:]
         result_clean = result_clean.strip()
     return json.loads(result_clean)
@@ -57,20 +57,11 @@ class PatternLearningCouncil:
         self.team_name = "pattern_learning"
 
         # Initialize agents
-        self.pattern_discovery = Agent(
-            name="pattern_discovery",
-            team=self.team_name
-        )
+        self.pattern_discovery = Agent(name="pattern_discovery", team=self.team_name)
 
-        self.validator = Agent(
-            name="validator",
-            team=self.team_name
-        )
+        self.validator = Agent(name="validator", team=self.team_name)
 
-        self.edge_case = Agent(
-            name="edge_case",
-            team=self.team_name
-        )
+        self.edge_case = Agent(name="edge_case", team=self.team_name)
 
         self.approval_queue = ApprovalQueue(workspace_path)
         self.usage_tracker = UsageTracker(workspace_path)
@@ -87,7 +78,7 @@ class PatternLearningCouncil:
         post_to_discord(
             "patterns",
             f"🧠 **Pattern Learning Council** - Starting pattern discovery at {start_time.strftime('%I:%M %p')}",
-            username="Pattern Learning Council"
+            username="Pattern Learning Council",
         )
 
         # Phase 1: Discover Patterns
@@ -101,9 +92,7 @@ class PatternLearningCouncil:
 
         # Phase 4: Team Discussion
         proposals = self._team_discussion(
-            discovered_patterns,
-            validated_patterns,
-            edge_cases
+            discovered_patterns, validated_patterns, edge_cases
         )
 
         # Phase 5: Generate Proposals
@@ -121,13 +110,13 @@ class PatternLearningCouncil:
             "proposals_created": len(proposals),
             "patterns_discovered": len(discovered_patterns),
             "patterns_validated": len(validated_patterns),
-            "edge_cases_found": len(edge_cases)
+            "edge_cases_found": len(edge_cases),
         }
 
         post_to_discord(
             "patterns",
             f"✅ **Learning Complete** - Generated {len(proposals)} pattern proposals in {duration:.1f}s",
-            username="Pattern Learning Council"
+            username="Pattern Learning Council",
         )
 
         return summary
@@ -139,7 +128,11 @@ class PatternLearningCouncil:
         Returns:
             List of discovered patterns
         """
-        post_to_discord("patterns", "**[Pattern Discovery]** Analyzing refund corrections...", username="Pattern Discovery")
+        post_to_discord(
+            "patterns",
+            "**[Pattern Discovery]** Analyzing refund corrections...",
+            username="Pattern Discovery",
+        )
 
         prompt = """Analyze refund calculations and corrections to discover patterns.
 
@@ -191,7 +184,9 @@ Focus on discovering 3-5 high-value patterns.
 """
 
         try:
-            result = self.pattern_discovery.claude_analyze(prompt, context="pattern_discovery")
+            result = self.pattern_discovery.claude_analyze(
+                prompt, context="pattern_discovery"
+            )
             self.usage_tracker.record_usage(self.team_name, "pattern_discovery")
 
             patterns_data = extract_json(result)
@@ -200,7 +195,7 @@ Focus on discovering 3-5 high-value patterns.
             post_to_discord(
                 "patterns",
                 f"**[Pattern Discovery]** Discovered {len(patterns)} patterns",
-                username="Pattern Discovery"
+                username="Pattern Discovery",
             )
 
             return patterns
@@ -209,7 +204,7 @@ Focus on discovering 3-5 high-value patterns.
             post_to_discord(
                 "patterns",
                 f"⚠️ **[Pattern Discovery]** Error discovering patterns: {str(e)}",
-                username="Pattern Discovery"
+                username="Pattern Discovery",
             )
             return []
 
@@ -223,10 +218,18 @@ Focus on discovering 3-5 high-value patterns.
         Returns:
             List of validated patterns
         """
-        post_to_discord("patterns", "**[Validator]** Validating patterns...", username="Validator Agent")
+        post_to_discord(
+            "patterns",
+            "**[Validator]** Validating patterns...",
+            username="Validator Agent",
+        )
 
         if not patterns:
-            post_to_discord("patterns", "**[Validator]** No patterns to validate", username="Validator Agent")
+            post_to_discord(
+                "patterns",
+                "**[Validator]** No patterns to validate",
+                username="Validator Agent",
+            )
             return []
 
         validated = []
@@ -266,7 +269,9 @@ Return validation results in JSON format:
 """
 
             try:
-                result = self.validator.claude_analyze(prompt, context="pattern_validation")
+                result = self.validator.claude_analyze(
+                    prompt, context="pattern_validation"
+                )
                 self.usage_tracker.record_usage(self.team_name, "validator")
 
                 validation = extract_json(result)
@@ -281,13 +286,13 @@ Return validation results in JSON format:
                 post_to_discord(
                     "patterns",
                     f"⚠️ **[Validator]** Error validating pattern '{pattern['title']}': {str(e)}",
-                    username="Validator Agent"
+                    username="Validator Agent",
                 )
 
         post_to_discord(
             "patterns",
             f"**[Validator]** Validated {len(validated)}/{len(patterns)} patterns",
-            username="Validator Agent"
+            username="Validator Agent",
         )
 
         return validated
@@ -302,10 +307,18 @@ Return validation results in JSON format:
         Returns:
             List of edge cases
         """
-        post_to_discord("patterns", "**[Edge Case]** Identifying edge cases...", username="Edge Case Agent")
+        post_to_discord(
+            "patterns",
+            "**[Edge Case]** Identifying edge cases...",
+            username="Edge Case Agent",
+        )
 
         if not patterns:
-            post_to_discord("patterns", "**[Edge Case]** No patterns to analyze", username="Edge Case Agent")
+            post_to_discord(
+                "patterns",
+                "**[Edge Case]** No patterns to analyze",
+                username="Edge Case Agent",
+            )
             return []
 
         all_edge_cases = []
@@ -358,7 +371,9 @@ Focus on edge cases that are common or high-severity.
 """
 
             try:
-                result = self.edge_case.claude_analyze(prompt, context="edge_case_analysis")
+                result = self.edge_case.claude_analyze(
+                    prompt, context="edge_case_analysis"
+                )
                 self.usage_tracker.record_usage(self.team_name, "edge_case")
 
                 edge_data = extract_json(result)
@@ -373,32 +388,39 @@ Focus on edge cases that are common or high-severity.
                 post_to_discord(
                     "patterns",
                     f"⚠️ **[Edge Case]** Error analyzing '{pattern['title']}': {str(e)}",
-                    username="Edge Case Agent"
+                    username="Edge Case Agent",
                 )
 
         post_to_discord(
             "patterns",
             f"**[Edge Case]** Identified {len(all_edge_cases)} edge cases",
-            username="Edge Case Agent"
+            username="Edge Case Agent",
         )
 
         return all_edge_cases
 
-    def _team_discussion(self, discovered_patterns: List[Dict],
-                        validated_patterns: List[Dict],
-                        edge_cases: List[Dict]) -> List[Dict]:
+    def _team_discussion(
+        self,
+        discovered_patterns: List[Dict],
+        validated_patterns: List[Dict],
+        edge_cases: List[Dict],
+    ) -> List[Dict]:
         """
         Team discusses patterns and creates deployment proposals.
 
         Returns:
             List of proposals
         """
-        post_to_discord("patterns", "💬 **Team Discussion** - Reviewing patterns...", username="Pattern Learning Council")
+        post_to_discord(
+            "patterns",
+            "💬 **Team Discussion** - Reviewing patterns...",
+            username="Pattern Learning Council",
+        )
 
         all_findings = {
             "discovered_patterns": discovered_patterns,
             "validated_patterns": validated_patterns,
-            "edge_cases": edge_cases
+            "edge_cases": edge_cases,
         }
 
         discussion_prompt = f"""You are participating in a Pattern Learning Council discussion.
@@ -451,23 +473,24 @@ Only propose patterns that are truly ready. Quality over quantity.
 
         try:
             discussion_result = self.pattern_discovery.claude_analyze(
-                discussion_prompt,
-                context="team_discussion"
+                discussion_prompt, context="team_discussion"
             )
 
-            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=1)
+            self.usage_tracker.record_usage(
+                self.team_name, "team_discussion", messages=1
+            )
 
             # Save discussion
             self.pattern_discovery.save_discussion_log(
                 f"pattern_discussion_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                discussion_result
+                discussion_result,
             )
 
             # Post to Discord
             post_to_discord(
                 "patterns",
                 f"💬 **Team Discussion** - Reviewing patterns...",
-                username="Pattern Learning Council"
+                username="Pattern Learning Council",
             )
 
             # Parse proposals
@@ -479,7 +502,7 @@ Only propose patterns that are truly ready. Quality over quantity.
             post_to_discord(
                 "patterns",
                 f"⚠️ Error in team discussion: {str(e)}",
-                username="Pattern Learning Council"
+                username="Pattern Learning Council",
             )
             return []
 
@@ -512,8 +535,8 @@ Only propose patterns that are truly ready. Quality over quantity.
                 metadata={
                     "pattern_data": pattern_data,
                     "deployment_plan": proposal_data.get("deployment_plan", ""),
-                    "rollback_plan": proposal_data.get("rollback_plan", "")
-                }
+                    "rollback_plan": proposal_data.get("rollback_plan", ""),
+                },
             )
 
             # Format pattern details for Discord
@@ -536,14 +559,14 @@ Only propose patterns that are truly ready. Quality over quantity.
 
 Review in dashboard: http://localhost:8501
 """,
-                username="Pattern Learning Council"
+                username="Pattern Learning Council",
             )
 
         except Exception as e:
             post_to_discord(
                 "patterns",
                 f"⚠️ Error creating proposal: {str(e)}",
-                username="Pattern Learning Council"
+                username="Pattern Learning Council",
             )
 
 

@@ -26,9 +26,10 @@ Usage:
     # }
 """
 
-from typing import List, Dict, Optional, Tuple
-from core.database import get_supabase_client
 import logging
+from typing import Dict, List, Optional, Tuple
+
+from core.database import get_supabase_client
 
 logger = logging.getLogger(__name__)
 
@@ -61,17 +62,36 @@ class KeywordMatcher:
             "Tower construction services for cell site" →
             ["tower", "construction", "services", "cell", "site"]
         """
-        if not description or description.strip() == '':
+        if not description or description.strip() == "":
             return []
 
         # Remove common stopwords
-        stopwords = {'the', 'a', 'an', 'and', 'or', 'but', 'for', 'of', 'to', 'in', 'on',
-                    'at', 'by', 'from', 'with', 'is', 'was', 'are', 'were'}
+        stopwords = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "for",
+            "of",
+            "to",
+            "in",
+            "on",
+            "at",
+            "by",
+            "from",
+            "with",
+            "is",
+            "was",
+            "are",
+            "were",
+        }
 
         # Clean and split
         text = str(description).lower()
         # Remove special characters but keep spaces
-        text = ''.join(c if c.isalnum() or c.isspace() else ' ' for c in text)
+        text = "".join(c if c.isalnum() or c.isspace() else " " for c in text)
         words = text.split()
 
         # Filter out stopwords and short words
@@ -79,7 +99,9 @@ class KeywordMatcher:
 
         return keywords
 
-    def match_description(self, description: str, min_overlap: int = 2) -> Optional[Dict]:
+    def match_description(
+        self, description: str, min_overlap: int = 2
+    ) -> Optional[Dict]:
         """
         Find best matching keyword pattern for a description.
 
@@ -103,7 +125,7 @@ class KeywordMatcher:
                 'overlap_count': 2
             }
         """
-        if not description or description.strip() == '':
+        if not description or description.strip() == "":
             return None
 
         # Extract keywords from description
@@ -115,20 +137,22 @@ class KeywordMatcher:
 
         try:
             # Query keyword patterns
-            result = self.supabase.table('keyword_patterns')\
-                .select('*')\
-                .not_.is_('keywords', 'null')\
+            result = (
+                self.supabase.table("keyword_patterns")
+                .select("*")
+                .not_.is_("keywords", "null")
                 .execute()
+            )
 
             # Find best match by keyword overlap
             best_match = None
             best_overlap_count = 0
 
             for pattern in result.data:
-                if not pattern.get('keywords'):
+                if not pattern.get("keywords"):
                     continue
 
-                pattern_keywords = pattern['keywords']
+                pattern_keywords = pattern["keywords"]
 
                 # Calculate overlap
                 overlap = set(input_keywords) & set(pattern_keywords)
@@ -136,8 +160,8 @@ class KeywordMatcher:
 
                 if overlap_count >= min_overlap and overlap_count > best_overlap_count:
                     best_match = pattern.copy()
-                    best_match['overlap_keywords'] = list(overlap)
-                    best_match['overlap_count'] = overlap_count
+                    best_match["overlap_keywords"] = list(overlap)
+                    best_match["overlap_count"] = overlap_count
                     best_overlap_count = overlap_count
 
             return best_match
@@ -146,7 +170,9 @@ class KeywordMatcher:
             logger.error(f"Error matching description keywords: {e}")
             return None
 
-    def match_vendor_description_keywords(self, vendor_name: str, min_overlap: int = 2) -> Optional[Dict]:
+    def match_vendor_description_keywords(
+        self, vendor_name: str, min_overlap: int = 2
+    ) -> Optional[Dict]:
         """
         Find vendor's typical description keywords and match to patterns.
 
@@ -165,31 +191,35 @@ class KeywordMatcher:
         """
         try:
             # Get vendor's typical description keywords
-            vendor = self.supabase.table('vendor_products')\
-                .select('description_keywords')\
-                .eq('vendor_name', vendor_name.upper().strip())\
+            vendor = (
+                self.supabase.table("vendor_products")
+                .select("description_keywords")
+                .eq("vendor_name", vendor_name.upper().strip())
                 .execute()
+            )
 
-            if not vendor.data or not vendor.data[0].get('description_keywords'):
+            if not vendor.data or not vendor.data[0].get("description_keywords"):
                 return None
 
-            vendor_keywords = vendor.data[0]['description_keywords']
+            vendor_keywords = vendor.data[0]["description_keywords"]
 
             # Query keyword patterns
-            patterns = self.supabase.table('keyword_patterns')\
-                .select('*')\
-                .not_.is_('keywords', 'null')\
+            patterns = (
+                self.supabase.table("keyword_patterns")
+                .select("*")
+                .not_.is_("keywords", "null")
                 .execute()
+            )
 
             # Find best match
             best_match = None
             best_overlap_count = 0
 
             for pattern in patterns.data:
-                if not pattern.get('keywords'):
+                if not pattern.get("keywords"):
                     continue
 
-                pattern_keywords = pattern['keywords']
+                pattern_keywords = pattern["keywords"]
 
                 # Calculate overlap
                 overlap = set(vendor_keywords) & set(pattern_keywords)
@@ -197,8 +227,8 @@ class KeywordMatcher:
 
                 if overlap_count >= min_overlap and overlap_count > best_overlap_count:
                     best_match = pattern.copy()
-                    best_match['overlap_keywords'] = list(overlap)
-                    best_match['overlap_count'] = overlap_count
+                    best_match["overlap_keywords"] = list(overlap)
+                    best_match["overlap_count"] = overlap_count
                     best_overlap_count = overlap_count
 
             return best_match
@@ -226,15 +256,15 @@ class KeywordMatcher:
         if not pattern:
             return None
 
-        sample_count = pattern.get('sample_count', 0)
-        success_rate = pattern.get('success_rate', 0)
-        typical_basis = pattern.get('typical_basis', 'Unknown')
-        overlap_keywords = pattern.get('overlap_keywords', [])
+        sample_count = pattern.get("sample_count", 0)
+        success_rate = pattern.get("success_rate", 0)
+        typical_basis = pattern.get("typical_basis", "Unknown")
+        overlap_keywords = pattern.get("overlap_keywords", [])
 
         context = f"Matched historical pattern: {sample_count:,} cases "
         context += f"with {success_rate:.0%} success rate. "
 
-        if typical_basis and typical_basis != 'Unknown':
+        if typical_basis and typical_basis != "Unknown":
             context += f"Typical basis: {typical_basis}. "
 
         if overlap_keywords:
@@ -242,7 +272,9 @@ class KeywordMatcher:
 
         return context
 
-    def get_all_high_confidence_patterns(self, min_success_rate: float = 0.80, min_samples: int = 10) -> List[Dict]:
+    def get_all_high_confidence_patterns(
+        self, min_success_rate: float = 0.80, min_samples: int = 10
+    ) -> List[Dict]:
         """
         Get all high-confidence keyword patterns.
 
@@ -260,12 +292,14 @@ class KeywordMatcher:
                 print(f"{pattern['keywords']}: {pattern['success_rate']:.0%} ({pattern['sample_count']} cases)")
         """
         try:
-            result = self.supabase.table('keyword_patterns')\
-                .select('*')\
-                .gte('success_rate', min_success_rate)\
-                .gte('sample_count', min_samples)\
-                .order('success_rate', desc=True)\
+            result = (
+                self.supabase.table("keyword_patterns")
+                .select("*")
+                .gte("success_rate", min_success_rate)
+                .gte("sample_count", min_samples)
+                .order("success_rate", desc=True)
                 .execute()
+            )
 
             return result.data
 
@@ -292,4 +326,4 @@ class KeywordMatcher:
         if not pattern:
             return None
 
-        return pattern.get('typical_basis')
+        return pattern.get("typical_basis")

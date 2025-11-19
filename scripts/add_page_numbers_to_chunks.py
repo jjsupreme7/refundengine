@@ -9,6 +9,7 @@ without re-ingesting or regenerating embeddings.
 import os
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Add parent directory to path
@@ -23,6 +24,7 @@ load_dotenv()
 
 # Import centralized Supabase client
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 

@@ -9,26 +9,43 @@ This script:
 4. Saves analyzed Excel for dashboard preview
 """
 
-import pandas as pd
 import random
 from pathlib import Path
 
+import pandas as pd
+
 # Controlled vocabularies
 TAX_CATEGORIES = [
-    "Custom Software", "DAS", "DAS/License", "Digital Goods",
-    "Hardware Support", "License", "Services", "Services/Tangible Goods",
-    "Software Maintenance", "Software Support", "Tangible Goods"
+    "Custom Software",
+    "DAS",
+    "DAS/License",
+    "Digital Goods",
+    "Hardware Support",
+    "License",
+    "Services",
+    "Services/Tangible Goods",
+    "Software Maintenance",
+    "Software Support",
+    "Tangible Goods",
 ]
 
 ADDITIONAL_INFO = [
-    "Professional", "Hosting", "Software Development/Configuration",
-    "Installation", "Construction", "Telecommunications", "Testing"
+    "Professional",
+    "Hosting",
+    "Software Development/Configuration",
+    "Installation",
+    "Construction",
+    "Telecommunications",
+    "Testing",
 ]
 
 REFUND_BASIS = [
-    "MPU", "Non-Taxable",
+    "MPU",
+    "Non-Taxable",
     "Special Category Non-Taxable (Services in Respect to Construction)",
-    "Out-of-State Services", "Wrong Rate", "Resale"
+    "Out-of-State Services",
+    "Wrong Rate",
+    "Resale",
 ]
 
 
@@ -39,18 +56,22 @@ def analyze_line_item(row: pd.Series) -> dict:
     For demo purposes, uses rule-based logic similar to what AI would do.
     """
 
-    desc = row['Line_Item_Description']
-    amount = row['Total_Amount']
-    tax_amount = row['Tax_Amount']
-    tax_remitted = row['Tax_Remitted']
-    vendor = row['Vendor_Name']
-    tax_type = row['Tax_Type']
+    desc = row["Line_Item_Description"]
+    amount = row["Total_Amount"]
+    tax_amount = row["Tax_Amount"]
+    tax_remitted = row["Tax_Remitted"]
+    vendor = row["Vendor_Name"]
+    tax_type = row["Tax_Type"]
 
     # Analyze based on description keywords
     desc_lower = desc.lower()
 
     # Determine category and refund basis
-    if 'custom' in desc_lower and ('development' in desc_lower or 'integration' in desc_lower or 'configuration' in desc_lower):
+    if "custom" in desc_lower and (
+        "development" in desc_lower
+        or "integration" in desc_lower
+        or "configuration" in desc_lower
+    ):
         category = "Custom Software"
         additional = "Software Development/Configuration"
         basis = "Non-Taxable"
@@ -59,7 +80,11 @@ def analyze_line_item(row: pd.Series) -> dict:
         citation = "WAC 458-20-15502(3)(a)"
         notes = f"Custom software development services are exempt under WAC 458-20-15502(3)(a). {vendor} provided {desc[:50]}... which qualifies as custom programming."
 
-    elif 'professional' in desc_lower or 'consulting' in desc_lower or 'advisory' in desc_lower:
+    elif (
+        "professional" in desc_lower
+        or "consulting" in desc_lower
+        or "advisory" in desc_lower
+    ):
         # Check for odd dollar amount (hidden tax indicator)
         if amount % 1 != 0 and tax_amount == 0:
             # Odd amount like $55,250 suggests $50,000 + 10.5% tax
@@ -81,7 +106,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             citation = "WAC 458-20-144"
             notes = f"Professional {desc[:30]}... services are exempt from sales tax under WAC 458-20-144."
 
-    elif 'hosting' in desc_lower or 'cloud' in desc_lower:
+    elif "hosting" in desc_lower or "cloud" in desc_lower:
         category = "Digital Goods"
         additional = "Hosting"
         basis = "Non-Taxable"
@@ -90,7 +115,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         citation = "RCW 82.04.050(6)"
         notes = f"Cloud hosting services qualify as digital goods and are exempt under RCW 82.04.050(6). {vendor}'s hosting services do not constitute taxable retail sales."
 
-    elif 'license' in desc_lower and 'custom' not in desc_lower:
+    elif "license" in desc_lower and "custom" not in desc_lower:
         category = "License"
         additional = None
         basis = None
@@ -99,7 +124,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         citation = "WAC 458-20-15502"
         notes = f"Prewritten software licenses are taxable under WAC 458-20-15502. Tax correctly applied."
 
-    elif 'hardware' in desc_lower or 'server' in desc_lower or 'tablet' in desc_lower:
+    elif "hardware" in desc_lower or "server" in desc_lower or "tablet" in desc_lower:
         category = "Tangible Goods"
         additional = None
         basis = None
@@ -108,7 +133,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         citation = "RCW 82.08.020"
         notes = f"Tangible personal property (hardware) is taxable under RCW 82.08.020. Tax correctly applied."
 
-    elif 'installation' in desc_lower or 'setup' in desc_lower:
+    elif "installation" in desc_lower or "setup" in desc_lower:
         if tax_amount > 0:
             category = "Services"
             additional = "Installation"
@@ -126,7 +151,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             citation = "WAC 458-20-111"
             notes = f"Installation services correctly exempted."
 
-    elif 'maintenance' in desc_lower or 'support' in desc_lower:
+    elif "maintenance" in desc_lower or "support" in desc_lower:
         category = "Software Maintenance"
         additional = None
         basis = "Non-Taxable"
@@ -135,9 +160,13 @@ def analyze_line_item(row: pd.Series) -> dict:
         citation = "WAC 458-20-15502(3)(c)"
         notes = f"Software maintenance and support agreements are exempt under WAC 458-20-15502(3)(c)."
 
-    elif 'construction' in desc_lower or 'progress payment' in desc_lower or 'retainage' in desc_lower:
+    elif (
+        "construction" in desc_lower
+        or "progress payment" in desc_lower
+        or "retainage" in desc_lower
+    ):
         # Check for retainage issue
-        if 'retainage' in desc_lower and tax_amount == 0:
+        if "retainage" in desc_lower and tax_amount == 0:
             category = "Services"
             additional = "Construction"
             basis = "Special Category Non-Taxable (Services in Respect to Construction)"
@@ -154,7 +183,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             citation = "WAC 458-20-170"
             notes = f"Construction contracts have complex tax rules under WAC 458-20-170. Requires manual review of contract terms and payment structure."
 
-    elif 'training' in desc_lower or 'workshop' in desc_lower:
+    elif "training" in desc_lower or "workshop" in desc_lower:
         category = "Services"
         additional = "Professional"
         basis = "Non-Taxable"
@@ -163,7 +192,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         citation = "WAC 458-20-244"
         notes = f"Training and educational services are exempt under WAC 458-20-244."
 
-    elif 'testing' in desc_lower or 'quality assurance' in desc_lower:
+    elif "testing" in desc_lower or "quality assurance" in desc_lower:
         category = "Services"
         additional = "Testing"
         basis = "Non-Taxable"
@@ -174,7 +203,7 @@ def analyze_line_item(row: pd.Series) -> dict:
 
     elif tax_type == "Use Tax" and tax_amount > 0:
         # Use tax scenario - check if services should be exempt
-        if 'services' in desc_lower or 'implementation' in desc_lower:
+        if "services" in desc_lower or "implementation" in desc_lower:
             category = "Services"
             additional = "Professional"
             basis = "Out-of-State Services"
@@ -213,14 +242,14 @@ def analyze_line_item(row: pd.Series) -> dict:
         estimated_refund = 0
 
     return {
-        'Analysis_Notes': notes,
-        'Final_Decision': decision,
-        'Tax_Category': category,
-        'Additional_Info': additional if additional else "",
-        'Refund_Basis': basis if basis else "",
-        'Estimated_Refund': estimated_refund,
-        'Legal_Citation': citation,
-        'AI_Confidence': confidence
+        "Analysis_Notes": notes,
+        "Final_Decision": decision,
+        "Tax_Category": category,
+        "Additional_Info": additional if additional else "",
+        "Refund_Basis": basis if basis else "",
+        "Estimated_Refund": estimated_refund,
+        "Legal_Citation": citation,
+        "AI_Confidence": confidence,
     }
 
 
@@ -267,29 +296,29 @@ def main():
     print("ANALYSIS SUMMARY")
     print("=" * 80)
 
-    decisions = df['Final_Decision'].value_counts()
+    decisions = df["Final_Decision"].value_counts()
     print("\n📋 Decisions:")
     for decision, count in decisions.items():
         print(f"   {decision}: {count}")
 
-    avg_confidence = df['AI_Confidence'].mean()
+    avg_confidence = df["AI_Confidence"].mean()
     print(f"\n📊 Average Confidence: {avg_confidence:.1f}%")
 
-    flagged = len(df[df['AI_Confidence'] < 90])
+    flagged = len(df[df["AI_Confidence"] < 90])
     print(f"   Flagged for Review (<90%): {flagged} ({flagged/len(df)*100:.1f}%)")
 
-    total_refund = df['Estimated_Refund'].sum()
+    total_refund = df["Estimated_Refund"].sum()
     print(f"\n💰 Total Estimated Refund: ${total_refund:,.2f}")
 
     # Save summary
     summary = {
-        'Total Rows': len(df),
-        'Avg Confidence': avg_confidence,
-        'Flagged for Review': flagged,
-        'Total Refund': total_refund
+        "Total Rows": len(df),
+        "Avg Confidence": avg_confidence,
+        "Flagged for Review": flagged,
+        "Total Refund": total_refund,
     }
 
-    with open('test_data/ANALYSIS_SUMMARY.txt', 'w') as f:
+    with open("test_data/ANALYSIS_SUMMARY.txt", "w") as f:
         f.write("COMPREHENSIVE ANALYSIS SUMMARY\n")
         f.write("=" * 60 + "\n\n")
         for key, value in summary.items():
@@ -304,5 +333,5 @@ def main():
     print("=" * 80)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -8,15 +8,16 @@ Provides core functionality for all autonomous agents:
 - Workspace management
 """
 
-import os
-import json
 import hashlib
+import json
+import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
+
 import anthropic
 
-from agents.core.communication import post_to_discord, create_discussion_thread
+from agents.core.communication import create_discussion_thread, post_to_discord
 
 
 class Agent:
@@ -41,9 +42,7 @@ class Agent:
         self.config = config or {}
 
         # Claude API client
-        self.client = anthropic.Anthropic(
-            api_key=os.getenv("ANTHROPIC_API_KEY")
-        )
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
         # Workspace paths
         self.workspace_root = Path("agents/workspace")
@@ -58,8 +57,13 @@ class Agent:
         # Message tracking for usage statistics
         self.message_count = 0
 
-    def claude_analyze(self, content: str, focus_areas: Optional[List[str]] = None,
-                      system_prompt: Optional[str] = None, context: Optional[str] = None) -> str:
+    def claude_analyze(
+        self,
+        content: str,
+        focus_areas: Optional[List[str]] = None,
+        system_prompt: Optional[str] = None,
+        context: Optional[str] = None,
+    ) -> str:
         """
         Analyze content using Claude.
 
@@ -74,7 +78,9 @@ class Agent:
         """
         focus_text = ""
         if focus_areas:
-            focus_text = f"\n\nFocus on these areas:\n" + "\n".join(f"- {area}" for area in focus_areas)
+            focus_text = f"\n\nFocus on these areas:\n" + "\n".join(
+                f"- {area}" for area in focus_areas
+            )
 
         default_system = f"You are {self.name}, an AI agent on the {self.team}. Provide thorough, technical analysis."
 
@@ -82,17 +88,15 @@ class Agent:
             model="claude-sonnet-4-20250514",
             max_tokens=4000,
             system=system_prompt or default_system,
-            messages=[{
-                "role": "user",
-                "content": content + focus_text
-            }]
+            messages=[{"role": "user", "content": content + focus_text}],
         )
 
         self.message_count += 1
         return message.content[0].text
 
-    def claude_discuss(self, context: str, other_agent_input: str,
-                      question: Optional[str] = None) -> str:
+    def claude_discuss(
+        self, context: str, other_agent_input: str, question: Optional[str] = None
+    ) -> str:
         """
         Respond to another agent's analysis (for multi-agent discussions).
 
@@ -115,15 +119,21 @@ Another agent said:
             model="claude-sonnet-4-20250514",
             max_tokens=2000,
             system=f"You are {self.name} discussing with your team. Be concise but thorough.",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
         )
 
         self.message_count += 1
         return response.content[0].text
 
-    def create_proposal(self, title: str, description: str, impact: str,
-                       priority: str = "medium", code_changes: Optional[str] = None,
-                       metadata: Optional[Dict] = None) -> str:
+    def create_proposal(
+        self,
+        title: str,
+        description: str,
+        impact: str,
+        priority: str = "medium",
+        code_changes: Optional[str] = None,
+        metadata: Optional[Dict] = None,
+    ) -> str:
         """
         Create a proposal for human review.
 
@@ -157,7 +167,7 @@ Another agent said:
             "agent": self.name,
             "created_at": datetime.now().isoformat(),
             "status": "pending",
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
         # Save proposal.json
@@ -194,7 +204,7 @@ Another agent said:
             channel_map = {
                 "Code Quality Council": "code_quality",
                 "Knowledge Base Curation": "knowledge",
-                "Pattern Learning Council": "patterns"
+                "Pattern Learning Council": "patterns",
             }
             channel = channel_map.get(self.team, "discussions")
 
@@ -235,5 +245,5 @@ Another agent said:
             "agent": self.name,
             "team": self.team,
             "messages_sent": self.message_count,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }

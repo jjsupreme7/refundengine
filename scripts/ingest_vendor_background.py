@@ -10,17 +10,19 @@ And populates the knowledge_documents table with vendor metadata
 (industry, business_model, primary_products, typical_delivery, tax_notes)
 """
 
+import json
 import os
 import sys
-import json
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 import pandas as pd
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment
@@ -45,7 +47,7 @@ class VendorBackgroundIngester:
         """
         print(f"\n📂 Loading vendors from: {json_path}")
 
-        with open(json_path, 'r') as f:
+        with open(json_path, "r") as f:
             vendor_data = json.load(f)
 
         print(f"📊 Found {len(vendor_data)} vendors in JSON")
@@ -79,7 +81,7 @@ class VendorBackgroundIngester:
             print()
 
             # Check for required columns
-            required_cols = ['vendor_name']
+            required_cols = ["vendor_name"]
             missing_cols = [col for col in required_cols if col not in df.columns]
 
             if missing_cols:
@@ -88,7 +90,11 @@ class VendorBackgroundIngester:
                 return
 
             for idx, row in df.iterrows():
-                vendor_name = row.get('vendor_name') or row.get('Vendor_Name') or row.get('Vendor Name')
+                vendor_name = (
+                    row.get("vendor_name")
+                    or row.get("Vendor_Name")
+                    or row.get("Vendor Name")
+                )
 
                 if pd.isna(vendor_name) or not vendor_name:
                     continue
@@ -98,13 +104,35 @@ class VendorBackgroundIngester:
 
                 # Map Excel columns to metadata fields
                 column_mappings = {
-                    'industry': ['industry', 'Industry'],
-                    'business_model': ['business_model', 'Business_Model', 'Business Model'],
-                    'primary_products': ['primary_products', 'Primary_Products', 'Products', 'primary products'],
-                    'typical_delivery': ['typical_delivery', 'Typical_Delivery', 'Delivery', 'delivery'],
-                    'tax_notes': ['tax_notes', 'Tax_Notes', 'Tax Notes', 'Notes'],
-                    'vendor_category': ['vendor_category', 'Vendor_Category', 'Category'],
-                    'confidence_score': ['confidence_score', 'Confidence', 'confidence'],
+                    "industry": ["industry", "Industry"],
+                    "business_model": [
+                        "business_model",
+                        "Business_Model",
+                        "Business Model",
+                    ],
+                    "primary_products": [
+                        "primary_products",
+                        "Primary_Products",
+                        "Products",
+                        "primary products",
+                    ],
+                    "typical_delivery": [
+                        "typical_delivery",
+                        "Typical_Delivery",
+                        "Delivery",
+                        "delivery",
+                    ],
+                    "tax_notes": ["tax_notes", "Tax_Notes", "Tax Notes", "Notes"],
+                    "vendor_category": [
+                        "vendor_category",
+                        "Vendor_Category",
+                        "Category",
+                    ],
+                    "confidence_score": [
+                        "confidence_score",
+                        "Confidence",
+                        "confidence",
+                    ],
                 }
 
                 for field, possible_cols in column_mappings.items():
@@ -128,25 +156,29 @@ class VendorBackgroundIngester:
         except Exception as e:
             print(f"❌ Error reading Excel file: {e}")
 
-    def _upsert_vendor_metadata(self, vendor_name: str, metadata: Dict, source: str = "manual"):
+    def _upsert_vendor_metadata(
+        self, vendor_name: str, metadata: Dict, source: str = "manual"
+    ):
         """
         Insert or update vendor metadata in knowledge_documents table
         """
         print(f"Processing: {vendor_name}")
 
         # First, check if vendor already exists
-        existing = self.supabase.table("knowledge_documents") \
-            .select("id, vendor_name, industry, business_model") \
-            .eq("vendor_name", vendor_name) \
-            .limit(1) \
+        existing = (
+            self.supabase.table("knowledge_documents")
+            .select("id, vendor_name, industry, business_model")
+            .eq("vendor_name", vendor_name)
+            .limit(1)
             .execute()
+        )
 
         # Extract primary_products as array
-        primary_products = metadata.get('primary_products', [])
+        primary_products = metadata.get("primary_products", [])
         if isinstance(primary_products, str):
             # If it's a string, split by comma or use as single item
-            if ',' in primary_products:
-                primary_products = [p.strip() for p in primary_products.split(',')]
+            if "," in primary_products:
+                primary_products = [p.strip() for p in primary_products.split(",")]
             else:
                 primary_products = [primary_products]
         elif isinstance(primary_products, dict):
@@ -154,7 +186,7 @@ class VendorBackgroundIngester:
             primary_products = list(primary_products.keys())
 
         # Parse confidence score (handle string values like "very_high")
-        confidence_raw = metadata.get('confidence_score') or metadata.get('confidence')
+        confidence_raw = metadata.get("confidence_score") or metadata.get("confidence")
         if isinstance(confidence_raw, str):
             # Map string confidence to numeric
             confidence_map = {
@@ -162,7 +194,7 @@ class VendorBackgroundIngester:
                 "high": 85.0,
                 "medium": 70.0,
                 "low": 50.0,
-                "very_low": 30.0
+                "very_low": 30.0,
             }
             confidence_score = confidence_map.get(confidence_raw.lower(), 90.0)
         elif isinstance(confidence_raw, (int, float)):
@@ -173,11 +205,11 @@ class VendorBackgroundIngester:
         # Build update/insert data
         data = {
             "vendor_name": vendor_name,
-            "industry": metadata.get('industry'),
-            "business_model": metadata.get('business_model'),
+            "industry": metadata.get("industry"),
+            "business_model": metadata.get("business_model"),
             "primary_products": primary_products,
-            "typical_delivery": metadata.get('typical_delivery'),
-            "tax_notes": metadata.get('tax_notes'),
+            "typical_delivery": metadata.get("typical_delivery"),
+            "tax_notes": metadata.get("tax_notes"),
             "confidence_score": confidence_score,
             "data_source": source,
         }
@@ -187,26 +219,28 @@ class VendorBackgroundIngester:
 
         if existing.data and len(existing.data) > 0:
             # Update existing vendor
-            vendor_id = existing.data[0]['id']
+            vendor_id = existing.data[0]["id"]
 
-            result = self.supabase.table("knowledge_documents") \
-                .update(data) \
-                .eq("id", vendor_id) \
+            result = (
+                self.supabase.table("knowledge_documents")
+                .update(data)
+                .eq("id", vendor_id)
                 .execute()
+            )
 
             self.updated_count += 1
             print(f"  ✅ Updated vendor {vendor_name}")
         else:
             # Insert new vendor
             # We need to create a minimal document entry
-            data.update({
-                "document_type": "vendor_background",
-                "title": f"Vendor: {vendor_name}",
-            })
+            data.update(
+                {
+                    "document_type": "vendor_background",
+                    "title": f"Vendor: {vendor_name}",
+                }
+            )
 
-            result = self.supabase.table("knowledge_documents") \
-                .insert(data) \
-                .execute()
+            result = self.supabase.table("knowledge_documents").insert(data).execute()
 
             self.ingested_count += 1
             print(f"  ✅ Inserted new vendor {vendor_name}")
@@ -218,12 +252,17 @@ def main():
     ingester = VendorBackgroundIngester()
 
     # Paths
-    json_path = Path(__file__).parent.parent / "knowledge_base" / "vendors" / "vendor_database.json"
+    json_path = (
+        Path(__file__).parent.parent
+        / "knowledge_base"
+        / "vendors"
+        / "vendor_database.json"
+    )
     excel_path = Path(__file__).parent.parent / "outputs" / "Vendor_Background.xlsx"
 
-    print("="*70)
+    print("=" * 70)
     print("VENDOR BACKGROUND DATA INGESTION")
-    print("="*70)
+    print("=" * 70)
 
     # Ingest from JSON if it exists
     if json_path.exists():
@@ -238,9 +277,9 @@ def main():
         print(f"⚠️  Excel file not found: {excel_path}")
 
     print()
-    print("="*70)
+    print("=" * 70)
     print("FINAL SUMMARY")
-    print("="*70)
+    print("=" * 70)
     print(f"✅ Total new vendors ingested: {ingester.ingested_count}")
     print(f"🔄 Total vendors updated: {ingester.updated_count}")
     print(f"❌ Total errors: {ingester.error_count}")

@@ -10,14 +10,15 @@ Usage:
     python scripts/check_storage_usage.py --detailed  # Show file breakdown
 """
 
+import argparse
 import sys
 from pathlib import Path
-import argparse
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from core.database import get_supabase_client
@@ -28,7 +29,7 @@ FREE_TIER_LIMIT_GB = 1.0  # Supabase free tier: 1GB
 
 def format_bytes(bytes_value):
     """Format bytes into human-readable format"""
-    for unit in ['B', 'KB', 'MB', 'GB']:
+    for unit in ["B", "KB", "MB", "GB"]:
         if bytes_value < 1024.0:
             return f"{bytes_value:.2f} {unit}"
         bytes_value /= 1024.0
@@ -55,17 +56,19 @@ def get_storage_usage(detailed=False):
             return
 
         # Calculate totals
-        total_size = sum(f.get('metadata', {}).get('size', 0) for f in files)
+        total_size = sum(f.get("metadata", {}).get("size", 0) for f in files)
         total_count = len(files)
 
         # Breakdown by type
-        pdf_files = [f for f in files if f['name'].endswith('.pdf')]
-        html_files = [f for f in files if f['name'].endswith(('.html', '.htm'))]
-        other_files = [f for f in files if not f['name'].endswith(('.pdf', '.html', '.htm'))]
+        pdf_files = [f for f in files if f["name"].endswith(".pdf")]
+        html_files = [f for f in files if f["name"].endswith((".html", ".htm"))]
+        other_files = [
+            f for f in files if not f["name"].endswith((".pdf", ".html", ".htm"))
+        ]
 
-        pdf_size = sum(f.get('metadata', {}).get('size', 0) for f in pdf_files)
-        html_size = sum(f.get('metadata', {}).get('size', 0) for f in html_files)
-        other_size = sum(f.get('metadata', {}).get('size', 0) for f in other_files)
+        pdf_size = sum(f.get("metadata", {}).get("size", 0) for f in pdf_files)
+        html_size = sum(f.get("metadata", {}).get("size", 0) for f in html_files)
+        other_size = sum(f.get("metadata", {}).get("size", 0) for f in other_files)
 
         # Display summary
         print("📈 SUMMARY")
@@ -91,14 +94,20 @@ def get_storage_usage(detailed=False):
         print("-" * 80)
         print(f"PDFs:  {len(pdf_files):>6,} files  |  {format_bytes(pdf_size):>12}")
         if html_files:
-            print(f"HTML:  {len(html_files):>6,} files  |  {format_bytes(html_size):>12}")
+            print(
+                f"HTML:  {len(html_files):>6,} files  |  {format_bytes(html_size):>12}"
+            )
         if other_files:
-            print(f"Other: {len(other_files):>6,} files  |  {format_bytes(other_size):>12}")
+            print(
+                f"Other: {len(other_files):>6,} files  |  {format_bytes(other_size):>12}"
+            )
         print()
 
         # Space remaining
         remaining_bytes = (FREE_TIER_LIMIT_GB * 1024**3) - total_size
-        print(f"💾 Space Remaining: {format_bytes(remaining_bytes)} ({100 - usage_percent:.1f}%)")
+        print(
+            f"💾 Space Remaining: {format_bytes(remaining_bytes)} ({100 - usage_percent:.1f}%)"
+        )
         print()
 
         # Warnings
@@ -119,25 +128,33 @@ def get_storage_usage(detailed=False):
             # Group by folder
             folders = {}
             for f in files:
-                path_parts = f['name'].split('/')
-                folder = '/'.join(path_parts[:-1]) if len(path_parts) > 1 else 'root'
+                path_parts = f["name"].split("/")
+                folder = "/".join(path_parts[:-1]) if len(path_parts) > 1 else "root"
                 if folder not in folders:
                     folders[folder] = []
                 folders[folder].append(f)
 
             for folder, folder_files in sorted(folders.items()):
-                folder_size = sum(f.get('metadata', {}).get('size', 0) for f in folder_files)
+                folder_size = sum(
+                    f.get("metadata", {}).get("size", 0) for f in folder_files
+                )
                 print(f"\n📁 {folder}/")
-                print(f"   Files: {len(folder_files):,}  |  Size: {format_bytes(folder_size)}")
+                print(
+                    f"   Files: {len(folder_files):,}  |  Size: {format_bytes(folder_size)}"
+                )
 
                 if len(folder_files) <= 10:
                     for f in folder_files:
-                        file_size = f.get('metadata', {}).get('size', 0)
-                        print(f"      • {Path(f['name']).name} ({format_bytes(file_size)})")
+                        file_size = f.get("metadata", {}).get("size", 0)
+                        print(
+                            f"      • {Path(f['name']).name} ({format_bytes(file_size)})"
+                        )
                 else:
                     for f in folder_files[:5]:
-                        file_size = f.get('metadata', {}).get('size', 0)
-                        print(f"      • {Path(f['name']).name} ({format_bytes(file_size)})")
+                        file_size = f.get("metadata", {}).get("size", 0)
+                        print(
+                            f"      • {Path(f['name']).name} ({format_bytes(file_size)})"
+                        )
                     print(f"      ... and {len(folder_files) - 5} more files")
 
         print("\n" + "=" * 80)
@@ -147,6 +164,7 @@ def get_storage_usage(detailed=False):
     except Exception as e:
         print(f"❌ Error checking storage: {e}")
         import traceback
+
         traceback.print_exc()
 
 
@@ -156,16 +174,18 @@ def list_files_recursive(supabase, path, files_list):
         items = supabase.storage.from_(BUCKET_NAME).list(path)
 
         for item in items:
-            item_name = item['name']
+            item_name = item["name"]
             item_path = f"{path}/{item_name}" if path else item_name
 
             # Check if it's a folder (id is null for folders)
-            if item.get('id') is None:
+            if item.get("id") is None:
                 # It's a folder, recurse into it
                 list_files_recursive(supabase, item_path, files_list)
             else:
                 # It's a file, add it
-                files_list.append({'name': item_path, 'metadata': item.get('metadata', {})})
+                files_list.append(
+                    {"name": item_path, "metadata": item.get("metadata", {})}
+                )
 
         return files_list
 
@@ -177,9 +197,10 @@ def list_files_recursive(supabase, path, files_list):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check Supabase Storage usage")
     parser.add_argument(
-        '--detailed', '-d',
-        action='store_true',
-        help='Show detailed file breakdown by folder'
+        "--detailed",
+        "-d",
+        action="store_true",
+        help="Show detailed file breakdown by folder",
     )
 
     args = parser.parse_args()

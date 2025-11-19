@@ -13,19 +13,17 @@ from pathlib import Path
 # Add project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import streamlit as st
-from datetime import datetime
 import json
+from datetime import datetime
+
+import streamlit as st
 
 from agents.core.approval_queue import ApprovalQueue, Proposal
 from agents.core.usage_tracker import UsageTracker
 
-
 # Page configuration
 st.set_page_config(
-    page_title="Refund Engine - Agent Proposals",
-    page_icon="🤖",
-    layout="wide"
+    page_title="Refund Engine - Agent Proposals", page_icon="🤖", layout="wide"
 )
 
 
@@ -50,23 +48,23 @@ def main():
         st.metric(
             "Weekly Usage",
             f"{weekly['usage_percent']:.1f}%",
-            delta=f"Target: {weekly['target_percent']}%"
+            delta=f"Target: {weekly['target_percent']}%",
         )
 
         st.metric(
             "Messages This Week",
             f"{weekly['total_messages']:,}",
-            delta=f"{weekly['messages_remaining']:,} to target"
+            delta=f"{weekly['messages_remaining']:,} to target",
         )
 
         st.metric(
             "Messages Today",
             f"{daily['messages_today']:,}",
-            delta=f"{daily['messages_needed']:,} needed"
+            delta=f"{daily['messages_needed']:,} needed",
         )
 
         # Status indicator
-        if weekly['on_pace']:
+        if weekly["on_pace"]:
             st.success("✅ On pace to meet weekly target")
         else:
             st.warning("⚠️ Below weekly target")
@@ -76,12 +74,9 @@ def main():
         st.caption(f"Days remaining: {weekly['days_remaining']}")
 
     # Main content tabs
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📋 Pending Proposals",
-        "✅ Approved",
-        "❌ Rejected",
-        "📊 Analytics"
-    ])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["📋 Pending Proposals", "✅ Approved", "❌ Rejected", "📊 Analytics"]
+    )
 
     # Tab 1: Pending Proposals
     with tab1:
@@ -110,29 +105,27 @@ def show_pending_proposals(queue: ApprovalQueue):
 
     with col1:
         priority_filter = st.multiselect(
-            "Priority",
-            ["high", "medium", "low"],
-            default=["high", "medium", "low"]
+            "Priority", ["high", "medium", "low"], default=["high", "medium", "low"]
         )
 
     with col2:
         team_filter = st.multiselect(
             "Team",
             ["code_quality_council", "knowledge_curation", "pattern_learning"],
-            default=["code_quality_council", "knowledge_curation", "pattern_learning"]
+            default=["code_quality_council", "knowledge_curation", "pattern_learning"],
         )
 
     with col3:
         sort_by = st.selectbox(
             "Sort By",
-            ["Priority (High→Low)", "Date (Newest→Oldest)", "Date (Oldest→Newest)"]
+            ["Priority (High→Low)", "Date (Newest→Oldest)", "Date (Oldest→Newest)"],
         )
 
     # Get pending proposals
     proposals = queue.get_proposals(
         status="pending",
         priority=priority_filter if priority_filter else None,
-        team=team_filter if team_filter else None
+        team=team_filter if team_filter else None,
     )
 
     if not proposals:
@@ -150,20 +143,21 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
     """Display a single proposal card with action buttons"""
 
     # Priority emoji
-    priority_emoji = {
-        "high": "🔴",
-        "medium": "🟡",
-        "low": "🟢"
-    }.get(proposal.priority, "⚪")
+    priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
+        proposal.priority, "⚪"
+    )
 
     # Team emoji
     team_emoji = {
         "code_quality_council": "🏛️",
         "knowledge_curation": "📚",
-        "pattern_learning": "🧠"
+        "pattern_learning": "🧠",
     }.get(proposal.team, "🤖")
 
-    with st.expander(f"{priority_emoji} {team_emoji} **{proposal.title}**", expanded=(proposal.priority == "high")):
+    with st.expander(
+        f"{priority_emoji} {team_emoji} **{proposal.title}**",
+        expanded=(proposal.priority == "high"),
+    ):
         # Metadata row
         col1, col2, col3, col4 = st.columns(4)
 
@@ -206,7 +200,9 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
 
         with col1:
             if st.button("✅ Approve", key=f"approve_{proposal.id}"):
-                notes = st.text_input(f"Approval notes (optional)", key=f"notes_{proposal.id}")
+                notes = st.text_input(
+                    f"Approval notes (optional)", key=f"notes_{proposal.id}"
+                )
                 if queue.approve(proposal.id, notes):
                     st.success("Proposal approved!")
                     st.rerun()
@@ -216,7 +212,7 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
                 reason = st.text_area(
                     f"Rejection reason (required)",
                     key=f"reason_{proposal.id}",
-                    placeholder="Explain why this proposal is rejected..."
+                    placeholder="Explain why this proposal is rejected...",
                 )
                 if reason and queue.reject(proposal.id, reason):
                     st.success("Proposal rejected with feedback")
@@ -226,7 +222,9 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
 
         with col3:
             if st.button("⏸️ Defer", key=f"defer_{proposal.id}"):
-                defer_notes = st.text_input(f"Defer notes (optional)", key=f"defer_{proposal.id}")
+                defer_notes = st.text_input(
+                    f"Defer notes (optional)", key=f"defer_{proposal.id}"
+                )
                 if queue.defer(proposal.id, defer_notes):
                     st.success("Proposal deferred")
                     st.rerun()
@@ -246,16 +244,14 @@ def show_approved_proposals(queue: ApprovalQueue):
     st.markdown(f"**{len(proposals)} approved proposals**")
 
     for proposal in proposals:
-        priority_emoji = {
-            "high": "🔴",
-            "medium": "🟡",
-            "low": "🟢"
-        }.get(proposal.priority, "⚪")
+        priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
+            proposal.priority, "⚪"
+        )
 
         team_emoji = {
             "code_quality_council": "🏛️",
             "knowledge_curation": "📚",
-            "pattern_learning": "🧠"
+            "pattern_learning": "🧠",
         }.get(proposal.team, "🤖")
 
         with st.expander(f"{priority_emoji} {team_emoji} **{proposal.title}**"):
@@ -299,16 +295,14 @@ def show_rejected_proposals(queue: ApprovalQueue):
     st.markdown(f"**{len(proposals)} rejected proposals**")
 
     for proposal in proposals:
-        priority_emoji = {
-            "high": "🔴",
-            "medium": "🟡",
-            "low": "🟢"
-        }.get(proposal.priority, "⚪")
+        priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
+            proposal.priority, "⚪"
+        )
 
         team_emoji = {
             "code_quality_council": "🏛️",
             "knowledge_curation": "📚",
-            "pattern_learning": "🧠"
+            "pattern_learning": "🧠",
         }.get(proposal.team, "🤖")
 
         with st.expander(f"{priority_emoji} {team_emoji} **{proposal.title}**"):
@@ -335,7 +329,9 @@ def show_rejected_proposals(queue: ApprovalQueue):
             st.write(proposal.description)
 
             # Rejection reason
-            rejection_reason = proposal.metadata.get("rejected_notes", "No reason provided")
+            rejection_reason = proposal.metadata.get(
+                "rejected_notes", "No reason provided"
+            )
             st.markdown("**Rejection Reason**")
             st.error(rejection_reason)
 
@@ -380,19 +376,19 @@ def show_analytics(queue: ApprovalQueue, tracker: UsageTracker):
 
     weekly = tracker.get_weekly_usage()
 
-    if weekly['daily_breakdown']:
+    if weekly["daily_breakdown"]:
         st.markdown("**Messages per Day (This Week)**")
 
-        for day_data in weekly['daily_breakdown']:
-            date = day_data['date']
-            messages = day_data['messages']
+        for day_data in weekly["daily_breakdown"]:
+            date = day_data["date"]
+            messages = day_data["messages"]
 
             if messages > 0:
                 st.text(f"{date}: {messages:,} messages")
 
                 # Team breakdown
-                if day_data.get('by_team'):
-                    for team, stats in day_data['by_team'].items():
+                if day_data.get("by_team"):
+                    for team, stats in day_data["by_team"].items():
                         st.caption(f"  - {team}: {stats['messages']} messages")
 
     st.markdown("---")
@@ -402,22 +398,26 @@ def show_analytics(queue: ApprovalQueue, tracker: UsageTracker):
 
     pace = tracker.check_daily_pace()
 
-    if not pace['on_pace']:
-        st.warning(f"""
+    if not pace["on_pace"]:
+        st.warning(
+            f"""
 **Usage Below Target**
 
 You're at {pace['pace_percent']:.1f}% of today's target. Consider:
 - Increasing agent frequency
 - Enabling more agent teams
 - Reviewing agent schedules
-        """)
+        """
+        )
 
-    if weekly['usage_percent'] > 90:
-        st.success("""
+    if weekly["usage_percent"] > 90:
+        st.success(
+            """
 **Excellent Usage!**
 
 You're on track to maximize your Claude Max subscription. Keep it up!
-        """)
+        """
+        )
 
 
 if __name__ == "__main__":

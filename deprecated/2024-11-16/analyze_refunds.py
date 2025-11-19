@@ -4,14 +4,15 @@ Refund Analysis Script with Human-in-the-Loop Review
 Analyzes Excel rows, queries legal knowledge base, outputs Excel with AI analysis for review
 """
 
+import argparse
+import json
 import os
 import sys
-import pandas as pd
 from datetime import datetime
 from pathlib import Path
-import json
 from typing import Dict, List, Optional, Tuple
-import argparse
+
+import pandas as pd
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -52,8 +53,8 @@ class RefundAnalyzer:
 
         # Initialize historical pattern matchers
         try:
-            from analysis.vendor_matcher import VendorMatcher
             from analysis.keyword_matcher import KeywordMatcher
+            from analysis.vendor_matcher import VendorMatcher
 
             self.vendor_matcher = VendorMatcher()
             self.keyword_matcher = KeywordMatcher()
@@ -202,15 +203,17 @@ Return JSON:
             pattern_match = self.keyword_matcher.match_description(product_desc)
 
             # Get human-readable contexts
-            vendor_context = self.vendor_matcher.get_vendor_historical_context(vendor_name)
+            vendor_context = self.vendor_matcher.get_vendor_historical_context(
+                vendor_name
+            )
             pattern_context = self.keyword_matcher.get_pattern_context(product_desc)
 
             # Return combined results
             return {
-                'vendor_match': vendor_match,
-                'pattern_match': pattern_match,
-                'vendor_context': vendor_context,
-                'pattern_context': pattern_context
+                "vendor_match": vendor_match,
+                "pattern_match": pattern_match,
+                "vendor_context": vendor_context,
+                "pattern_context": pattern_context,
             }
         except Exception as e:
             print(f"Error in enhanced vendor learning: {e}")
@@ -261,8 +264,8 @@ Consider: exemptions for manufacturing, resale, agricultural equipment, etc.
         vendor_context = ""
         pattern_context = ""
         if learned_info and isinstance(learned_info, dict):
-            vendor_context = learned_info.get('vendor_context', '')
-            pattern_context = learned_info.get('pattern_context', '')
+            vendor_context = learned_info.get("vendor_context", "")
+            pattern_context = learned_info.get("pattern_context", "")
 
         # Build prompt for AI analysis
         prompt = f"""You are a Washington State tax law expert analyzing use tax refund eligibility.
@@ -348,37 +351,37 @@ Return JSON:
         """
         if not learned_info or not isinstance(learned_info, dict):
             return {
-                'Historical_Vendor_Match': 'None',
-                'Historical_Vendor_Cases': 0,
-                'Historical_Vendor_Success_Rate': 0,
-                'Historical_Pattern_Match': 'None',
-                'Historical_Pattern_Success_Rate': 0,
-                'Historical_Context_Summary': 'No historical data (novel vendor/product)'
+                "Historical_Vendor_Match": "None",
+                "Historical_Vendor_Cases": 0,
+                "Historical_Vendor_Success_Rate": 0,
+                "Historical_Pattern_Match": "None",
+                "Historical_Pattern_Success_Rate": 0,
+                "Historical_Context_Summary": "No historical data (novel vendor/product)",
             }
 
         # Extract vendor match data
-        vendor_match = learned_info.get('vendor_match')
-        vendor_match_type = 'None'
+        vendor_match = learned_info.get("vendor_match")
+        vendor_match_type = "None"
         vendor_cases = 0
         vendor_success = 0
 
         if vendor_match:
-            vendor_match_type = vendor_match.get('match_type', 'unknown').title()
-            vendor_cases = vendor_match.get('historical_sample_count', 0)
-            vendor_success = vendor_match.get('historical_success_rate', 0)
+            vendor_match_type = vendor_match.get("match_type", "unknown").title()
+            vendor_cases = vendor_match.get("historical_sample_count", 0)
+            vendor_success = vendor_match.get("historical_success_rate", 0)
 
         # Extract pattern match data
-        pattern_match = learned_info.get('pattern_match')
-        pattern_match_type = 'None'
+        pattern_match = learned_info.get("pattern_match")
+        pattern_match_type = "None"
         pattern_success = 0
 
         if pattern_match:
-            pattern_match_type = 'Keyword Match'
-            pattern_success = pattern_match.get('success_rate', 0)
+            pattern_match_type = "Keyword Match"
+            pattern_success = pattern_match.get("success_rate", 0)
 
         # Build context summary
-        vendor_context = learned_info.get('vendor_context', '')
-        pattern_context = learned_info.get('pattern_context', '')
+        vendor_context = learned_info.get("vendor_context", "")
+        pattern_context = learned_info.get("pattern_context", "")
 
         context_parts = []
         if vendor_context:
@@ -386,15 +389,23 @@ Return JSON:
         if pattern_context:
             context_parts.append(pattern_context)
 
-        context_summary = ' | '.join(context_parts) if context_parts else 'No historical data'
+        context_summary = (
+            " | ".join(context_parts) if context_parts else "No historical data"
+        )
 
         return {
-            'Historical_Vendor_Match': vendor_match_type,
-            'Historical_Vendor_Cases': vendor_cases,
-            'Historical_Vendor_Success_Rate': f"{vendor_success:.1%}" if vendor_success > 0 else "0%",
-            'Historical_Pattern_Match': pattern_match_type,
-            'Historical_Pattern_Success_Rate': f"{pattern_success:.1%}" if pattern_success > 0 else "0%",
-            'Historical_Context_Summary': context_summary[:500]  # Truncate to 500 chars for Excel
+            "Historical_Vendor_Match": vendor_match_type,
+            "Historical_Vendor_Cases": vendor_cases,
+            "Historical_Vendor_Success_Rate": (
+                f"{vendor_success:.1%}" if vendor_success > 0 else "0%"
+            ),
+            "Historical_Pattern_Match": pattern_match_type,
+            "Historical_Pattern_Success_Rate": (
+                f"{pattern_success:.1%}" if pattern_success > 0 else "0%"
+            ),
+            "Historical_Context_Summary": context_summary[
+                :500
+            ],  # Truncate to 500 chars for Excel
         }
 
     def analyze_row(self, row: pd.Series) -> Dict:
@@ -440,8 +451,7 @@ Return JSON:
         # Check for historical learning data
         print(f"  Checking historical precedent...")
         learned_info = self.check_vendor_learning(
-            vendor=row["Vendor"],
-            product_desc=line_item.get("product_desc", "Unknown")
+            vendor=row["Vendor"], product_desc=line_item.get("product_desc", "Unknown")
         )
 
         # Format historical data for output
@@ -478,7 +488,7 @@ Return JSON:
             "AI_Explanation": analysis.get("explanation", ""),
             "AI_Key_Factors": ", ".join(analysis.get("key_factors", [])),
             # Add historical fields
-            **historical_fields
+            **historical_fields,
         }
 
         return result

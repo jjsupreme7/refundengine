@@ -9,10 +9,11 @@ Example:
     python scripts/split_excel_by_tax_type.py test_data/All_Transactions.xlsx
 """
 
-import pandas as pd
 import sys
 from pathlib import Path
-from typing import Tuple, Dict
+from typing import Dict, Tuple
+
+import pandas as pd
 
 
 def classify_tax_type(row: pd.Series) -> str:
@@ -30,8 +31,8 @@ def classify_tax_type(row: pd.Series) -> str:
     Returns:
         'sales_tax', 'use_tax', or 'NEEDS_REVIEW'
     """
-    tax_remitted = row.get('Tax_Remitted', 0)
-    tax_amount = row.get('Tax_Amount', 0)
+    tax_remitted = row.get("Tax_Remitted", 0)
+    tax_amount = row.get("Tax_Amount", 0)
 
     # Handle NaN/None values
     if pd.isna(tax_remitted):
@@ -44,22 +45,22 @@ def classify_tax_type(row: pd.Series) -> str:
         tax_remitted = float(tax_remitted)
         tax_amount = float(tax_amount)
     except (ValueError, TypeError):
-        return 'NEEDS_REVIEW'
+        return "NEEDS_REVIEW"
 
     # SALES TAX: Vendor collected and remitted tax
     if tax_remitted > 0 and tax_amount > 0:
-        return 'sales_tax'
+        return "sales_tax"
 
     # USE TAX: No vendor tax collected, but tax amount present (self-assessed)
     if tax_remitted == 0 and tax_amount > 0:
-        return 'use_tax'
+        return "use_tax"
 
     # NO TAX: Should not be in refund claim
     if tax_amount == 0:
-        return 'NEEDS_REVIEW'
+        return "NEEDS_REVIEW"
 
     # EDGE CASE: Cannot determine
-    return 'NEEDS_REVIEW'
+    return "NEEDS_REVIEW"
 
 
 def get_classification_summary(df: pd.DataFrame) -> Dict[str, int]:
@@ -73,16 +74,15 @@ def get_classification_summary(df: pd.DataFrame) -> Dict[str, int]:
         Dictionary with counts by tax type
     """
     return {
-        'sales_tax': len(df[df['Tax_Type'] == 'sales_tax']),
-        'use_tax': len(df[df['Tax_Type'] == 'use_tax']),
-        'needs_review': len(df[df['Tax_Type'] == 'NEEDS_REVIEW']),
-        'total': len(df)
+        "sales_tax": len(df[df["Tax_Type"] == "sales_tax"]),
+        "use_tax": len(df[df["Tax_Type"] == "use_tax"]),
+        "needs_review": len(df[df["Tax_Type"] == "NEEDS_REVIEW"]),
+        "total": len(df),
     }
 
 
 def split_excel_by_tax_type(
-    input_file: str,
-    output_dir: str = 'test_data'
+    input_file: str, output_dir: str = "test_data"
 ) -> Tuple[str, str, str]:
     """
     Split combined Excel into separate Sales Tax and Use Tax sheets.
@@ -106,8 +106,11 @@ def split_excel_by_tax_type(
 
     # Validate required columns
     required_columns = [
-        'Vendor_Name', 'Invoice_Number', 'Total_Amount',
-        'Tax_Amount', 'Tax_Remitted'
+        "Vendor_Name",
+        "Invoice_Number",
+        "Total_Amount",
+        "Tax_Amount",
+        "Tax_Remitted",
     ]
     missing_columns = [col for col in required_columns if col not in df.columns]
     if missing_columns:
@@ -115,29 +118,35 @@ def split_excel_by_tax_type(
 
     # Classify each row
     print("🔍 Classifying transactions by tax type...")
-    df['Tax_Type'] = df.apply(classify_tax_type, axis=1)
+    df["Tax_Type"] = df.apply(classify_tax_type, axis=1)
 
     # Get summary
     summary = get_classification_summary(df)
     print("\n📈 Classification Summary:")
-    print(f"   Sales Tax:    {summary['sales_tax']:>4} transactions ({summary['sales_tax']/summary['total']*100:.1f}%)")
-    print(f"   Use Tax:      {summary['use_tax']:>4} transactions ({summary['use_tax']/summary['total']*100:.1f}%)")
-    print(f"   Needs Review: {summary['needs_review']:>4} transactions ({summary['needs_review']/summary['total']*100:.1f}%)")
+    print(
+        f"   Sales Tax:    {summary['sales_tax']:>4} transactions ({summary['sales_tax']/summary['total']*100:.1f}%)"
+    )
+    print(
+        f"   Use Tax:      {summary['use_tax']:>4} transactions ({summary['use_tax']/summary['total']*100:.1f}%)"
+    )
+    print(
+        f"   Needs Review: {summary['needs_review']:>4} transactions ({summary['needs_review']/summary['total']*100:.1f}%)"
+    )
     print(f"   Total:        {summary['total']:>4} transactions\n")
 
     # Split into separate DataFrames
-    sales_df = df[df['Tax_Type'] == 'sales_tax'].copy()
-    use_df = df[df['Tax_Type'] == 'use_tax'].copy()
-    needs_review_df = df[df['Tax_Type'] == 'NEEDS_REVIEW'].copy()
+    sales_df = df[df["Tax_Type"] == "sales_tax"].copy()
+    use_df = df[df["Tax_Type"] == "use_tax"].copy()
+    needs_review_df = df[df["Tax_Type"] == "NEEDS_REVIEW"].copy()
 
     # Create output directory if needed
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True, parents=True)
 
     # Define output file paths
-    sales_file = output_path / 'Master_Sales_Tax_Claim_Sheet.xlsx'
-    use_file = output_path / 'Master_Use_Tax_Claim_Sheet.xlsx'
-    review_file = output_path / 'Needs_Manual_Classification.xlsx'
+    sales_file = output_path / "Master_Sales_Tax_Claim_Sheet.xlsx"
+    use_file = output_path / "Master_Use_Tax_Claim_Sheet.xlsx"
+    review_file = output_path / "Needs_Manual_Classification.xlsx"
 
     # Write to separate Excel files
     print("💾 Writing output files...")
@@ -155,8 +164,12 @@ def split_excel_by_tax_type(
 
     if len(needs_review_df) > 0:
         needs_review_df.to_excel(review_file, index=False)
-        print(f"   ⚠️  Needs Review: {len(needs_review_df)} transactions → {review_file}")
-        print(f"\n⚠️  WARNING: {len(needs_review_df)} transactions require manual classification")
+        print(
+            f"   ⚠️  Needs Review: {len(needs_review_df)} transactions → {review_file}"
+        )
+        print(
+            f"\n⚠️  WARNING: {len(needs_review_df)} transactions require manual classification"
+        )
     else:
         print(f"   ✅ No transactions need manual review")
 
@@ -170,14 +183,20 @@ def main():
     if len(sys.argv) < 2:
         print("❌ Error: Missing input file")
         print("\nUsage:")
-        print("    python scripts/split_excel_by_tax_type.py <input_excel_file> [output_dir]")
+        print(
+            "    python scripts/split_excel_by_tax_type.py <input_excel_file> [output_dir]"
+        )
         print("\nExample:")
-        print("    python scripts/split_excel_by_tax_type.py test_data/All_Transactions.xlsx")
-        print("    python scripts/split_excel_by_tax_type.py uploads/claim_data.xlsx test_data")
+        print(
+            "    python scripts/split_excel_by_tax_type.py test_data/All_Transactions.xlsx"
+        )
+        print(
+            "    python scripts/split_excel_by_tax_type.py uploads/claim_data.xlsx test_data"
+        )
         sys.exit(1)
 
     input_file = sys.argv[1]
-    output_dir = sys.argv[2] if len(sys.argv) > 2 else 'test_data'
+    output_dir = sys.argv[2] if len(sys.argv) > 2 else "test_data"
 
     # Validate input file exists
     if not Path(input_file).exists():
@@ -189,9 +208,10 @@ def main():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

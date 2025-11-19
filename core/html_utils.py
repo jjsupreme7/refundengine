@@ -19,10 +19,10 @@ import html
 import re
 from typing import Optional
 
-
 # ============================================================================
 # HTML ESCAPING
 # ============================================================================
+
 
 def escape_html(text: str) -> str:
     """
@@ -89,6 +89,7 @@ def safe_markdown(text: str, html_template: str) -> str:
 # BADGE HELPERS (for dashboard)
 # ============================================================================
 
+
 def safe_badge(text: str, css_class: str = "") -> str:
     """
     Create a safe badge HTML element.
@@ -101,7 +102,7 @@ def safe_badge(text: str, css_class: str = "") -> str:
         Safe HTML for badge
     """
     # Validate CSS class (only allow alphanumeric, dash, underscore)
-    if css_class and not re.match(r'^[a-zA-Z0-9_-]+$', css_class):
+    if css_class and not re.match(r"^[a-zA-Z0-9_-]+$", css_class):
         css_class = ""
 
     escaped_text = escape_html(text)
@@ -121,18 +122,18 @@ def safe_stat_card(label: str, value: str, card_class: str = "") -> str:
         Safe HTML for stat card
     """
     # Validate CSS class
-    if card_class and not re.match(r'^[a-zA-Z0-9_-]+$', card_class):
+    if card_class and not re.match(r"^[a-zA-Z0-9_-]+$", card_class):
         card_class = ""
 
     escaped_label = escape_html(label)
     escaped_value = escape_html(value)
 
-    return f'''
+    return f"""
     <div class="stat-card {card_class}">
         <div class="stat-label">{escaped_label}</div>
         <div class="stat-value">{escaped_value}</div>
     </div>
-    '''
+    """
 
 
 # ============================================================================
@@ -140,18 +141,38 @@ def safe_stat_card(label: str, value: str, card_class: str = "") -> str:
 # ============================================================================
 
 ALLOWED_TAGS = {
-    'b', 'i', 'u', 'strong', 'em', 'br', 'p', 'span',
-    'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'ul', 'ol', 'li', 'table', 'tr', 'td', 'th'
+    "b",
+    "i",
+    "u",
+    "strong",
+    "em",
+    "br",
+    "p",
+    "span",
+    "div",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "ul",
+    "ol",
+    "li",
+    "table",
+    "tr",
+    "td",
+    "th",
 }
 
-ALLOWED_ATTRIBUTES = {
-    'class', 'id', 'style'
-}
+ALLOWED_ATTRIBUTES = {"class", "id", "style"}
 
 
-def sanitize_html(html_string: str, allowed_tags: Optional[set] = None,
-                 allowed_attrs: Optional[set] = None) -> str:
+def sanitize_html(
+    html_string: str,
+    allowed_tags: Optional[set] = None,
+    allowed_attrs: Optional[set] = None,
+) -> str:
     """
     Sanitize HTML by removing dangerous tags and attributes.
 
@@ -180,6 +201,7 @@ def sanitize_html(html_string: str, allowed_tags: Optional[set] = None,
 # STREAMLIT HELPERS
 # ============================================================================
 
+
 def display_safe_header(header_text: str, css_class: str = "main-header"):
     """
     Display a safe header in Streamlit.
@@ -190,11 +212,13 @@ def display_safe_header(header_text: str, css_class: str = "main-header"):
     """
     import streamlit as st
 
-    if css_class and not re.match(r'^[a-zA-Z0-9_-]+$', css_class):
+    if css_class and not re.match(r"^[a-zA-Z0-9_-]+$", css_class):
         css_class = "main-header"
 
     escaped_text = escape_html(header_text)
-    st.markdown(f'<div class="{css_class}">{escaped_text}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="{css_class}">{escaped_text}</div>', unsafe_allow_html=True
+    )
 
 
 def display_safe_subtitle(subtitle_text: str, css_class: str = "main-subtitle"):
@@ -207,11 +231,13 @@ def display_safe_subtitle(subtitle_text: str, css_class: str = "main-subtitle"):
     """
     import streamlit as st
 
-    if css_class and not re.match(r'^[a-zA-Z0-9_-]+$', css_class):
+    if css_class and not re.match(r"^[a-zA-Z0-9_-]+$", css_class):
         css_class = "main-subtitle"
 
     escaped_text = escape_html(subtitle_text)
-    st.markdown(f'<div class="{css_class}">{escaped_text}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="{css_class}">{escaped_text}</div>', unsafe_allow_html=True
+    )
 
 
 # ============================================================================

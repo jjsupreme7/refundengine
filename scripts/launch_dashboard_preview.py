@@ -9,9 +9,10 @@ This creates a Flask web app showing:
 - Vendor breakdown
 """
 
-from flask import Flask, render_template_string
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+from flask import Flask, render_template_string
 
 app = Flask(__name__)
 
@@ -285,23 +286,24 @@ DASHBOARD_TEMPLATE = """
 </html>
 """
 
-@app.route('/')
+
+@app.route("/")
 def dashboard():
     """Main dashboard view."""
 
     # Calculate statistics
     total_rows = len(df)
-    unique_invoices = df['Invoice_Number'].nunique()
-    total_refund = df['Estimated_Refund'].sum()
-    avg_confidence = df['AI_Confidence'].mean()
-    flagged = df[df['AI_Confidence'] < 90]
+    unique_invoices = df["Invoice_Number"].nunique()
+    total_refund = df["Estimated_Refund"].sum()
+    avg_confidence = df["AI_Confidence"].mean()
+    flagged = df[df["AI_Confidence"] < 90]
     flagged_count = len(flagged)
     flagged_pct = (flagged_count / total_rows * 100) if total_rows > 0 else 0
-    refund_rows = len(df[df['Estimated_Refund'] > 0])
+    refund_rows = len(df[df["Estimated_Refund"] > 0])
 
     # Prepare data for template
-    review_queue = flagged.to_dict('records')
-    all_transactions = df.to_dict('records')
+    review_queue = flagged.to_dict("records")
+    all_transactions = df.to_dict("records")
 
     return render_template_string(
         DASHBOARD_TEMPLATE,
@@ -314,10 +316,11 @@ def dashboard():
         refund_rows=refund_rows,
         review_queue=review_queue,
         all_transactions=all_transactions,
-        excel_file=EXCEL_PATH.name
+        excel_file=EXCEL_PATH.name,
     )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("\n" + "=" * 80)
     print("🚀 LAUNCHING DASHBOARD PREVIEW")
     print("=" * 80)

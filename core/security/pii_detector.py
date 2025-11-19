@@ -8,8 +8,9 @@ Uses Microsoft Presidio for ML-based detection + custom regex patterns.
 """
 
 import re
-from typing import List, Dict, Optional
 from dataclasses import dataclass
+from typing import Dict, List, Optional
+
 from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
 
 

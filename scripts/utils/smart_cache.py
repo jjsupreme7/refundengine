@@ -7,13 +7,13 @@ Provides multi-tier caching:
 3. RAG results cache (category-based)
 """
 
-import json
-import sqlite3
 import hashlib
+import json
 import os
+import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 
 class SmartCache:

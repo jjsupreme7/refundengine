@@ -10,8 +10,9 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.database import get_supabase_client
 from dotenv import load_dotenv
+
+from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -25,7 +26,11 @@ print("=" * 80)
 print()
 
 # Fetch all documents
-result = supabase.table('knowledge_documents').select('id, title, citation, file_url, source_file').execute()
+result = (
+    supabase.table("knowledge_documents")
+    .select("id, title, citation, file_url, source_file")
+    .execute()
+)
 
 total_docs = len(result.data)
 docs_with_online_url = 0
@@ -45,11 +50,11 @@ no_source = []
 missing_files = []
 
 for doc in result.data:
-    doc_id = doc['id']
-    title = doc.get('title', 'N/A')
-    citation = doc.get('citation', 'N/A')
-    file_url = doc.get('file_url')
-    source_file = doc.get('source_file')
+    doc_id = doc["id"]
+    title = doc.get("title", "N/A")
+    citation = doc.get("citation", "N/A")
+    file_url = doc.get("file_url")
+    source_file = doc.get("source_file")
 
     has_online = bool(file_url)
     has_local = bool(source_file)
@@ -58,7 +63,11 @@ for doc in result.data:
     local_file_exists = False
     if source_file:
         # Try both as absolute path and relative to project root
-        abs_path = source_file if os.path.isabs(source_file) else os.path.join(os.getcwd(), source_file)
+        abs_path = (
+            source_file
+            if os.path.isabs(source_file)
+            else os.path.join(os.getcwd(), source_file)
+        )
         local_file_exists = os.path.exists(abs_path)
 
     # Categorize
@@ -92,11 +101,17 @@ for doc in result.data:
 print("=" * 80)
 print("SUMMARY")
 print("=" * 80)
-print(f"✅ Documents with online URL: {docs_with_online_url} ({docs_with_online_url/total_docs*100:.1f}%)")
-print(f"📄 Documents with local file path: {docs_with_local_file} ({docs_with_local_file/total_docs*100:.1f}%)")
+print(
+    f"✅ Documents with online URL: {docs_with_online_url} ({docs_with_online_url/total_docs*100:.1f}%)"
+)
+print(
+    f"📄 Documents with local file path: {docs_with_local_file} ({docs_with_local_file/total_docs*100:.1f}%)"
+)
 print(f"✓  Local files verified to exist: {docs_with_verified_local_file}")
 print(f"❌ Local files missing: {docs_with_missing_local_file}")
-print(f"⚠️  Documents with NO source: {docs_with_no_source} ({docs_with_no_source/total_docs*100:.1f}%)")
+print(
+    f"⚠️  Documents with NO source: {docs_with_no_source} ({docs_with_no_source/total_docs*100:.1f}%)"
+)
 print()
 
 print("=" * 80)
@@ -138,16 +153,24 @@ if docs_with_no_source == 0 and docs_with_missing_local_file == 0:
     print("✅ ALL DOCUMENTS HAVE ACCESSIBLE SOURCES!")
     print(f"   100% of documents can be sourced")
 elif docs_with_no_source == 0:
-    print(f"⚠️  ALL DOCUMENTS HAVE SOURCE PATHS, but {docs_with_missing_local_file} local files are missing")
-    print(f"   {accessible_percentage:.1f}% of documents have verified accessible sources")
+    print(
+        f"⚠️  ALL DOCUMENTS HAVE SOURCE PATHS, but {docs_with_missing_local_file} local files are missing"
+    )
+    print(
+        f"   {accessible_percentage:.1f}% of documents have verified accessible sources"
+    )
 else:
     print(f"❌ {docs_with_no_source} documents have NO SOURCE AT ALL")
-    print(f"   Only {accessible_percentage:.1f}% of documents have verified accessible sources")
+    print(
+        f"   Only {accessible_percentage:.1f}% of documents have verified accessible sources"
+    )
     print()
     print("   Action required:")
     print("   - Add file_url or source_file to documents with no source")
     if docs_with_missing_local_file > 0:
-        print(f"   - Locate or re-ingest {docs_with_missing_local_file} missing local files")
+        print(
+            f"   - Locate or re-ingest {docs_with_missing_local_file} missing local files"
+        )
 
 print()
 print("=" * 80)

@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Dict, List
 
 from .approval_queue import ApprovalQueue
-from .usage_tracker import UsageTracker
 from .communication import post_to_discord
+from .usage_tracker import UsageTracker
 
 
 class DailyDigest:
@@ -44,7 +44,9 @@ class DailyDigest:
 
         # Get proposals
         high_priority = self.queue.get_proposals(status="pending", priority=["high"])
-        medium_priority = self.queue.get_proposals(status="pending", priority=["medium"])
+        medium_priority = self.queue.get_proposals(
+            status="pending", priority=["medium"]
+        )
         low_priority = self.queue.get_proposals(status="pending", priority=["low"])
 
         approved_today = self.queue.count_approved_today()
@@ -82,7 +84,7 @@ TOP HIGH PRIORITY PROPOSALS:
             team_emoji = {
                 "code_quality_council": "🏛️",
                 "knowledge_curation": "📚",
-                "pattern_learning": "🧠"
+                "pattern_learning": "🧠",
             }.get(proposal.team, "🤖")
 
             summary += f"""
@@ -137,11 +139,7 @@ Agent System Configuration:
         summary = self.generate_digest()
 
         # Post to Discord (primary delivery method)
-        success = post_to_discord(
-            "digest",
-            summary,
-            username="Daily Digest"
-        )
+        success = post_to_discord("digest", summary, username="Daily Digest")
 
         if success:
             print(f"Daily digest sent to Discord")

@@ -11,11 +11,12 @@ Improvements over basic RAG:
 MIGRATION NOTE: Now uses NEW schema (search_tax_law, tax_law_chunks)
 """
 
+import json
 import os
 import sys
-import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
 from openai import OpenAI
 from supabase import Client
 
@@ -31,18 +32,23 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 class EnhancedRAG:
     """Enhanced Retrieval Augmented Generation with validation and correction"""
 
-    def __init__(self, supabase_client: Client = None, tax_rules_path: str = None):
+    def __init__(self, supabase_client: Client = None, tax_rules_path: str = None,
+                 enable_dynamic_models: bool = False):
         """
         Initialize Enhanced RAG
 
         Args:
             supabase_client: Optional Supabase client. If None, uses centralized client.
             tax_rules_path: Path to tax_rules.json file. If None, uses default location.
+            enable_dynamic_models: If True, dynamically select models based on stakes
         """
         self.supabase = supabase_client or get_supabase_client()
         self.embedding_model = "text-embedding-3-small"
         self.analysis_model = "gpt-4o"
         self.fast_model = "gpt-4o-mini"
+
+        # Dynamic model selection
+        self.enable_dynamic_models = enable_dynamic_models
 
         # Cache for embeddings
         self._embedding_cache = {}
@@ -54,21 +60,181 @@ class EnhancedRAG:
         self.confidence_threshold_high = 0.85  # Skip retrieval if confidence > this
         self.confidence_threshold_medium = 0.65  # Use fast retrieval
 
+        # Stakes-based model thresholds (configurable)
+        self.stakes_threshold_high = 25000  # Use best model above this
+        self.stakes_threshold_medium = 5000  # Use mid-tier model above this
+
     def _load_tax_rules(self, tax_rules_path: str = None) -> Dict:
         """Load structured tax rules from JSON file"""
         if tax_rules_path is None:
             # Default path
             project_root = Path(__file__).parent.parent
-            tax_rules_path = project_root / "knowledge_base/states/washington/tax_rules.json"
+            tax_rules_path = (
+                project_root / "knowledge_base/states/washington/tax_rules.json"
+            )
 
         try:
             if Path(tax_rules_path).exists():
-                with open(tax_rules_path, 'r') as f:
+                with open(tax_rules_path, "r") as f:
                     return json.load(f)
         except Exception as e:
             print(f"Warning: Could not load tax rules: {e}")
 
         return {}
+
+    # ==================== DYNAMIC MODEL SELECTION ====================
+
+    def calculate_stakes(self, context: Dict) -> int:
+        """
+        Calculate stakes for model selection decisions
+
+        Priority for base stakes:
+        1. If we know potential refund → use that (most accurate)
+        2. Else use tax paid (maximum possible refund)
+        3. Else use transaction amount * avg tax rate (estimate)
+        4. Apply multipliers for complexity and client tier
+
+        Args:
+            context: Dictionary with keys:
+                - potential_refund: Known refund amount
+                - tax_paid: Tax amount paid
+                - amount: Transaction amount
+                - complexity: simple|medium|complex
+                - client_tier: standard|premium|enterprise
+
+        Returns:
+            Final stakes value (int)
+        """
+        # Get base financial amount
+        potential_refund = context.get("potential_refund", 0)
+        tax_paid = context.get("tax_paid", 0)
+        amount = context.get("amount", 0)
+
+        if potential_refund > 0:
+            base_stakes = potential_refund
+            source = "known refund"
+        elif tax_paid > 0:
+            base_stakes = tax_paid
+            source = "tax paid (max refund)"
+        elif amount > 0:
+            # Estimate: WA tax rate ~10%
+            base_stakes = amount * 0.10
+            source = "estimated tax"
+        else:
+            base_stakes = 0
+            source = "unknown"
+
+        # Apply complexity multiplier
+        complexity = context.get("complexity", "medium")
+        complexity_multipliers = {
+            "simple": 1.0,  # No adjustment
+            "medium": 1.5,  # 50% more important
+            "complex": 2.0,  # 2x more important
+        }
+
+        # Apply client tier multiplier
+        client_tier = context.get("client_tier", "standard")
+        tier_multipliers = {
+            "standard": 1.0,
+            "premium": 1.5,
+            "enterprise": 2.0,
+        }
+
+        final_stakes = (
+            base_stakes
+            * complexity_multipliers.get(complexity, 1.0)
+            * tier_multipliers.get(client_tier, 1.0)
+        )
+
+        if base_stakes > 0:
+            print(f"\n💰 Stakes Calculation:")
+            print(f"   Base: ${base_stakes:,.0f} ({source})")
+            print(f"   Complexity: {complexity} ({complexity_multipliers.get(complexity, 1.0)}x)")
+            print(f"   Client tier: {client_tier} ({tier_multipliers.get(client_tier, 1.0)}x)")
+            print(f"   Final stakes: ${final_stakes:,.0f}")
+
+        return int(final_stakes)
+
+    def select_model(self, task: str, context: Dict) -> Dict:
+        """
+        Dynamically select which LLM to use based on stakes and task
+
+        Args:
+            task: Type of operation (final_answer|reranking|validation|query_expansion)
+            context: Context dictionary (same as calculate_stakes)
+
+        Returns:
+            Dictionary with:
+                - model: Model identifier (e.g., "gpt-4o", "claude-sonnet-4.5")
+                - reason: Why this model was selected
+                - stakes: Calculated stakes value
+                - cost_estimate: Estimated cost per 1k tokens
+        """
+        # If dynamic models disabled, use defaults
+        if not self.enable_dynamic_models:
+            if task in ["validation", "query_expansion"]:
+                return {
+                    "model": self.fast_model,
+                    "reason": "Default fast model",
+                    "stakes": 0,
+                    "cost_estimate": 0.001,
+                }
+            else:
+                return {
+                    "model": self.analysis_model,
+                    "reason": "Default analysis model",
+                    "stakes": 0,
+                    "cost_estimate": 0.004,
+                }
+
+        # Calculate stakes
+        stakes = self.calculate_stakes(context)
+        complexity = context.get("complexity", "medium")
+
+        # High stakes thresholds
+        if stakes > self.stakes_threshold_high:  # $25k+ at risk
+            return {
+                "model": "claude-sonnet-4.5",
+                "reason": f"${stakes:,.0f} at stake - maximum accuracy required",
+                "stakes": stakes,
+                "cost_estimate": 0.0075,
+            }
+
+        # Medium stakes
+        elif stakes > self.stakes_threshold_medium:  # $5k-$25k at risk
+            return {
+                "model": "gpt-4o",
+                "reason": f"${stakes:,.0f} at stake - balanced approach",
+                "stakes": stakes,
+                "cost_estimate": 0.0042,
+            }
+
+        # Low stakes but complex reasoning
+        elif complexity == "complex" and task in ["final_answer", "reranking"]:
+            return {
+                "model": "gpt-4o",
+                "reason": "Complex analysis requires capable model",
+                "stakes": stakes,
+                "cost_estimate": 0.0042,
+            }
+
+        # Fast operations - always use cheap model
+        elif task in ["validation", "query_expansion"]:
+            return {
+                "model": "gpt-4o-mini",
+                "reason": "Simple task - cost-optimized",
+                "stakes": stakes,
+                "cost_estimate": 0.001,
+            }
+
+        # Low stakes default
+        else:
+            return {
+                "model": "gpt-4o-mini",
+                "reason": f"${stakes:,.0f} at stake - cost-optimized",
+                "stakes": stakes,
+                "cost_estimate": 0.001,
+            }
 
     # ==================== AGENTIC RAG: DECISION LAYER ====================
 
@@ -77,7 +243,7 @@ class EnhancedRAG:
         query: str,
         context: Dict = None,
         top_k: int = 5,
-        force_retrieval: bool = False
+        force_retrieval: bool = False,
     ) -> Dict:
         """
         🤖 AGENTIC RAG: Decide whether/how to retrieve information
@@ -124,7 +290,9 @@ class EnhancedRAG:
         print(f"🤖 AGENTIC RAG: Making Retrieval Decision")
         print(f"Query: {query}")
         if context:
-            print(f"Context: {', '.join([f'{k}={v}' for k, v in list(context.items())[:3]])}")
+            print(
+                f"Context: {', '.join([f'{k}={v}' for k, v in list(context.items())[:3]])}"
+            )
         print(f"{'='*80}\n")
 
         # Skip decision if forced retrieval
@@ -136,7 +304,7 @@ class EnhancedRAG:
                 "reasoning": "Forced retrieval requested",
                 "results": results,
                 "confidence": 0.8,
-                "cost_saved": 0.0
+                "cost_saved": 0.0,
             }
 
         # Step 1: Make decision
@@ -147,27 +315,27 @@ class EnhancedRAG:
         print(f"   Estimated cost saved: ${decision['cost_saved']:.4f}\n")
 
         # Step 2: Execute based on decision
-        if decision['action'] == 'USE_CACHED':
+        if decision["action"] == "USE_CACHED":
             return decision
 
-        elif decision['action'] == 'USE_RULES':
+        elif decision["action"] == "USE_RULES":
             return decision
 
-        elif decision['action'] == 'RETRIEVE_SIMPLE':
+        elif decision["action"] == "RETRIEVE_SIMPLE":
             print("🔍 Using fast retrieval (basic search)...")
             # Extract filters from context if provided
-            filters = context.get('filters') if context else None
+            filters = context.get("filters") if context else None
             results = self.basic_search(query, top_k, filters=filters)
-            decision['results'] = results
-            decision['confidence'] = 0.7  # Medium confidence for simple retrieval
+            decision["results"] = results
+            decision["confidence"] = 0.7  # Medium confidence for simple retrieval
             return decision
 
-        elif decision['action'] == 'RETRIEVE_ENHANCED':
+        elif decision["action"] == "RETRIEVE_ENHANCED":
             print("🚀 Using enhanced retrieval (all improvements)...")
             # Note: search_enhanced doesn't support filters yet, but basic search is called within it
             results = self.search_enhanced(query, top_k)
-            decision['results'] = results
-            decision['confidence'] = 0.9  # High confidence for enhanced retrieval
+            decision["results"] = results
+            decision["confidence"] = 0.9  # High confidence for enhanced retrieval
             return decision
 
         else:
@@ -179,7 +347,7 @@ class EnhancedRAG:
                 "reasoning": "Fallback to enhanced search",
                 "results": results,
                 "confidence": 0.8,
-                "cost_saved": 0.0
+                "cost_saved": 0.0,
             }
 
     def _make_retrieval_decision(self, query: str, context: Dict) -> Dict:
@@ -194,22 +362,24 @@ class EnhancedRAG:
         """
 
         # Check for high-confidence cached results
-        prior_analysis = context.get('prior_analysis', {})
+        prior_analysis = context.get("prior_analysis", {})
         if prior_analysis and isinstance(prior_analysis, dict):
-            confidence = prior_analysis.get('confidence_score', 0)
+            confidence = prior_analysis.get("confidence_score", 0)
 
             if confidence >= self.confidence_threshold_high:
-                print(f"✅ High-confidence cached result found (confidence: {confidence:.2f})")
+                print(
+                    f"✅ High-confidence cached result found (confidence: {confidence:.2f})"
+                )
                 return {
                     "action": "USE_CACHED",
                     "reasoning": f"Prior analysis has high confidence ({confidence:.2f} ≥ {self.confidence_threshold_high})",
                     "results": [{"source": "cached", "data": prior_analysis}],
                     "confidence": confidence,
-                    "cost_saved": 0.015  # Saved: ~5 embeddings + 1 LLM call
+                    "cost_saved": 0.015,  # Saved: ~5 embeddings + 1 LLM call
                 }
 
         # Check if structured rules are sufficient
-        product_type = context.get('product_type', '')
+        product_type = context.get("product_type", "")
         if product_type and self._has_structured_rule(product_type):
             rule = self._get_structured_rule(product_type, query)
             if rule:
@@ -219,20 +389,20 @@ class EnhancedRAG:
                     "reasoning": f"Structured tax rules available for {product_type}",
                     "results": [{"source": "structured_rules", "data": rule}],
                     "confidence": 0.8,
-                    "cost_saved": 0.012  # Saved: embeddings + retrieval + validation
+                    "cost_saved": 0.012,  # Saved: embeddings + retrieval + validation
                 }
 
         # Check query complexity to decide retrieval strategy
         complexity = self._assess_query_complexity(query, context)
 
-        if complexity == 'simple':
+        if complexity == "simple":
             print(f"📌 Simple query detected - using fast retrieval")
             return {
                 "action": "RETRIEVE_SIMPLE",
                 "reasoning": "Query is straightforward, basic search sufficient",
                 "results": [],  # Will be filled by search_with_decision
                 "confidence": 0.7,
-                "cost_saved": 0.008  # Saved: validation + reranking steps
+                "cost_saved": 0.008,  # Saved: validation + reranking steps
             }
         else:
             print(f"🔬 Complex query detected - using enhanced retrieval")
@@ -241,21 +411,21 @@ class EnhancedRAG:
                 "reasoning": "Query requires comprehensive analysis",
                 "results": [],  # Will be filled by search_with_decision
                 "confidence": 0.9,
-                "cost_saved": 0.0  # No savings, but highest accuracy
+                "cost_saved": 0.0,  # No savings, but highest accuracy
             }
 
     def _has_structured_rule(self, product_type: str) -> bool:
         """Check if we have structured rules for this product type"""
-        if not self.tax_rules or 'product_type_rules' not in self.tax_rules:
+        if not self.tax_rules or "product_type_rules" not in self.tax_rules:
             return False
-        return product_type in self.tax_rules['product_type_rules']
+        return product_type in self.tax_rules["product_type_rules"]
 
     def _get_structured_rule(self, product_type: str, query: str) -> Optional[Dict]:
         """Get structured rule for product type, filtered by query relevance"""
         if not self._has_structured_rule(product_type):
             return None
 
-        rule = self.tax_rules['product_type_rules'][product_type]
+        rule = self.tax_rules["product_type_rules"][product_type]
 
         # Build a comprehensive response from structured rules
         return {
@@ -266,7 +436,7 @@ class EnhancedRAG:
             "description": rule.get("description", ""),
             "exemptions": rule.get("exemptions", []),
             "refund_scenarios": rule.get("refund_scenarios", []),
-            "rule_text": json.dumps(rule, indent=2)
+            "rule_text": json.dumps(rule, indent=2),
         }
 
     def _assess_query_complexity(self, query: str, context: Dict) -> str:
@@ -278,32 +448,43 @@ class EnhancedRAG:
         """
         # Keywords indicating complexity
         complex_indicators = [
-            'calculate', 'compute', 'allocate', 'apportion',
-            'multi-state', 'multi-point', 'distributed',
-            'primarily human', 'edge case', 'exception',
-            'how much', 'refund amount', 'methodology',
-            'bundled', 'combined', 'mixed'
+            "calculate",
+            "compute",
+            "allocate",
+            "apportion",
+            "multi-state",
+            "multi-point",
+            "distributed",
+            "primarily human",
+            "edge case",
+            "exception",
+            "how much",
+            "refund amount",
+            "methodology",
+            "bundled",
+            "combined",
+            "mixed",
         ]
 
         query_lower = query.lower()
 
         # Check for complex indicators
         if any(indicator in query_lower for indicator in complex_indicators):
-            return 'complex'
+            return "complex"
 
         # Check context complexity
-        if context.get('amount', 0) > 0 and 'calculate' in query_lower:
-            return 'complex'
+        if context.get("amount", 0) > 0 and "calculate" in query_lower:
+            return "complex"
 
         # Check if asking about multiple things
-        if ' and ' in query_lower or ',' in query:
-            and_count = query_lower.count(' and ')
-            comma_count = query.count(',')
+        if " and " in query_lower or "," in query:
+            and_count = query_lower.count(" and ")
+            comma_count = query.count(",")
             if and_count + comma_count > 2:
-                return 'complex'
+                return "complex"
 
         # Default to simple
-        return 'simple'
+        return "simple"
 
     # ==================== CORE METHODS ====================
 
@@ -321,7 +502,9 @@ class EnhancedRAG:
         self._embedding_cache[cache_key] = embedding
         return embedding
 
-    def basic_search(self, query: str, top_k: int = 5, filters: Dict = None) -> List[Dict]:
+    def basic_search(
+        self, query: str, top_k: int = 5, filters: Dict = None
+    ) -> List[Dict]:
         """Basic vector search using new schema with optional filters"""
         query_embedding = self.get_embedding(query)
 
@@ -337,12 +520,12 @@ class EnhancedRAG:
 
         # Apply filters if provided
         if filters:
-            if filters.get('law_category'):
-                rpc_params['law_category_filter'] = filters['law_category']
-            if filters.get('tax_types'):
-                rpc_params['tax_types_filter'] = filters['tax_types']
-            if filters.get('industries'):
-                rpc_params['industries_filter'] = filters['industries']
+            if filters.get("law_category"):
+                rpc_params["law_category_filter"] = filters["law_category"]
+            if filters.get("tax_types"):
+                rpc_params["tax_types_filter"] = filters["tax_types"]
+            if filters.get("industries"):
+                rpc_params["industries_filter"] = filters["industries"]
 
         response = self.supabase.rpc("search_tax_law", rpc_params).execute()
 
@@ -754,12 +937,14 @@ Return JSON:
 
         try:
             # Search for vendor background in knowledge_documents
-            result = self.supabase.table("knowledge_documents")\
-                .select("*")\
-                .eq("document_type", "vendor_background")\
-                .ilike("vendor_name", f"%{vendor_name.split()[0]}%")\
-                .limit(1)\
+            result = (
+                self.supabase.table("knowledge_documents")
+                .select("*")
+                .eq("document_type", "vendor_background")
+                .ilike("vendor_name", f"%{vendor_name.split()[0]}%")
+                .limit(1)
                 .execute()
+            )
 
             if result.data and len(result.data) > 0:
                 vendor_data = result.data[0]
@@ -769,12 +954,12 @@ Return JSON:
                 print(f"   Products: {vendor_data.get('primary_products', [])[:2]}")
 
                 return {
-                    'vendor_name': vendor_data.get('vendor_name'),
-                    'industry': vendor_data.get('industry'),
-                    'business_model': vendor_data.get('business_model'),
-                    'primary_products': vendor_data.get('primary_products', []),
-                    'confidence_score': vendor_data.get('confidence_score', 0),
-                    'title': vendor_data.get('title'),
+                    "vendor_name": vendor_data.get("vendor_name"),
+                    "industry": vendor_data.get("industry"),
+                    "business_model": vendor_data.get("business_model"),
+                    "primary_products": vendor_data.get("primary_products", []),
+                    "confidence_score": vendor_data.get("confidence_score", 0),
+                    "title": vendor_data.get("title"),
                 }
             else:
                 print(f"\n⚠️  No vendor background found for {vendor_name}")
@@ -786,7 +971,9 @@ Return JSON:
 
     # ==================== BEST METHOD: COMBINES ALL IMPROVEMENTS ====================
 
-    def search_enhanced(self, query: str, top_k: int = 5, vendor_name: str = None) -> List[Dict]:
+    def search_enhanced(
+        self, query: str, top_k: int = 5, vendor_name: str = None
+    ) -> List[Dict]:
         """
         **RECOMMENDED METHOD**
         Combines all improvements: Corrective RAG + Reranking + Query Expansion + Hybrid Search
@@ -861,7 +1048,7 @@ Return JSON:
         # Add vendor background to results
         if vendor_context:
             for result in final_results:
-                result['vendor_background'] = vendor_context
+                result["vendor_background"] = vendor_context
 
         print(f"\n{'='*80}")
         print(f"✅ ENHANCED RAG COMPLETE")

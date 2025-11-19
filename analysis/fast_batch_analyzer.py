@@ -11,15 +11,16 @@ Usage:
     python scripts/5_fast_batch_analyzer.py --excel "Master Refunds.xlsx" --state washington
 """
 
+import argparse
+import json
 import os
 import sys
-import argparse
-from pathlib import Path
-import pandas as pd
-import json
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 from tqdm import tqdm
-from typing import Dict, List, Any, Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -27,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Imports
 from dotenv import load_dotenv
 from openai import OpenAI
+
 from core.database import get_supabase_client
 from scripts.utils.smart_cache import SmartCache
 
@@ -53,10 +55,11 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
     print(f"  📄 Extracting: {Path(file_path).name}")
 
     try:
-        import pdfplumber
-        from PIL import Image
         import base64
         from io import BytesIO
+
+        import pdfplumber
+        from PIL import Image
 
         # Convert first page to image
         with pdfplumber.open(file_path) as pdf:

@@ -27,6 +27,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Optional
+
 from supabase import Client, create_client
 
 # Try to load .env if available
@@ -203,7 +204,9 @@ if __name__ == "__main__":
 
         # Test 3: Query database
         print("\n[3/4] Testing database query...")
-        result = client.table("knowledge_documents").select("id", count="exact").execute()
+        result = (
+            client.table("knowledge_documents").select("id", count="exact").execute()
+        )
         doc_count = result.count if hasattr(result, "count") else len(result.data)
         print(f"✓ Query successful! Found {doc_count} documents")
 

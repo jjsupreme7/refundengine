@@ -29,15 +29,15 @@ Security:
 - CSRF protection via Streamlit's built-in session state
 """
 
-import os
-import streamlit as st
 import hashlib
 import hmac
-from datetime import datetime, timedelta
-from typing import Optional, Dict
 import json
+import os
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Dict, Optional
 
+import streamlit as st
 
 # ============================================================================
 # CONFIGURATION
@@ -49,7 +49,7 @@ DEFAULT_USERS = {
     "admin": {
         "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",  # "password" - CHANGE THIS!
         "name": "Administrator",
-        "role": "admin"
+        "role": "admin",
     }
 }
 
@@ -63,6 +63,7 @@ AUTH_CONFIG_FILE = Path(__file__).parent.parent / ".auth_config.json"
 # ============================================================================
 # PASSWORD HASHING
 # ============================================================================
+
 
 def hash_password(password: str) -> str:
     """
@@ -81,6 +82,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 # ============================================================================
 # USER MANAGEMENT
 # ============================================================================
+
 
 def load_users() -> Dict:
     """
@@ -127,7 +129,7 @@ def authenticate_user(username: str, password: str) -> Optional[Dict]:
         return {
             "username": username,
             "name": user.get("name", username),
-            "role": user.get("role", "user")
+            "role": user.get("role", "user"),
         }
 
     return None
@@ -136,6 +138,7 @@ def authenticate_user(username: str, password: str) -> Optional[Dict]:
 # ============================================================================
 # SESSION MANAGEMENT
 # ============================================================================
+
 
 def is_session_valid() -> bool:
     """Check if the current session is valid and not expired."""
@@ -188,9 +191,11 @@ def logout():
 # AUTHENTICATION UI
 # ============================================================================
 
+
 def show_login_page():
     """Display the login page."""
-    st.markdown("""
+    st.markdown(
+        """
     <style>
         .login-container {
             max-width: 400px;
@@ -208,15 +213,21 @@ def show_login_page():
             color: #1f77b4;
         }
     </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
-    st.markdown('<div class="login-header">🔐 TaxDesk Login</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="login-header">🔐 TaxDesk Login</div>', unsafe_allow_html=True
+    )
     st.markdown("Please authenticate to access the dashboard")
 
     with st.form("login_form"):
         username = st.text_input("Username", key="login_username")
         password = st.text_input("Password", type="password", key="login_password")
-        submit = st.form_submit_button("Login", type="primary", use_container_width=True)
+        submit = st.form_submit_button(
+            "Login", type="primary", use_container_width=True
+        )
 
         if submit:
             if username and password:
@@ -230,7 +241,9 @@ def show_login_page():
 
     # Show warning if using default credentials
     if load_users() == DEFAULT_USERS:
-        st.warning("⚠️ **Security Warning**: Using default credentials. Please configure proper authentication!")
+        st.warning(
+            "⚠️ **Security Warning**: Using default credentials. Please configure proper authentication!"
+        )
 
 
 def show_logout_button():
@@ -250,6 +263,7 @@ def show_logout_button():
 # ============================================================================
 # MAIN AUTHENTICATION FUNCTION
 # ============================================================================
+
 
 def require_authentication() -> bool:
     """
@@ -282,6 +296,7 @@ def require_authentication() -> bool:
 # USER MANAGEMENT UTILITIES
 # ============================================================================
 
+
 def create_user_hash(password: str) -> str:
     """
     Create a password hash for a new user.
@@ -294,7 +309,7 @@ def create_user_hash(password: str) -> str:
 
 def save_auth_config(users: Dict):
     """Save users configuration to .auth_config.json"""
-    with open(AUTH_CONFIG_FILE, 'w') as f:
+    with open(AUTH_CONFIG_FILE, "w") as f:
         json.dump(users, f, indent=2)
     print(f"✅ Auth config saved to {AUTH_CONFIG_FILE}")
 
@@ -326,12 +341,14 @@ if __name__ == "__main__":
             users[username] = {
                 "password_hash": create_user_hash(password),
                 "name": name,
-                "role": role
+                "role": role,
             }
             save_auth_config(users)
             print(f"✅ User '{username}' created successfully")
         else:
-            print("Usage: python core/auth.py create_user <username> <password> <name> [role]")
+            print(
+                "Usage: python core/auth.py create_user <username> <password> <name> [role]"
+            )
 
     else:
         print("TaxDesk Authentication Module")

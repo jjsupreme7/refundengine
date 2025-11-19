@@ -5,12 +5,12 @@ Monitors Claude API usage to ensure we hit 80-85% of weekly limit.
 Provides alerts if usage falls below target pace.
 """
 
-import os
 import json
+import os
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
 
 from .communication import post_to_discord
 
@@ -18,6 +18,7 @@ from .communication import post_to_discord
 @dataclass
 class UsageRecord:
     """Single usage record"""
+
     timestamp: str
     messages: int
     team: str
@@ -48,8 +49,14 @@ class UsageTracker:
         self.weekly_target_percent = int(os.getenv("WEEKLY_TARGET_PERCENT", "85"))
         self.daily_target_messages = int(os.getenv("DAILY_TARGET_MESSAGES", "1800"))
 
-    def record_usage(self, team: str, agent: str, messages: int = 1,
-                    tokens_input: int = 0, tokens_output: int = 0) -> None:
+    def record_usage(
+        self,
+        team: str,
+        agent: str,
+        messages: int = 1,
+        tokens_input: int = 0,
+        tokens_output: int = 0,
+    ) -> None:
         """
         Record API usage.
 
@@ -66,7 +73,7 @@ class UsageTracker:
             team=team,
             agent=agent,
             tokens_input=tokens_input,
-            tokens_output=tokens_output
+            tokens_output=tokens_output,
         )
 
         # Append to daily log
@@ -97,7 +104,7 @@ class UsageTracker:
                 "messages": 0,
                 "tokens_input": 0,
                 "tokens_output": 0,
-                "by_team": {}
+                "by_team": {},
             }
 
         # Parse log file
@@ -115,7 +122,11 @@ class UsageTracker:
 
                 team = record.get("team", "unknown")
                 if team not in by_team:
-                    by_team[team] = {"messages": 0, "tokens_input": 0, "tokens_output": 0}
+                    by_team[team] = {
+                        "messages": 0,
+                        "tokens_input": 0,
+                        "tokens_output": 0,
+                    }
 
                 by_team[team]["messages"] += record.get("messages", 1)
                 by_team[team]["tokens_input"] += record.get("tokens_input", 0)
@@ -126,7 +137,7 @@ class UsageTracker:
             "messages": messages,
             "tokens_input": tokens_input,
             "tokens_output": tokens_output,
-            "by_team": by_team
+            "by_team": by_team,
         }
 
     def get_weekly_usage(self) -> Dict:
@@ -181,7 +192,8 @@ class UsageTracker:
             "target_messages": int(target_messages),
             "messages_remaining": int(target_messages - total_messages),
             "daily_breakdown": daily_breakdown,
-            "on_pace": usage_percent >= (self.weekly_target_percent * 0.9)  # Within 90% of target
+            "on_pace": usage_percent
+            >= (self.weekly_target_percent * 0.9),  # Within 90% of target
         }
 
     def check_daily_pace(self) -> Dict:
@@ -209,8 +221,8 @@ class UsageTracker:
             "weekly_summary": {
                 "usage_percent": weekly_usage["usage_percent"],
                 "target_percent": weekly_usage["target_percent"],
-                "on_pace": weekly_usage["on_pace"]
-            }
+                "on_pace": weekly_usage["on_pace"],
+            },
         }
 
     def send_pace_alert(self, force: bool = False) -> bool:

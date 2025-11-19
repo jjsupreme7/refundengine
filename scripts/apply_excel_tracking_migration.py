@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment variables
@@ -24,12 +25,17 @@ supabase = get_supabase_client()
 def apply_migration():
     """Apply Excel tracking migration"""
 
-    print("="*80)
+    print("=" * 80)
     print("EXCEL FILE TRACKING MIGRATION")
-    print("="*80)
+    print("=" * 80)
 
     # Read migration file
-    migration_file = Path(__file__).parent.parent / "database" / "schema" / "migration_excel_file_tracking.sql"
+    migration_file = (
+        Path(__file__).parent.parent
+        / "database"
+        / "schema"
+        / "migration_excel_file_tracking.sql"
+    )
 
     print(f"📋 Migration file: {migration_file.name}")
     print()
@@ -38,7 +44,7 @@ def apply_migration():
         print(f"❌ Migration file not found: {migration_file}")
         return False
 
-    with open(migration_file, 'r') as f:
+    with open(migration_file, "r") as f:
         sql = f.read()
 
     # Execute via Supabase Management API
@@ -55,7 +61,7 @@ def apply_migration():
     url = f"https://api.supabase.com/v1/projects/{SUPABASE_PROJECT_ID}/database/query"
     headers = {
         "Authorization": f"Bearer {SUPABASE_ACCESS_TOKEN}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
     payload = {"query": sql}
 
@@ -75,7 +81,7 @@ def apply_migration():
             print(f"📊 Result: {result}")
 
         print()
-        print("="*80)
+        print("=" * 80)
         print("✅ MIGRATION COMPLETED SUCCESSFULLY")
         print()
         print("New tables created:")
@@ -93,8 +99,10 @@ def apply_migration():
         print("Next steps:")
         print("  1. Use ExcelFileWatcher to monitor claim sheets")
         print("  2. Integrate with refund analysis engine")
-        print("  3. Test with: python core/excel_file_watcher.py --file test_data/Refund_Claim_Sheet_Test.xlsx")
-        print("="*80)
+        print(
+            "  3. Test with: python core/excel_file_watcher.py --file test_data/Refund_Claim_Sheet_Test.xlsx"
+        )
+        print("=" * 80)
         return True
     else:
         print()

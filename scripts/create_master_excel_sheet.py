@@ -26,9 +26,11 @@ OUTPUT COLUMNS (AI populates):
 - AI_Confidence
 """
 
-import pandas as pd
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+
 
 def create_master_excel_sheet():
     """
@@ -59,7 +61,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # REFUND OPPORTUNITY 2 - DAS with MPU
         {
             "Vendor_ID": "V-10002",
@@ -81,7 +82,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # REFUND OPPORTUNITY 3 - Out of State Shipment (Large $)
         {
             "Vendor_ID": "V-10003",
@@ -103,7 +103,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # REFUND OPPORTUNITY 4 - Professional Services
         {
             "Vendor_ID": "V-10004",
@@ -125,7 +124,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # REFUND OPPORTUNITY 5 - Custom Software (OLD LAW - not taxable)
         {
             "Vendor_ID": "V-10005",
@@ -147,7 +145,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # SMALL DOLLAR - AWS (< $20K)
         {
             "Vendor_ID": "V-10006",
@@ -169,7 +166,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # SMALL DOLLAR - Zoom (< $20K)
         {
             "Vendor_ID": "V-10007",
@@ -191,7 +187,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # SMALL DOLLAR - Slack (< $20K)
         {
             "Vendor_ID": "V-10008",
@@ -213,7 +208,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # LICENSE vs SAAS - Needs review (ambiguous)
         {
             "Vendor_ID": "V-10009",
@@ -235,7 +229,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # NO REFUND - Telecom (properly taxed)
         {
             "Vendor_ID": "V-10010",
@@ -257,7 +250,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # NO REFUND - Office Supplies (properly taxed)
         {
             "Vendor_ID": "V-10011",
@@ -279,7 +271,6 @@ def create_master_excel_sheet():
             "Legal_Citation": "",
             "AI_Confidence": "",
         },
-
         # NO REFUND - Internet Service (properly taxed)
         {
             "Vendor_ID": "V-10012",
@@ -336,7 +327,7 @@ def create_master_excel_sheet():
     output_path = Path("test_data/Master_Claim_Sheet.xlsx")
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
         df.to_excel(writer, sheet_name="Claim Sheet", index=False)
 
         # Auto-adjust column widths
@@ -353,16 +344,16 @@ def create_master_excel_sheet():
             adjusted_width = min(max_length + 2, 50)
             worksheet.column_dimensions[column_letter].width = adjusted_width
 
-    print("="*80)
+    print("=" * 80)
     print("MASTER CLAIM SHEET CREATED")
-    print("="*80)
+    print("=" * 80)
     print()
     print(f"📄 File: {output_path}")
     print(f"📊 Rows: {len(df)}")
     print()
 
     # Calculate summary
-    total_tax = df['Tax_Amount'].sum()
+    total_tax = df["Tax_Amount"].sum()
     refund_opps = 9  # Based on expected refunds
     properly_taxed = 3
 
@@ -421,7 +412,7 @@ def create_master_excel_sheet():
     print("    - Resale")
     print("    - Wrong Rate")
     print()
-    print("="*80)
+    print("=" * 80)
 
     return output_path
 

@@ -14,9 +14,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 load_dotenv()
+
 
 def main():
     """Populate file_url for WTD documents"""
@@ -25,7 +27,13 @@ def main():
 
     # Get all WTD documents missing file_url
     print("🔍 Finding WTD documents without file_url...")
-    missing = supabase.table('knowledge_documents').select('id, citation, source_file').ilike('citation', 'Det.%').is_('file_url', 'null').execute()
+    missing = (
+        supabase.table("knowledge_documents")
+        .select("id, citation, source_file")
+        .ilike("citation", "Det.%")
+        .is_("file_url", "null")
+        .execute()
+    )
 
     print(f"Found {len(missing.data)} WTD documents missing file_url\n")
 
@@ -34,7 +42,7 @@ def main():
         return
 
     # Get the Supabase URL from env
-    supabase_url = os.getenv('SUPABASE_URL')
+    supabase_url = os.getenv("SUPABASE_URL")
     if not supabase_url:
         print("❌ Error: SUPABASE_URL not found in environment")
         return
@@ -44,9 +52,9 @@ def main():
     error_count = 0
 
     for doc in missing.data:
-        doc_id = doc['id']
-        citation = doc.get('citation', 'N/A')
-        source_file = doc.get('source_file', '')
+        doc_id = doc["id"]
+        citation = doc.get("citation", "N/A")
+        source_file = doc.get("source_file", "")
 
         if not source_file:
             print(f"⚠️  Skipping {citation} - no source_file")
@@ -58,21 +66,28 @@ def main():
         # Becomes: https://PROJECT.supabase.co/storage/v1/object/public/knowledge-base/wa_tax_law/tax_decisions/2022/41WTD282.pdf
 
         # Remove leading slashes and 'knowledge_base/' prefix if it doesn't have it
-        clean_path = source_file.lstrip('/')
-        if not clean_path.startswith('knowledge_base/'):
-            clean_path = 'knowledge_base/' + clean_path.replace('knowledge_base', '').lstrip('/')
+        clean_path = source_file.lstrip("/")
+        if not clean_path.startswith("knowledge_base/"):
+            clean_path = "knowledge_base/" + clean_path.replace(
+                "knowledge_base", ""
+            ).lstrip("/")
 
         # Remove the 'knowledge_base/' prefix for the storage path
-        storage_path = clean_path.replace('knowledge_base/', '')
+        storage_path = clean_path.replace("knowledge_base/", "")
 
         # Build the full URL
-        file_url = f"{supabase_url}/storage/v1/object/public/knowledge-base/{storage_path}"
+        file_url = (
+            f"{supabase_url}/storage/v1/object/public/knowledge-base/{storage_path}"
+        )
 
         # Update the document
         try:
-            result = supabase.table('knowledge_documents').update({
-                'file_url': file_url
-            }).eq('id', doc_id).execute()
+            result = (
+                supabase.table("knowledge_documents")
+                .update({"file_url": file_url})
+                .eq("id", doc_id)
+                .execute()
+            )
 
             print(f"✅ Updated: {citation}")
             print(f"   URL: {file_url}")

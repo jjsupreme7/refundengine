@@ -11,18 +11,20 @@ Usage:
 import os
 import sys
 from pathlib import Path
-from supabase import create_client, Client
+
 from dotenv import load_dotenv
+from supabase import Client, create_client
 
 # Load environment
 load_dotenv()
+
 
 def setup_storage_buckets():
     """Create Supabase Storage buckets for Excel files"""
 
     # Initialize Supabase client
-    supabase_url = os.getenv('SUPABASE_URL')
-    supabase_key = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
     if not supabase_url or not supabase_key:
         print("❌ Error: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
@@ -42,8 +44,8 @@ def setup_storage_buckets():
             "file_size_limit": 52428800,  # 50MB
             "allowed_mime_types": [
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/vnd.ms-excel"
-            ]
+                "application/vnd.ms-excel",
+            ],
         },
         {
             "id": "excel-versions",
@@ -52,8 +54,8 @@ def setup_storage_buckets():
             "file_size_limit": 52428800,  # 50MB
             "allowed_mime_types": [
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/vnd.ms-excel"
-            ]
+                "application/vnd.ms-excel",
+            ],
         },
         {
             "id": "excel-exports",
@@ -63,9 +65,9 @@ def setup_storage_buckets():
             "allowed_mime_types": [
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "application/pdf",
-                "application/json"
-            ]
-        }
+                "application/json",
+            ],
+        },
     ]
 
     for bucket_config in buckets:
@@ -76,8 +78,8 @@ def setup_storage_buckets():
                 options={
                     "public": bucket_config["public"],
                     "fileSizeLimit": bucket_config["file_size_limit"],
-                    "allowedMimeTypes": bucket_config["allowed_mime_types"]
-                }
+                    "allowedMimeTypes": bucket_config["allowed_mime_types"],
+                },
             )
             print(f"✅ Created bucket: {bucket_config['name']}")
 
@@ -91,7 +93,8 @@ def setup_storage_buckets():
     print()
     print("📋 Storage RLS Policies")
     print("=" * 60)
-    print("""
+    print(
+        """
 The following RLS policies should be applied via Supabase Dashboard
 or SQL migration:
 
@@ -145,7 +148,8 @@ USING (
     bucket_id = 'excel-exports' AND
     (storage.foldername(name))[1] = auth.uid()::text
 );
-    """)
+    """
+    )
 
     print()
     print("✅ Storage setup complete!")
@@ -163,6 +167,7 @@ USING (
     print("    ├── {user_id}/change_history/{filename}.xlsx")
     print("    └── {user_id}/exports/{filename}.json")
     print()
+
 
 if __name__ == "__main__":
     setup_storage_buckets()

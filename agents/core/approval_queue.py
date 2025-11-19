@@ -5,18 +5,19 @@ Manages the human approval workflow for agent proposals.
 Proposals are stored in the workspace and require explicit human approval.
 """
 
-import os
 import json
+import os
 import shutil
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional
 
 
 @dataclass
 class Proposal:
     """Represents an agent proposal"""
+
     id: str
     title: str
     description: str
@@ -52,9 +53,12 @@ class ApprovalQueue:
         for status_dir in ["PENDING", "APPROVED", "REJECTED", "DEFERRED"]:
             (self.proposals_dir / status_dir).mkdir(parents=True, exist_ok=True)
 
-    def get_proposals(self, status: str = "pending",
-                     priority: Optional[List[str]] = None,
-                     team: Optional[List[str]] = None) -> List[Proposal]:
+    def get_proposals(
+        self,
+        status: str = "pending",
+        priority: Optional[List[str]] = None,
+        team: Optional[List[str]] = None,
+    ) -> List[Proposal]:
         """
         Get proposals matching criteria.
 
@@ -105,7 +109,10 @@ class ApprovalQueue:
 
         # Sort by priority (high first) then by created_at (newest first)
         priority_order = {"high": 0, "medium": 1, "low": 2}
-        proposals.sort(key=lambda p: (priority_order.get(p.priority, 3), p.created_at), reverse=True)
+        proposals.sort(
+            key=lambda p: (priority_order.get(p.priority, 3), p.created_at),
+            reverse=True,
+        )
 
         return proposals
 
@@ -190,18 +197,22 @@ class ApprovalQueue:
         if "revisions" not in proposal.metadata:
             proposal.metadata["revisions"] = []
 
-        proposal.metadata["revisions"].append({
-            "timestamp": datetime.now().isoformat(),
-            "feedback": feedback
-        })
+        proposal.metadata["revisions"].append(
+            {"timestamp": datetime.now().isoformat(), "feedback": feedback}
+        )
 
         # Update proposal
         self._update_proposal_metadata(proposal_id, proposal.metadata)
 
         return True
 
-    def _move_proposal(self, proposal_id: str, from_status: str,
-                      to_status: str, notes: Optional[str] = None) -> bool:
+    def _move_proposal(
+        self,
+        proposal_id: str,
+        from_status: str,
+        to_status: str,
+        notes: Optional[str] = None,
+    ) -> bool:
         """
         Move a proposal from one status to another.
 
@@ -249,7 +260,9 @@ class ApprovalQueue:
 
         # Find proposal file
         for status_dir in ["PENDING", "APPROVED", "REJECTED", "DEFERRED"]:
-            proposal_file = self.proposals_dir / status_dir / proposal_id / "proposal.json"
+            proposal_file = (
+                self.proposals_dir / status_dir / proposal_id / "proposal.json"
+            )
             if proposal_file.exists():
                 with open(proposal_file, "r") as f:
                     data = json.load(f)

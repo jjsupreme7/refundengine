@@ -6,8 +6,9 @@ Reads WA_Tax_Law_2010.xlsx through WA_Tax_Law_2025.xlsx and combines
 them into a single WA_Tax_Decisions_Complete.xlsx file sorted by year.
 """
 
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 
 def combine_excel_files():
@@ -49,15 +50,15 @@ def combine_excel_files():
     combined_df = pd.concat(all_data, ignore_index=True)
 
     # Sort by File_Path (newest first - files are named with year in path)
-    if 'File_Path' in combined_df.columns:
-        combined_df = combined_df.sort_values('File_Path', ascending=False)
-    elif 'effective_date' in combined_df.columns:
-        combined_df = combined_df.sort_values('effective_date', ascending=False)
+    if "File_Path" in combined_df.columns:
+        combined_df = combined_df.sort_values("File_Path", ascending=False)
+    elif "effective_date" in combined_df.columns:
+        combined_df = combined_df.sort_values("effective_date", ascending=False)
 
     # Save to master Excel file
     master_file = output_dir / "WA_Tax_Decisions_Complete.xlsx"
 
-    with pd.ExcelWriter(master_file, engine='openpyxl') as writer:
+    with pd.ExcelWriter(master_file, engine="openpyxl") as writer:
         combined_df.to_excel(writer, sheet_name="Metadata", index=False)
 
     print("\n" + "=" * 70)
@@ -74,7 +75,9 @@ def combine_excel_files():
     print("     - 'Approved' = Ready to ingest")
     print("     - 'Skip' = Don't ingest this document")
     print("  5. Save the Excel file")
-    print("  6. Run: python core/ingest_documents.py --import-metadata outputs/WA_Tax_Decisions_Complete.xlsx")
+    print(
+        "  6. Run: python core/ingest_documents.py --import-metadata outputs/WA_Tax_Decisions_Complete.xlsx"
+    )
     print("=" * 70)
 
 

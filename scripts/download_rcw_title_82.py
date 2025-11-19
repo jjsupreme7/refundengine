@@ -25,7 +25,6 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 
-
 # Configuration
 DEFAULT_OUTPUT_DIR = "knowledge_base/wa_tax_law/rcw/title_82"
 BASE_URL = "https://app.leg.wa.gov/rcw"
@@ -34,18 +33,22 @@ RATE_LIMIT_SECONDS = 2.0  # Respectful rate limiting
 
 # Priority chapters for sales/use tax refund analysis
 PRIORITY_CHAPTERS = [
-    '82.04',  # Business and occupation tax
-    '82.08',  # Retail sales tax
-    '82.12',  # Use tax
-    '82.14',  # Local retail sales and use taxes
-    '82.32',  # Excise tax—administrative provisions
+    "82.04",  # Business and occupation tax
+    "82.08",  # Retail sales tax
+    "82.12",  # Use tax
+    "82.14",  # Local retail sales and use taxes
+    "82.32",  # Excise tax—administrative provisions
 ]
 
 
 class RCWTitleScraper:
     """Scraper for Revised Code of Washington Title 82"""
 
-    def __init__(self, output_dir: str = DEFAULT_OUTPUT_DIR, rate_limit: float = RATE_LIMIT_SECONDS):
+    def __init__(
+        self,
+        output_dir: str = DEFAULT_OUTPUT_DIR,
+        rate_limit: float = RATE_LIMIT_SECONDS,
+    ):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.rate_limit = rate_limit
@@ -72,24 +75,26 @@ class RCWTitleScraper:
             print(f"❌ Error fetching title page: {e}")
             return []
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, "html.parser")
         chapters = []
 
         # Find all chapter links (format: cite=82.XX)
-        for link in soup.find_all('a', href=re.compile(r'cite=82\.\d+')):
-            href = link.get('href')
-            cite_match = re.search(r'cite=(82\.\d+)', href)
+        for link in soup.find_all("a", href=re.compile(r"cite=82\.\d+")):
+            href = link.get("href")
+            cite_match = re.search(r"cite=(82\.\d+)", href)
 
             if cite_match:
                 chapter_cite = cite_match.group(1)
                 chapter_title = link.get_text(strip=True)
                 chapter_url = urljoin(BASE_URL, href)
 
-                chapters.append({
-                    'cite': chapter_cite,
-                    'title': chapter_title,
-                    'url': chapter_url,
-                })
+                chapters.append(
+                    {
+                        "cite": chapter_cite,
+                        "title": chapter_title,
+                        "url": chapter_url,
+                    }
+                )
 
         print(f"✅ Found {len(chapters)} chapters in Title {title_cite}")
         return chapters
@@ -113,27 +118,29 @@ class RCWTitleScraper:
             print(f"  ❌ Error fetching chapter {chapter_cite}: {e}")
             return []
 
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = BeautifulSoup(response.text, "html.parser")
         sections = []
 
         # Find all section links (format: cite=82.XX.XXX)
-        pattern = re.compile(rf'cite={re.escape(chapter_cite)}\.\d+')
+        pattern = re.compile(rf"cite={re.escape(chapter_cite)}\.\d+")
 
-        for link in soup.find_all('a', href=pattern):
-            href = link.get('href')
-            cite_match = re.search(r'cite=(82\.\d+\.\d+)', href)
+        for link in soup.find_all("a", href=pattern):
+            href = link.get("href")
+            cite_match = re.search(r"cite=(82\.\d+\.\d+)", href)
 
             if cite_match:
                 section_cite = cite_match.group(1)
                 section_title = link.get_text(strip=True)
                 section_url = urljoin(BASE_URL, href)
 
-                sections.append({
-                    'cite': section_cite,
-                    'title': section_title,
-                    'url': section_url,
-                    'chapter': chapter_cite,
-                })
+                sections.append(
+                    {
+                        "cite": section_cite,
+                        "title": section_title,
+                        "url": section_url,
+                        "chapter": chapter_cite,
+                    }
+                )
 
         return sections
 
@@ -149,16 +156,16 @@ class RCWTitleScraper:
         Returns:
             True if successful, False otherwise
         """
-        cite = section['cite']
-        safe_cite = cite.replace('.', '_')
-        safe_title = re.sub(r'[^\w\s-]', '', section['title'])
-        safe_title = re.sub(r'\s+', '_', safe_title)
+        cite = section["cite"]
+        safe_cite = cite.replace(".", "_")
+        safe_title = re.sub(r"[^\w\s-]", "", section["title"])
+        safe_title = re.sub(r"\s+", "_", safe_title)
         base_filename = f"{safe_cite}_{safe_title[:50]}"
 
         success = True
 
         # Download HTML
-        if format in ['html', 'both']:
+        if format in ["html", "both"]:
             html_path = chapter_dir / f"{base_filename}.html"
 
             if not html_path.exists():
@@ -171,7 +178,7 @@ class RCWTitleScraper:
                     success = False
 
         # Download PDF
-        if format in ['pdf', 'both']:
+        if format in ["pdf", "both"]:
             pdf_path = chapter_dir / f"{base_filename}.pdf"
 
             if not pdf_path.exists():
@@ -180,30 +187,32 @@ class RCWTitleScraper:
 
                 if pdf_content:
                     # Verify it's actually a PDF (not an error page)
-                    if pdf_content.content[:4] == b'%PDF':
+                    if pdf_content.content[:4] == b"%PDF":
                         pdf_path.write_bytes(pdf_content.content)
                     else:
                         print(f"  ⚠️  PDF generation failed for {cite}, skipping PDF")
                         # Still consider success if HTML worked
-                        success = success and (format == 'both')
+                        success = success and (format == "both")
                 else:
                     success = False
 
         # Save metadata
-        if success or format == 'html':  # Save metadata even if PDF failed
+        if success or format == "html":  # Save metadata even if PDF failed
             metadata_path = chapter_dir / f"{base_filename}.json"
             metadata = {
-                'cite': section['cite'],
-                'title': section['title'],
-                'chapter': section['chapter'],
-                'url': section['url'],
-                'downloaded_at': time.strftime('%Y-%m-%d %H:%M:%S'),
+                "cite": section["cite"],
+                "title": section["title"],
+                "chapter": section["chapter"],
+                "url": section["url"],
+                "downloaded_at": time.strftime("%Y-%m-%d %H:%M:%S"),
             }
             metadata_path.write_text(json.dumps(metadata, indent=2))
 
         return success
 
-    def _download_with_retry(self, url: str, max_retries: int = 3) -> Optional[requests.Response]:
+    def _download_with_retry(
+        self, url: str, max_retries: int = 3
+    ) -> Optional[requests.Response]:
         """Download with exponential backoff retry logic"""
         for attempt in range(max_retries):
             try:
@@ -214,12 +223,14 @@ class RCWTitleScraper:
                 if attempt == max_retries - 1:
                     return None
 
-                wait_time = 2 ** attempt
+                wait_time = 2**attempt
                 time.sleep(wait_time)
 
         return None
 
-    def download_chapter(self, chapter_cite: str, format: str, limit: Optional[int] = None) -> Dict[str, int]:
+    def download_chapter(
+        self, chapter_cite: str, format: str, limit: Optional[int] = None
+    ) -> Dict[str, int]:
         """
         Download all sections in a chapter
 
@@ -237,7 +248,7 @@ class RCWTitleScraper:
 
         if not sections:
             print(f"  ❌ No sections found in chapter {chapter_cite}")
-            return {'success': 0, 'skipped': 0, 'failed': 0}
+            return {"success": 0, "skipped": 0, "failed": 0}
 
         print(f"  ✅ Found {len(sections)} sections")
 
@@ -246,44 +257,49 @@ class RCWTitleScraper:
             print(f"  ⚠️  Limiting to {limit} sections for testing")
 
         # Create chapter directory
-        safe_chapter = chapter_cite.replace('.', '_')
+        safe_chapter = chapter_cite.replace(".", "_")
         chapter_dir = self.output_dir / f"chapter_{safe_chapter}"
         chapter_dir.mkdir(parents=True, exist_ok=True)
 
         # Download sections
-        stats = {'success': 0, 'skipped': 0, 'failed': 0}
+        stats = {"success": 0, "skipped": 0, "failed": 0}
 
         for section in tqdm(sections, desc=f"  {chapter_cite}"):
             # Check if already exists
-            safe_cite = section['cite'].replace('.', '_')
+            safe_cite = section["cite"].replace(".", "_")
             html_exists = any(chapter_dir.glob(f"{safe_cite}_*.html"))
             pdf_exists = any(chapter_dir.glob(f"{safe_cite}_*.pdf"))
 
             skip = False
-            if format == 'html' and html_exists:
+            if format == "html" and html_exists:
                 skip = True
-            elif format == 'pdf' and pdf_exists:
+            elif format == "pdf" and pdf_exists:
                 skip = True
-            elif format == 'both' and html_exists and pdf_exists:
+            elif format == "both" and html_exists and pdf_exists:
                 skip = True
 
             if skip:
-                stats['skipped'] += 1
+                stats["skipped"] += 1
                 continue
 
             success = self.download_section(section, format, chapter_dir)
 
             if success:
-                stats['success'] += 1
+                stats["success"] += 1
             else:
-                stats['failed'] += 1
+                stats["failed"] += 1
 
             # Rate limiting
             time.sleep(self.rate_limit)
 
         return stats
 
-    def download_all(self, chapter_filter: Optional[List[str]] = None, format: str = 'both', limit: Optional[int] = None):
+    def download_all(
+        self,
+        chapter_filter: Optional[List[str]] = None,
+        format: str = "both",
+        limit: Optional[int] = None,
+    ):
         """
         Download all chapters and sections
 
@@ -301,14 +317,16 @@ class RCWTitleScraper:
 
         # Filter chapters if specified
         if chapter_filter:
-            chapters = [c for c in chapters if c['cite'] in chapter_filter]
-            print(f"📋 Filtered to {len(chapters)} chapters: {', '.join(chapter_filter)}")
+            chapters = [c for c in chapters if c["cite"] in chapter_filter]
+            print(
+                f"📋 Filtered to {len(chapters)} chapters: {', '.join(chapter_filter)}"
+            )
 
         # Download each chapter
-        total_stats = {'success': 0, 'skipped': 0, 'failed': 0}
+        total_stats = {"success": 0, "skipped": 0, "failed": 0}
 
         for chapter in chapters:
-            stats = self.download_chapter(chapter['cite'], format, limit)
+            stats = self.download_chapter(chapter["cite"], format, limit)
 
             for key in stats:
                 total_stats[key] += stats[key]
@@ -329,35 +347,33 @@ def main():
         description="Download Revised Code of Washington (RCW) Title 82"
     )
     parser.add_argument(
-        '--output-dir',
+        "--output-dir",
         default=DEFAULT_OUTPUT_DIR,
-        help=f"Output directory (default: {DEFAULT_OUTPUT_DIR})"
+        help=f"Output directory (default: {DEFAULT_OUTPUT_DIR})",
     )
     parser.add_argument(
-        '--chapters',
-        help=f"Comma-separated chapters to download (e.g., '82.04,82.08,82.12'). Default: {','.join(PRIORITY_CHAPTERS)}"
+        "--chapters",
+        help=f"Comma-separated chapters to download (e.g., '82.04,82.08,82.12'). Default: {','.join(PRIORITY_CHAPTERS)}",
     )
     parser.add_argument(
-        '--all-chapters',
-        action='store_true',
-        help="Download ALL chapters (not just priority ones)"
+        "--all-chapters",
+        action="store_true",
+        help="Download ALL chapters (not just priority ones)",
     )
     parser.add_argument(
-        '--format',
-        choices=['html', 'pdf', 'both'],
-        default='both',
-        help="Download format (default: both)"
+        "--format",
+        choices=["html", "pdf", "both"],
+        default="both",
+        help="Download format (default: both)",
     )
     parser.add_argument(
-        '--limit',
-        type=int,
-        help="Limit sections per chapter (for testing)"
+        "--limit", type=int, help="Limit sections per chapter (for testing)"
     )
     parser.add_argument(
-        '--rate-limit',
+        "--rate-limit",
         type=float,
         default=RATE_LIMIT_SECONDS,
-        help=f"Seconds between downloads (default: {RATE_LIMIT_SECONDS})"
+        help=f"Seconds between downloads (default: {RATE_LIMIT_SECONDS})",
     )
 
     args = parser.parse_args()
@@ -365,7 +381,7 @@ def main():
     # Determine chapter filter
     chapter_filter = None
     if args.chapters:
-        chapter_filter = [c.strip() for c in args.chapters.split(',')]
+        chapter_filter = [c.strip() for c in args.chapters.split(",")]
     elif not args.all_chapters:
         chapter_filter = PRIORITY_CHAPTERS
 
@@ -377,7 +393,9 @@ def main():
     print("Revised Code of Washington (RCW) Title 82 Downloader")
     print("=" * 70)
 
-    scraper.download_all(chapter_filter=chapter_filter, format=args.format, limit=args.limit)
+    scraper.download_all(
+        chapter_filter=chapter_filter, format=args.format, limit=args.limit
+    )
 
 
 if __name__ == "__main__":

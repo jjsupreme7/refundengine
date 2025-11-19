@@ -12,6 +12,7 @@ Usage:
 import os
 import sys
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Add parent directory to path for imports
@@ -159,7 +160,9 @@ def main():
         # We need to use the PostgREST API or a direct database connection
 
         # For now, let's provide instructions for manual deployment
-        print("⚠️  Note: The Supabase Python client does not support direct SQL execution.")
+        print(
+            "⚠️  Note: The Supabase Python client does not support direct SQL execution."
+        )
         print("   You have two options to deploy these changes:\n")
 
         print("Option 1: Use Supabase Dashboard")

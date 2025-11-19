@@ -19,27 +19,30 @@ Usage:
 
 import os
 import sys
-from pathlib import Path
-from typing import Tuple, Dict, Optional
 import warnings
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 
 # PDF extraction
 try:
     import pdfplumber
+
     PDFPLUMBER_AVAILABLE = True
 except ImportError:
     PDFPLUMBER_AVAILABLE = False
 
 try:
     import PyPDF2
+
     PYPDF2_AVAILABLE = True
 except ImportError:
     PYPDF2_AVAILABLE = False
 
 # Image/OCR extraction
 try:
-    from PIL import Image
     import pytesseract
+    from PIL import Image
+
     TESSERACT_AVAILABLE = True
 except ImportError:
     TESSERACT_AVAILABLE = False
@@ -48,6 +51,7 @@ except ImportError:
 # MSG extraction
 try:
     import extract_msg
+
     EXTRACTMSG_AVAILABLE = True
 except ImportError:
     EXTRACTMSG_AVAILABLE = False
@@ -56,6 +60,7 @@ except ImportError:
 # Excel extraction
 try:
     import pandas as pd
+
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
@@ -134,7 +139,9 @@ def extract_text_from_tif(tif_path: str) -> Tuple[str, int]:
         Install: https://github.com/tesseract-ocr/tesseract
     """
     if not TESSERACT_AVAILABLE:
-        raise ImportError("pytesseract not available. Install: pip install pytesseract Pillow")
+        raise ImportError(
+            "pytesseract not available. Install: pip install pytesseract Pillow"
+        )
 
     try:
         # Check if Tesseract is installed
@@ -208,7 +215,9 @@ def extract_text_from_msg(msg_path: str) -> Tuple[str, Dict]:
             "sender": msg.sender or "Unknown",
             "recipients": [str(r) for r in (msg.recipients or [])],
             "date": str(msg.date) if msg.date else None,
-            "attachments": [att.longFilename or att.shortFilename for att in (msg.attachments or [])],
+            "attachments": [
+                att.longFilename or att.shortFilename for att in (msg.attachments or [])
+            ],
         }
 
         # Combine body and metadata into readable text
@@ -231,7 +240,9 @@ MESSAGE BODY:
         return "", {}
 
 
-def extract_text_from_excel(excel_path: str, sheet_name: Optional[str] = None) -> Tuple[str, int]:
+def extract_text_from_excel(
+    excel_path: str, sheet_name: Optional[str] = None
+) -> Tuple[str, int]:
     """
     Extract text from Excel file (XLS/XLSX)
 
@@ -270,7 +281,9 @@ def extract_text_from_excel(excel_path: str, sheet_name: Optional[str] = None) -
         return "", 0
 
 
-def extract_text_from_file(file_path: str, max_pages: int = None, base_dir: Optional[str] = None) -> Tuple[str, int]:
+def extract_text_from_file(
+    file_path: str, max_pages: int = None, base_dir: Optional[str] = None
+) -> Tuple[str, int]:
     """
     Universal file extractor - automatically detects file type and extracts text
 
@@ -305,7 +318,9 @@ def extract_text_from_file(file_path: str, max_pages: int = None, base_dir: Opti
         base_path = Path(base_dir).resolve()
         try:
             if not str(path).startswith(str(base_path)):
-                raise ValueError(f"Path traversal detected: {file_path} is outside {base_dir}")
+                raise ValueError(
+                    f"Path traversal detected: {file_path} is outside {base_dir}"
+                )
         except Exception as e:
             raise ValueError(f"Invalid file path: {file_path} - {e}")
 
@@ -314,17 +329,17 @@ def extract_text_from_file(file_path: str, max_pages: int = None, base_dir: Opti
 
     suffix = path.suffix.lower()
 
-    if suffix == '.pdf':
+    if suffix == ".pdf":
         return extract_text_from_pdf(file_path, max_pages)
 
-    elif suffix in ['.tif', '.tiff']:
+    elif suffix in [".tif", ".tiff"]:
         return extract_text_from_tif(file_path)
 
-    elif suffix == '.msg':
+    elif suffix == ".msg":
         text, metadata = extract_text_from_msg(file_path)
         return text, 1  # Return 1 as "page count" for consistency
 
-    elif suffix in ['.xls', '.xlsx']:
+    elif suffix in [".xls", ".xlsx"]:
         return extract_text_from_excel(file_path)
 
     else:
@@ -374,8 +389,24 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 70)
     print("Supported file types:")
-    print("  - PDF (.pdf) - Available" if deps["pdfplumber"] or deps["PyPDF2"] else "  - PDF (.pdf) - NOT AVAILABLE")
-    print("  - TIF (.tif, .tiff) - Available" if deps["tesseract_binary"] else "  - TIF (.tif, .tiff) - NOT AVAILABLE (need Tesseract)")
-    print("  - MSG (.msg) - Available" if deps["extract-msg"] else "  - MSG (.msg) - NOT AVAILABLE")
-    print("  - Excel (.xls, .xlsx) - Available" if deps["pandas"] else "  - Excel (.xls, .xlsx) - NOT AVAILABLE")
+    print(
+        "  - PDF (.pdf) - Available"
+        if deps["pdfplumber"] or deps["PyPDF2"]
+        else "  - PDF (.pdf) - NOT AVAILABLE"
+    )
+    print(
+        "  - TIF (.tif, .tiff) - Available"
+        if deps["tesseract_binary"]
+        else "  - TIF (.tif, .tiff) - NOT AVAILABLE (need Tesseract)"
+    )
+    print(
+        "  - MSG (.msg) - Available"
+        if deps["extract-msg"]
+        else "  - MSG (.msg) - NOT AVAILABLE"
+    )
+    print(
+        "  - Excel (.xls, .xlsx) - Available"
+        if deps["pandas"]
+        else "  - Excel (.xls, .xlsx) - NOT AVAILABLE"
+    )
     print("=" * 70)

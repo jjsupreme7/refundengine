@@ -9,15 +9,17 @@ Usage:
     streamlit run dashboard_app.py --server.port 5001
 """
 
-import streamlit as st
-from pathlib import Path
 import sys
+from pathlib import Path
+
+import streamlit as st
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Load environment
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Page configuration - MUST be first Streamlit command
@@ -26,9 +28,7 @@ st.set_page_config(
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
-    menu_items={
-        'About': "TaxDesk - AI-Powered Tax Refund Analysis Platform"
-    }
+    menu_items={"About": "TaxDesk - AI-Powered Tax Refund Analysis Platform"},
 )
 
 # AUTHENTICATION - Require login before accessing dashboard
@@ -39,7 +39,8 @@ if not require_authentication():
     st.stop()
 
 # Custom CSS for professional styling
-st.markdown("""
+st.markdown(
+    """
 <style>
     /* Main theme colors */
     :root {
@@ -232,14 +233,16 @@ st.markdown("""
         color: white;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Initialize session state
-if 'user_role' not in st.session_state:
-    st.session_state.user_role = 'Analyst'  # Default role
+if "user_role" not in st.session_state:
+    st.session_state.user_role = "Analyst"  # Default role
 
-if 'current_project' not in st.session_state:
-    st.session_state.current_project = 'WA-UT-2022_2024'
+if "current_project" not in st.session_state:
+    st.session_state.current_project = "WA-UT-2022_2024"
 
 # Sidebar Navigation
 with st.sidebar:
@@ -248,7 +251,8 @@ with st.sidebar:
     st.markdown("---")
 
     # Navigation info
-    st.info("""
+    st.info(
+        """
     **Navigation:**
 
     Use the sidebar to navigate between different sections of the dashboard.
@@ -259,7 +263,8 @@ with st.sidebar:
     - **3_Review_Queue**: Review flagged transactions
     - **4_Claims**: Draft and finalize claims
     - **5_Rules**: Tax rules and guidance
-    """)
+    """
+    )
 
     st.markdown("---")
 
@@ -269,13 +274,17 @@ with st.sidebar:
     st.metric("Pending Reviews", "12")
     st.metric("Est. Total Refund", "$184,230")
 
+
 # Main content
 def main():
     """Main dashboard landing page"""
 
     # Header
     st.markdown('<div class="main-header">📊 Dashboard</div>', unsafe_allow_html=True)
-    st.markdown('<div class="main-subtitle">Welcome back, analyst. Here\'s a summary of your portal.</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="main-subtitle">Welcome back, analyst. Here\'s a summary of your portal.</div>',
+        unsafe_allow_html=True,
+    )
 
     # Action button
     col1, col2, col3 = st.columns([1, 1, 4])
@@ -291,46 +300,58 @@ def main():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.markdown("""
+        st.markdown(
+            """
         <div class="stat-card">
             <div class="stat-label">Open Projects</div>
             <div class="stat-value">2</div>
             <div class="stat-sublabel">Across 2 jurisdictions</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button("View Projects →", key="view_projects"):
             st.info("Navigate to '1_Projects' in the sidebar")
 
     with col2:
-        st.markdown("""
+        st.markdown(
+            """
         <div class="stat-card warning">
             <div class="stat-label">Documents Awaiting Review</div>
             <div class="stat-value">1</div>
             <div class="stat-sublabel">Pending analysis</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button("View Documents →", key="view_docs"):
             st.info("Navigate to '2_Documents' in the sidebar")
 
     with col3:
-        st.markdown("""
+        st.markdown(
+            """
         <div class="stat-card danger">
             <div class="stat-label">Exceptions to Review</div>
             <div class="stat-value red">2</div>
             <div class="stat-sublabel">Below 90% confidence</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button("Open Review Queue →", key="view_review"):
             st.info("Navigate to '3_Review_Queue' in the sidebar")
 
     with col4:
-        st.markdown("""
+        st.markdown(
+            """
         <div class="stat-card success">
             <div class="stat-label">Draft Claims</div>
             <div class="stat-value">1</div>
             <div class="stat-sublabel">Ready for submission</div>
         </div>
-        """, unsafe_allow_html=True)
+        """,
+            unsafe_allow_html=True,
+        )
         if st.button("View Claims →", key="view_claims"):
             st.info("Navigate to '4_Claims' in the sidebar")
 
@@ -338,16 +359,19 @@ def main():
 
     # Project Spotlight Section
     st.markdown("### ⭐ Project Spotlight: WA Use Tax 2022–2024")
-    st.markdown("""
+    st.markdown(
+        """
     <div class="section-card">
         <div class="section-subtitle">Quick actions for your most active project.</div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     col1, col2, col3 = st.columns([1, 1, 3])
     with col1:
         if st.button("👁️ View Project", use_container_width=True):
-            st.session_state.current_project = 'WA-UT-2022_2024'
+            st.session_state.current_project = "WA-UT-2022_2024"
             st.info("Navigate to '1_Projects' to view project details")
 
     with col2:
@@ -358,7 +382,8 @@ def main():
 
     # Recent Activity
     st.markdown("### 📋 Recent Activity")
-    st.markdown("""
+    st.markdown(
+        """
     <div class="section-card">
         <ul style="color: #4a5568; line-height: 2;">
             <li><strong>2 hours ago</strong>: Analyzed 25 transactions from Red Bison Tech Services</li>
@@ -367,11 +392,16 @@ def main():
             <li><strong>3 days ago</strong>: Ingested new ESSB 5814 guidance documents</li>
         </ul>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
     # Footer
     st.markdown("---")
-    st.caption("🧠 Powered by Enhanced RAG + AI Analysis | 📚 Washington State Tax Law Database")
+    st.caption(
+        "🧠 Powered by Enhanced RAG + AI Analysis | 📚 Washington State Tax Law Database"
+    )
+
 
 if __name__ == "__main__":
     main()

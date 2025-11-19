@@ -11,25 +11,25 @@ Team Members:
 - Cross-Reference: Links related WAC/RCW/WTD documents
 """
 
-import os
 import json
-from pathlib import Path
+import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from agents.core.agent_base import Agent
 from agents.core.approval_queue import ApprovalQueue
-from agents.core.communication import post_to_discord, create_discussion_thread
+from agents.core.communication import create_discussion_thread, post_to_discord
 from agents.core.usage_tracker import UsageTracker
 
 
 def extract_json(response: str) -> dict:
     """Extract JSON from Claude response, handling markdown code blocks."""
     result_clean = response.strip()
-    if result_clean.startswith('```'):
+    if result_clean.startswith("```"):
         # Extract from markdown code block
-        result_clean = result_clean.split('```')[1]
-        if result_clean.startswith('json'):
+        result_clean = result_clean.split("```")[1]
+        if result_clean.startswith("json"):
             result_clean = result_clean[4:]
         result_clean = result_clean.strip()
     return json.loads(result_clean)
@@ -51,25 +51,13 @@ class KnowledgeCurationTeam:
         self.team_name = "knowledge_curation"
 
         # Initialize agents
-        self.legal_researcher = Agent(
-            name="legal_researcher",
-            team=self.team_name
-        )
+        self.legal_researcher = Agent(name="legal_researcher", team=self.team_name)
 
-        self.taxonomy = Agent(
-            name="taxonomy",
-            team=self.team_name
-        )
+        self.taxonomy = Agent(name="taxonomy", team=self.team_name)
 
-        self.summarizer = Agent(
-            name="summarizer",
-            team=self.team_name
-        )
+        self.summarizer = Agent(name="summarizer", team=self.team_name)
 
-        self.cross_reference = Agent(
-            name="cross_reference",
-            team=self.team_name
-        )
+        self.cross_reference = Agent(name="cross_reference", team=self.team_name)
 
         self.approval_queue = ApprovalQueue(workspace_path)
         self.usage_tracker = UsageTracker(workspace_path)
@@ -86,7 +74,7 @@ class KnowledgeCurationTeam:
         post_to_discord(
             "knowledge",
             f"📚 **Knowledge Curation Team** - Starting curation cycle at {start_time.strftime('%I:%M %p')}",
-            username="Knowledge Curation Team"
+            username="Knowledge Curation Team",
         )
 
         # Phase 1: Research and Discovery
@@ -99,10 +87,7 @@ class KnowledgeCurationTeam:
 
         # Phase 3: Team Discussion
         proposals = self._team_discussion(
-            law_updates,
-            vendor_research,
-            summaries,
-            cross_refs
+            law_updates, vendor_research, summaries, cross_refs
         )
 
         # Phase 4: Generate Proposals
@@ -121,13 +106,13 @@ class KnowledgeCurationTeam:
             "law_updates_found": len(law_updates),
             "vendors_researched": len(vendor_research),
             "summaries_created": len(summaries),
-            "cross_references_created": len(cross_refs)
+            "cross_references_created": len(cross_refs),
         }
 
         post_to_discord(
             "knowledge",
             f"✅ **Curation Complete** - Generated {len(proposals)} proposals in {duration:.1f}s",
-            username="Knowledge Curation Team"
+            username="Knowledge Curation Team",
         )
 
         return summary
@@ -139,7 +124,11 @@ class KnowledgeCurationTeam:
         Returns:
             List of potential law updates
         """
-        post_to_discord("knowledge", "**[Legal Researcher]** Monitoring tax law updates...", username="Legal Researcher")
+        post_to_discord(
+            "knowledge",
+            "**[Legal Researcher]** Monitoring tax law updates...",
+            username="Legal Researcher",
+        )
 
         # Check for recent updates in knowledge base
         prompt = """Monitor Washington State tax law for recent updates.
@@ -177,7 +166,9 @@ If no updates found, return: {"updates": []}
 """
 
         try:
-            result = self.legal_researcher.claude_analyze(prompt, context="tax_law_monitoring")
+            result = self.legal_researcher.claude_analyze(
+                prompt, context="tax_law_monitoring"
+            )
             self.usage_tracker.record_usage(self.team_name, "legal_researcher")
 
             updates = extract_json(result)
@@ -187,13 +178,13 @@ If no updates found, return: {"updates": []}
                 post_to_discord(
                     "knowledge",
                     f"**[Legal Researcher]** Found {len(findings)} potential updates",
-                    username="Legal Researcher"
+                    username="Legal Researcher",
                 )
             else:
                 post_to_discord(
                     "knowledge",
                     "**[Legal Researcher]** No updates found - knowledge base is current",
-                    username="Legal Researcher"
+                    username="Legal Researcher",
                 )
 
             return findings
@@ -202,7 +193,7 @@ If no updates found, return: {"updates": []}
             post_to_discord(
                 "knowledge",
                 f"⚠️ **[Legal Researcher]** Error monitoring updates: {str(e)}",
-                username="Legal Researcher"
+                username="Legal Researcher",
             )
             return []
 
@@ -213,7 +204,11 @@ If no updates found, return: {"updates": []}
         Returns:
             List of vendor research findings
         """
-        post_to_discord("knowledge", "**[Taxonomy]** Researching vendors...", username="Taxonomy Agent")
+        post_to_discord(
+            "knowledge",
+            "**[Taxonomy]** Researching vendors...",
+            username="Taxonomy Agent",
+        )
 
         # Get list of vendors from recent analyses
         prompt = """Review recent refund analyses to identify vendors that need better classification.
@@ -262,7 +257,7 @@ If no vendors to research, return: {"vendors": []}
             post_to_discord(
                 "knowledge",
                 f"**[Taxonomy]** Researched {len(vendors)} vendors",
-                username="Taxonomy Agent"
+                username="Taxonomy Agent",
             )
 
             return vendors
@@ -271,7 +266,7 @@ If no vendors to research, return: {"vendors": []}
             post_to_discord(
                 "knowledge",
                 f"⚠️ **[Taxonomy]** Error researching vendors: {str(e)}",
-                username="Taxonomy Agent"
+                username="Taxonomy Agent",
             )
             return []
 
@@ -282,7 +277,11 @@ If no vendors to research, return: {"vendors": []}
         Returns:
             List of summary proposals
         """
-        post_to_discord("knowledge", "**[Summarizer]** Creating tax law summaries...", username="Summarizer Agent")
+        post_to_discord(
+            "knowledge",
+            "**[Summarizer]** Creating tax law summaries...",
+            username="Summarizer Agent",
+        )
 
         prompt = """Review tax law documents in the knowledge base and identify which need plain-English summaries.
 
@@ -327,7 +326,7 @@ Limit to top 3 most important summaries.
             post_to_discord(
                 "knowledge",
                 f"**[Summarizer]** Created {len(summaries)} summaries",
-                username="Summarizer Agent"
+                username="Summarizer Agent",
             )
 
             return summaries
@@ -336,7 +335,7 @@ Limit to top 3 most important summaries.
             post_to_discord(
                 "knowledge",
                 f"⚠️ **[Summarizer]** Error creating summaries: {str(e)}",
-                username="Summarizer Agent"
+                username="Summarizer Agent",
             )
             return []
 
@@ -347,7 +346,11 @@ Limit to top 3 most important summaries.
         Returns:
             List of cross-reference findings
         """
-        post_to_discord("knowledge", "**[Cross-Reference]** Linking related documents...", username="Cross-Reference Agent")
+        post_to_discord(
+            "knowledge",
+            "**[Cross-Reference]** Linking related documents...",
+            username="Cross-Reference Agent",
+        )
 
         prompt = """Analyze tax law documents and create cross-references between related concepts.
 
@@ -377,7 +380,9 @@ Return findings in JSON format:
 """
 
         try:
-            result = self.cross_reference.claude_analyze(prompt, context="cross_referencing")
+            result = self.cross_reference.claude_analyze(
+                prompt, context="cross_referencing"
+            )
             self.usage_tracker.record_usage(self.team_name, "cross_reference")
 
             refs_data = extract_json(result)
@@ -386,7 +391,7 @@ Return findings in JSON format:
             post_to_discord(
                 "knowledge",
                 f"**[Cross-Reference]** Created {len(cross_refs)} cross-references",
-                username="Cross-Reference Agent"
+                username="Cross-Reference Agent",
             )
 
             return cross_refs
@@ -395,25 +400,34 @@ Return findings in JSON format:
             post_to_discord(
                 "knowledge",
                 f"⚠️ **[Cross-Reference]** Error creating cross-references: {str(e)}",
-                username="Cross-Reference Agent"
+                username="Cross-Reference Agent",
             )
             return []
 
-    def _team_discussion(self, law_updates: List[Dict], vendor_research: List[Dict],
-                        summaries: List[Dict], cross_refs: List[Dict]) -> List[Dict]:
+    def _team_discussion(
+        self,
+        law_updates: List[Dict],
+        vendor_research: List[Dict],
+        summaries: List[Dict],
+        cross_refs: List[Dict],
+    ) -> List[Dict]:
         """
         Team discusses findings and creates proposals.
 
         Returns:
             List of proposals
         """
-        post_to_discord("knowledge", "💬 **Team Discussion** - Reviewing findings...", username="Knowledge Curation Team")
+        post_to_discord(
+            "knowledge",
+            "💬 **Team Discussion** - Reviewing findings...",
+            username="Knowledge Curation Team",
+        )
 
         all_findings = {
             "law_updates": law_updates,
             "vendor_research": vendor_research,
             "summaries": summaries,
-            "cross_references": cross_refs
+            "cross_references": cross_refs,
         }
 
         discussion_prompt = f"""You are participating in a Knowledge Curation Team discussion.
@@ -457,23 +471,24 @@ Focus on high-impact improvements. Limit to top 5 proposals.
 
         try:
             discussion_result = self.legal_researcher.claude_analyze(
-                discussion_prompt,
-                context="team_discussion"
+                discussion_prompt, context="team_discussion"
             )
 
-            self.usage_tracker.record_usage(self.team_name, "team_discussion", messages=1)
+            self.usage_tracker.record_usage(
+                self.team_name, "team_discussion", messages=1
+            )
 
             # Save discussion
             self.legal_researcher.save_discussion_log(
                 f"knowledge_discussion_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                discussion_result
+                discussion_result,
             )
 
             # Post to Discord
             post_to_discord(
                 "knowledge",
                 f"💬 **Team Discussion** - Reviewing findings...",
-                username="Knowledge Curation Team"
+                username="Knowledge Curation Team",
             )
 
             # Parse proposals
@@ -485,7 +500,7 @@ Focus on high-impact improvements. Limit to top 5 proposals.
             post_to_discord(
                 "knowledge",
                 f"⚠️ Error in team discussion: {str(e)}",
-                username="Knowledge Curation Team"
+                username="Knowledge Curation Team",
             )
             return []
 
@@ -504,8 +519,8 @@ Focus on high-impact improvements. Limit to top 5 proposals.
                 priority=proposal_data["priority"],
                 metadata={
                     "type": proposal_data.get("type", "unknown"),
-                    **proposal_data.get("metadata", {})
-                }
+                    **proposal_data.get("metadata", {}),
+                },
             )
 
             post_to_discord(
@@ -519,14 +534,14 @@ Focus on high-impact improvements. Limit to top 5 proposals.
 
 Review in dashboard: http://localhost:8501
 """,
-                username="Knowledge Curation Team"
+                username="Knowledge Curation Team",
             )
 
         except Exception as e:
             post_to_discord(
                 "knowledge",
                 f"⚠️ Error creating proposal: {str(e)}",
-                username="Knowledge Curation Team"
+                username="Knowledge Curation Team",
             )
 
 

@@ -15,16 +15,21 @@ except ImportError:
 # Import centralized Supabase client
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
+
 
 def check_table(table_name):
     """Check if a table exists and return row count"""
     try:
-        result = supabase.table(table_name).select("*", count="exact").limit(0).execute()
+        result = (
+            supabase.table(table_name).select("*", count="exact").limit(0).execute()
+        )
         count = result.count if hasattr(result, "count") else "?"
         return True, count
     except Exception as e:
         return False, 0
+
 
 print("\n" + "=" * 80)
 print("SUPABASE TABLES CHECK")

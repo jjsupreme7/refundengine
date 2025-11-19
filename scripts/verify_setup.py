@@ -4,8 +4,8 @@ Setup Verification Script
 Checks that all 4 critical components are properly installed and configured
 """
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 

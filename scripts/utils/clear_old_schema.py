@@ -33,12 +33,16 @@ except ImportError:
 # Import centralized Supabase client
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
+
 
 def check_and_clear_table(table_name, description):
     """Check table and optionally clear it"""
     try:
-        result = supabase.table(table_name).select("id", count="exact").limit(0).execute()
+        result = (
+            supabase.table(table_name).select("id", count="exact").limit(0).execute()
+        )
         count = result.count
 
         status = "⚠️  HAS DATA" if count > 0 else "✅ EMPTY"
@@ -50,6 +54,7 @@ def check_and_clear_table(table_name, description):
         print(f"\n❌ {table_name}: Table does not exist or error")
         print(f"       Error: {e}")
         return None
+
 
 print("\n" + "=" * 80)
 print("🗃️  OLD SCHEMA DATA CHECK")
@@ -93,7 +98,9 @@ else:
     print("\n❌ Auto-deletion disabled for safety.")
     print("   If you need to clear this data:")
     print("   1. Verify migration is complete (check knowledge_documents has data)")
-    print("   2. Manually run SQL: DELETE FROM document_chunks; DELETE FROM legal_documents;")
+    print(
+        "   2. Manually run SQL: DELETE FROM document_chunks; DELETE FROM legal_documents;"
+    )
     print("   3. Or use Supabase dashboard")
 
 print("\n" + "=" * 80 + "\n")

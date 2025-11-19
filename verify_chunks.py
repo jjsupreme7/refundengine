@@ -16,13 +16,16 @@ Current Schema (Post-Migration):
     • vendor_background_chunks - Vendor document chunks
 """
 
-import sys
 import argparse
+import sys
+
 from core.database import get_supabase_client
+
 
 def format_count(count):
     """Format numbers with commas"""
     return f"{count:,}" if count else "0"
+
 
 def quick_summary():
     """Quick summary - just the counts"""
@@ -32,8 +35,8 @@ def quick_summary():
     print("📊 QUICK DATABASE SUMMARY")
     print("=" * 70)
 
-    docs = client.table('knowledge_documents').select('id', count='exact').execute()
-    chunks = client.table('tax_law_chunks').select('id', count='exact').execute()
+    docs = client.table("knowledge_documents").select("id", count="exact").execute()
+    chunks = client.table("tax_law_chunks").select("id", count="exact").execute()
 
     print(f"\n✅ Documents: {format_count(docs.count)}")
     print(f"✅ Chunks: {format_count(chunks.count)}")
@@ -43,10 +46,11 @@ def quick_summary():
 
     print("\n" + "=" * 70 + "\n")
 
-def main(mode='standard'):
+
+def main(mode="standard"):
     """Main verification with different levels of detail"""
 
-    if mode == 'quick':
+    if mode == "quick":
         quick_summary()
         return
 
@@ -57,14 +61,18 @@ def main(mode='standard'):
     print("=" * 80)
 
     # Total counts
-    docs_result = client.table('knowledge_documents').select('id', count='exact').execute()
-    chunks_result = client.table('tax_law_chunks').select('id', count='exact').execute()
+    docs_result = (
+        client.table("knowledge_documents").select("id", count="exact").execute()
+    )
+    chunks_result = client.table("tax_law_chunks").select("id", count="exact").execute()
 
     print(f"\n📄 Total documents: {format_count(docs_result.count)}")
     print(f"📝 Total chunks: {format_count(chunks_result.count)}")
 
     if docs_result.count > 0:
-        print(f"📊 Average chunks per document: {chunks_result.count / docs_result.count:.2f}")
+        print(
+            f"📊 Average chunks per document: {chunks_result.count / docs_result.count:.2f}"
+        )
     else:
         print("\n⚠️  No documents found - run ingestion scripts to populate database")
 
@@ -73,15 +81,20 @@ def main(mode='standard'):
     print("SAMPLE CHUNKS (verifying no HTML is stored)")
     print("=" * 80)
 
-    sample_chunks = client.from_('tax_law_chunks').select('chunk_text, embedding').limit(10).execute()
+    sample_chunks = (
+        client.from_("tax_law_chunks")
+        .select("chunk_text, embedding")
+        .limit(10)
+        .execute()
+    )
 
     html_count = 0
     text_count = 0
 
     for chunk in sample_chunks.data:
-        text = chunk['chunk_text']
-        has_html = '<' in text and '>' in text
-        has_embedding = chunk['embedding'] is not None
+        text = chunk["chunk_text"]
+        has_html = "<" in text and ">" in text
+        has_embedding = chunk["embedding"] is not None
 
         if has_html:
             html_count += 1
@@ -91,25 +104,31 @@ def main(mode='standard'):
     print(f"\nOut of 10 sample chunks:")
     print(f"  Clean text (no HTML): {text_count}")
     print(f"  Contains HTML tags: {html_count}")
-    print(f"  All have embeddings: {all(chunk['embedding'] is not None for chunk in sample_chunks.data)}")
+    print(
+        f"  All have embeddings: {all(chunk['embedding'] is not None for chunk in sample_chunks.data)}"
+    )
 
     # Show document type breakdown
     print("\n" + "=" * 80)
     print("RECENT DOCUMENTS (last 10 ingested)")
     print("=" * 80)
 
-    recent = client.from_('knowledge_documents').select(
-        'title, source_file, total_chunks, processing_status'
-    ).order('created_at', desc=True).limit(10).execute()
+    recent = (
+        client.from_("knowledge_documents")
+        .select("title, source_file, total_chunks, processing_status")
+        .order("created_at", desc=True)
+        .limit(10)
+        .execute()
+    )
 
     for i, doc in enumerate(recent.data, 1):
         # Extract file type from path
-        if '.pdf' in doc['source_file']:
-            doc_type = 'PDF (WTD)'
-        elif '.html' in doc['source_file'] or '.htm' in doc['source_file']:
-            doc_type = 'HTML (WAC/RCW)'
+        if ".pdf" in doc["source_file"]:
+            doc_type = "PDF (WTD)"
+        elif ".html" in doc["source_file"] or ".htm" in doc["source_file"]:
+            doc_type = "HTML (WAC/RCW)"
         else:
-            doc_type = 'Unknown'
+            doc_type = "Unknown"
 
         print(f"\n{i}. {doc['title'][:70]}")
         print(f"   Type: {doc_type}")
@@ -121,9 +140,11 @@ def main(mode='standard'):
     print("CHUNK SIZE DISTRIBUTION (sample of 100)")
     print("=" * 80)
 
-    sample_100 = client.from_('tax_law_chunks').select('chunk_text').limit(100).execute()
+    sample_100 = (
+        client.from_("tax_law_chunks").select("chunk_text").limit(100).execute()
+    )
 
-    chunk_sizes = [len(chunk['chunk_text']) for chunk in sample_100.data]
+    chunk_sizes = [len(chunk["chunk_text"]) for chunk in sample_100.data]
 
     print(f"\nChunk character counts:")
     print(f"  Min: {min(chunk_sizes)}")
@@ -137,13 +158,15 @@ def main(mode='standard'):
         (500, 2000, "Small"),
         (2000, 5000, "Medium"),
         (5000, 10000, "Large"),
-        (10000, float('inf'), "Very Large")
+        (10000, float("inf"), "Very Large"),
     ]
 
     print(f"\nChunk size ranges (out of 100 samples):")
     for min_size, max_size, label in ranges:
         count = sum(1 for size in chunk_sizes if min_size <= size < max_size)
-        print(f"  {label} ({min_size}-{max_size if max_size != float('inf') else '∞'} chars): {count}")
+        print(
+            f"  {label} ({min_size}-{max_size if max_size != float('inf') else '∞'} chars): {count}"
+        )
 
     print("\n" + "=" * 80)
     print("✅ VERIFICATION COMPLETE")
@@ -157,26 +180,26 @@ def main(mode='standard'):
     print("   See: database/README.md for documentation")
     print()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Verify Supabase database - documents and chunks"
     )
     parser.add_argument(
-        '--quick', '-q',
-        action='store_true',
-        help='Quick summary only (just counts)'
+        "--quick", "-q", action="store_true", help="Quick summary only (just counts)"
     )
     parser.add_argument(
-        '--full', '-f',
-        action='store_true',
-        help='Full detailed analysis (same as standard)'
+        "--full",
+        "-f",
+        action="store_true",
+        help="Full detailed analysis (same as standard)",
     )
 
     args = parser.parse_args()
 
     if args.quick:
-        main(mode='quick')
+        main(mode="quick")
     elif args.full:
-        main(mode='full')
+        main(mode="full")
     else:
-        main(mode='standard')
+        main(mode="standard")

@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+
 from core.database import get_supabase_client
 
 # Load environment
@@ -31,7 +32,12 @@ except Exception as e:
     sys.exit(1)
 
 # Read SQL file
-sql_file = Path(__file__).parent.parent / "database" / "schema" / "migration_excel_versioning.sql"
+sql_file = (
+    Path(__file__).parent.parent
+    / "database"
+    / "schema"
+    / "migration_excel_versioning.sql"
+)
 
 if not sql_file.exists():
     print(f"❌ SQL file not found: {sql_file}")
@@ -39,7 +45,7 @@ if not sql_file.exists():
 
 print(f"📄 Reading SQL from: {sql_file}")
 
-with open(sql_file, 'r') as f:
+with open(sql_file, "r") as f:
     sql_content = f.read()
 
 # Split SQL into individual statements
@@ -47,9 +53,9 @@ with open(sql_file, 'r') as f:
 statements = []
 current_statement = []
 
-for line in sql_content.split('\n'):
+for line in sql_content.split("\n"):
     # Skip comment lines
-    if line.strip().startswith('--'):
+    if line.strip().startswith("--"):
         continue
 
     # Skip empty lines
@@ -59,8 +65,8 @@ for line in sql_content.split('\n'):
     current_statement.append(line)
 
     # If line ends with semicolon, it's end of statement
-    if line.strip().endswith(';'):
-        statement = '\n'.join(current_statement)
+    if line.strip().endswith(";"):
+        statement = "\n".join(current_statement)
         statements.append(statement)
         current_statement = []
 
@@ -73,7 +79,7 @@ error_count = 0
 
 for i, statement in enumerate(statements, 1):
     # Show what we're executing
-    first_line = statement.strip().split('\n')[0][:60]
+    first_line = statement.strip().split("\n")[0][:60]
     print(f"[{i}/{len(statements)}] Executing: {first_line}...")
 
     try:

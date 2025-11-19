@@ -15,7 +15,8 @@ Usage:
 import os
 import sys
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
+
 import streamlit as st
 
 # Add parent directory to path
@@ -23,14 +24,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).parent.parent / '.env')
+
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 # OpenAI
 from openai import OpenAI
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Supabase - centralized client
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 
@@ -39,11 +43,12 @@ st.set_page_config(
     page_title="WA Tax Law Chatbot",
     page_icon="💬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Custom CSS for better styling
-st.markdown("""
+st.markdown(
+    """
 <style>
     .main-header {
         font-size: 2rem;
@@ -75,28 +80,27 @@ st.markdown("""
         font-size: 0.85rem;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 # Initialize session state
-if 'messages' not in st.session_state:
+if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if 'filters' not in st.session_state:
+if "filters" not in st.session_state:
     st.session_state.filters = {
-        'law_category': None,
-        'tax_types': None,
-        'industries': None,
-        'citation': None
+        "law_category": None,
+        "tax_types": None,
+        "industries": None,
+        "citation": None,
     }
 
 
 def get_embedding(text: str) -> List[float]:
     """Generate query embedding using OpenAI"""
-    response = client.embeddings.create(
-        input=text,
-        model="text-embedding-3-small"
-    )
+    response = client.embeddings.create(input=text, model="text-embedding-3-small")
     return response.data[0].embedding
 
 
@@ -106,42 +110,46 @@ def search_knowledge_base(query: str, top_k: int = 3) -> List[Dict]:
 
     # Build RPC params
     rpc_params = {
-        'query_embedding': query_embedding,
-        'match_threshold': 0.3,
-        'match_count': top_k
+        "query_embedding": query_embedding,
+        "match_threshold": 0.3,
+        "match_count": top_k,
     }
 
     # Add filters if set
     filters = st.session_state.filters
-    if filters.get('law_category'):
-        rpc_params['law_category_filter'] = filters['law_category']
+    if filters.get("law_category"):
+        rpc_params["law_category_filter"] = filters["law_category"]
 
-    if filters.get('tax_types'):
-        rpc_params['tax_types_filter'] = filters['tax_types']
+    if filters.get("tax_types"):
+        rpc_params["tax_types_filter"] = filters["tax_types"]
 
-    if filters.get('industries'):
-        rpc_params['industries_filter'] = filters['industries']
+    if filters.get("industries"):
+        rpc_params["industries_filter"] = filters["industries"]
 
     try:
-        results = supabase.rpc('search_tax_law', rpc_params).execute()
+        results = supabase.rpc("search_tax_law", rpc_params).execute()
 
         chunks = []
         for r in results.data:
             # Apply citation filter (client-side)
-            if filters.get('citation') and filters['citation'] not in r.get('citation', ''):
+            if filters.get("citation") and filters["citation"] not in r.get(
+                "citation", ""
+            ):
                 continue
 
-            chunks.append({
-                'text': r.get('chunk_text', ''),
-                'citation': r.get('citation', ''),
-                'category': r.get('law_category', ''),
-                'section': r.get('section_title', ''),
-                'tax_types': r.get('tax_types', []),
-                'industries': r.get('industries', []),
-                'topic_tags': r.get('topic_tags', []),
-                'file_url': r.get('file_url', ''),  # Get the file URL!
-                'similarity': r.get('similarity', 0)
-            })
+            chunks.append(
+                {
+                    "text": r.get("chunk_text", ""),
+                    "citation": r.get("citation", ""),
+                    "category": r.get("law_category", ""),
+                    "section": r.get("section_title", ""),
+                    "tax_types": r.get("tax_types", []),
+                    "industries": r.get("industries", []),
+                    "topic_tags": r.get("topic_tags", []),
+                    "file_url": r.get("file_url", ""),  # Get the file URL!
+                    "similarity": r.get("similarity", 0),
+                }
+            )
 
         return chunks
 
@@ -157,7 +165,7 @@ def generate_answer(question: str, relevant_docs: List[Dict]) -> str:
     context = ""
     for i, doc in enumerate(relevant_docs, 1):
         context += f"\n[Source {i}: {doc['citation']}"
-        if doc['section']:
+        if doc["section"]:
             context += f", {doc['section']}"
         context += f"]\n{doc['text']}\n"
 
@@ -180,28 +188,25 @@ RESPONSE FORMAT:
 
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"""Context from Washington tax law:
+        {
+            "role": "user",
+            "content": f"""Context from Washington tax law:
 {context}
 
 Question: {question}
 
-Please answer based on the context above."""}
+Please answer based on the context above.""",
+        },
     ]
 
     # Add conversation history (last 4 messages)
     for msg in st.session_state.messages[-4:]:
-        if msg['role'] in ['user', 'assistant']:
-            messages.append({
-                'role': msg['role'],
-                'content': msg['content']
-            })
+        if msg["role"] in ["user", "assistant"]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            temperature=0.2,
-            max_tokens=800
+            model="gpt-4o", messages=messages, temperature=0.2, max_tokens=800
         )
 
         return response.choices[0].message.content
@@ -213,16 +218,18 @@ Please answer based on the context above."""}
 def render_source_with_link(doc: Dict, index: int):
     """Render a source with clickable link"""
 
-    citation = doc['citation']
-    section = doc['section']
-    file_url = doc.get('file_url', '')
-    similarity = doc['similarity']
-    tax_types = doc.get('tax_types', [])
-    industries = doc.get('industries', [])
+    citation = doc["citation"]
+    section = doc["section"]
+    file_url = doc.get("file_url", "")
+    similarity = doc["similarity"]
+    tax_types = doc.get("tax_types", [])
+    industries = doc.get("industries", [])
 
     # Create citation display with link if URL exists
     if file_url:
-        citation_display = f'<a href="{file_url}" target="_blank" class="citation-link">{citation}</a>'
+        citation_display = (
+            f'<a href="{file_url}" target="_blank" class="citation-link">{citation}</a>'
+        )
     else:
         citation_display = f'<span class="citation-link">{citation}</span>'
 
@@ -251,7 +258,10 @@ def render_source_with_link(doc: Dict, index: int):
 
 def main():
     # Header
-    st.markdown('<div class="main-header">💬 Washington Tax Law Chatbot</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="main-header">💬 Washington Tax Law Chatbot</div>',
+        unsafe_allow_html=True,
+    )
 
     # Sidebar - Filters
     with st.sidebar:
@@ -263,11 +273,20 @@ def main():
             st.success(f"✅ {active_filters} filter(s) active")
 
         # Law Category
-        st.session_state.filters['law_category'] = st.selectbox(
+        st.session_state.filters["law_category"] = st.selectbox(
             "Law Category",
-            options=[None, "software", "digital_goods", "exemption", "general", "rate", "definition", "compliance"],
+            options=[
+                None,
+                "software",
+                "digital_goods",
+                "exemption",
+                "general",
+                "rate",
+                "definition",
+                "compliance",
+            ],
             format_func=lambda x: "All categories" if x is None else x,
-            key="law_category_filter"
+            key="law_category_filter",
         )
 
         # Tax Types (multiselect)
@@ -275,32 +294,46 @@ def main():
         selected_tax_types = st.multiselect(
             "Tax Types",
             options=tax_types_options,
-            default=st.session_state.filters.get('tax_types') or [],
-            key="tax_types_filter"
+            default=st.session_state.filters.get("tax_types") or [],
+            key="tax_types_filter",
         )
-        st.session_state.filters['tax_types'] = selected_tax_types if selected_tax_types else None
+        st.session_state.filters["tax_types"] = (
+            selected_tax_types if selected_tax_types else None
+        )
 
         # Industries (multiselect)
-        industries_options = ["general", "retail", "technology", "software development", "manufacturing"]
+        industries_options = [
+            "general",
+            "retail",
+            "technology",
+            "software development",
+            "manufacturing",
+        ]
         selected_industries = st.multiselect(
             "Industries",
             options=industries_options,
-            default=st.session_state.filters.get('industries') or [],
-            key="industries_filter"
+            default=st.session_state.filters.get("industries") or [],
+            key="industries_filter",
         )
-        st.session_state.filters['industries'] = selected_industries if selected_industries else None
+        st.session_state.filters["industries"] = (
+            selected_industries if selected_industries else None
+        )
 
         # Citation
         citation_input = st.text_input(
             "Citation (e.g., WAC 458-20-15503)",
-            value=st.session_state.filters.get('citation') or "",
-            key="citation_filter"
+            value=st.session_state.filters.get("citation") or "",
+            key="citation_filter",
         )
-        st.session_state.filters['citation'] = citation_input if citation_input else None
+        st.session_state.filters["citation"] = (
+            citation_input if citation_input else None
+        )
 
         # Clear filters button
         if st.button("🗑️ Clear All Filters"):
-            st.session_state.filters = {k: None for k in st.session_state.filters.keys()}
+            st.session_state.filters = {
+                k: None for k in st.session_state.filters.keys()
+            }
             st.rerun()
 
         # Divider
@@ -310,18 +343,21 @@ def main():
         if st.button("📊 View Stats"):
             with st.spinner("Loading stats..."):
                 try:
-                    docs = supabase.table('knowledge_documents').select('*').execute()
+                    docs = supabase.table("knowledge_documents").select("*").execute()
                     st.info(f"**Documents:** {len(docs.data)}")
 
                     with st.expander("View all documents"):
                         for doc in docs.data:
-                            st.write(f"• **{doc.get('citation', 'N/A')}**: {doc.get('title', 'N/A')[:60]}...")
+                            st.write(
+                                f"• **{doc.get('citation', 'N/A')}**: {doc.get('title', 'N/A')[:60]}..."
+                            )
                 except Exception as e:
                     st.error(f"Error: {e}")
 
         # Help section
         with st.expander("❓ Help"):
-            st.markdown("""
+            st.markdown(
+                """
             **How to use:**
             1. Type your question in the chat
             2. Use filters to narrow results
@@ -331,33 +367,31 @@ def main():
             - What are the rules for software taxation?
             - When is use tax applied?
             - What exemptions exist for digital goods?
-            """)
+            """
+            )
 
     # Main chat interface
     st.divider()
 
     # Display conversation history
     for message in st.session_state.messages:
-        if message['role'] == 'user':
+        if message["role"] == "user":
             with st.chat_message("user"):
-                st.write(message['content'])
+                st.write(message["content"])
 
-        elif message['role'] == 'assistant':
+        elif message["role"] == "assistant":
             with st.chat_message("assistant"):
-                st.markdown(message['content'])
+                st.markdown(message["content"])
 
-        elif message['role'] == 'sources':
+        elif message["role"] == "sources":
             with st.expander("📚 View Sources", expanded=True):
-                for i, doc in enumerate(message['sources'], 1):
+                for i, doc in enumerate(message["sources"], 1):
                     render_source_with_link(doc, i)
 
     # Chat input
     if prompt := st.chat_input("Ask a question about Washington tax law..."):
         # Add user message
-        st.session_state.messages.append({
-            'role': 'user',
-            'content': prompt
-        })
+        st.session_state.messages.append({"role": "user", "content": prompt})
 
         # Display user message
         with st.chat_message("user"):
@@ -372,10 +406,9 @@ def main():
                 if not relevant_docs:
                     response = "❌ No relevant information found. Try adjusting your filters or rephrasing your question."
                     st.warning(response)
-                    st.session_state.messages.append({
-                        'role': 'assistant',
-                        'content': response
-                    })
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": response}
+                    )
                 else:
                     # Generate answer
                     with st.spinner("🧠 Generating answer..."):
@@ -385,16 +418,14 @@ def main():
                     st.markdown(answer)
 
                     # Add to history
-                    st.session_state.messages.append({
-                        'role': 'assistant',
-                        'content': answer
-                    })
+                    st.session_state.messages.append(
+                        {"role": "assistant", "content": answer}
+                    )
 
                     # Display sources
-                    st.session_state.messages.append({
-                        'role': 'sources',
-                        'sources': relevant_docs
-                    })
+                    st.session_state.messages.append(
+                        {"role": "sources", "sources": relevant_docs}
+                    )
 
         # Display sources below the answer
         with st.expander("📚 View Sources", expanded=True):
@@ -403,7 +434,9 @@ def main():
 
     # Footer
     st.divider()
-    st.caption("💬 Powered by OpenAI GPT-4 | 🔍 Vector Search with Supabase | 📚 Washington State Tax Law Database")
+    st.caption(
+        "💬 Powered by OpenAI GPT-4 | 🔍 Vector Search with Supabase | 📚 Washington State Tax Law Database"
+    )
 
 
 if __name__ == "__main__":

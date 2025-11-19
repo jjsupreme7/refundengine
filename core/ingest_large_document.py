@@ -12,15 +12,16 @@ Usage:
       --category "general"
 """
 
+import argparse
 import os
 import sys
-import argparse
 from pathlib import Path
-import pdfplumber
-from openai import OpenAI
-from dotenv import load_dotenv
-from tqdm import tqdm
 from typing import List
+
+import pdfplumber
+from dotenv import load_dotenv
+from openai import OpenAI
+from tqdm import tqdm
 
 # Import canonical chunking
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -35,6 +36,7 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Import centralized Supabase client
 from core.database import get_supabase_client
+
 supabase = get_supabase_client()
 
 

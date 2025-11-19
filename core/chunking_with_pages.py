@@ -5,8 +5,10 @@ Enhanced Chunking with Page Number Tracking
 Extracts text page-by-page and maps chunks to original page numbers.
 """
 
+from typing import Dict, List, Tuple
+
 import pdfplumber
-from typing import List, Dict, Tuple
+
 from core.chunking import chunk_legal_document
 
 

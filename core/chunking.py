@@ -27,7 +27,7 @@ Usage:
 """
 
 import re
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 
 def chunk_legal_document(
@@ -272,10 +272,25 @@ def _split_by_sentences(
     chunks = []
 
     # Common legal abbreviations to preserve
-    abbreviations = {'RCW', 'WAC', 'Cf', 'Sec', 'No', 'Vol', 'Ed', 'Inc', 'Ltd', 'Mr', 'Mrs', 'Dr', 'vs', 'v'}
+    abbreviations = {
+        "RCW",
+        "WAC",
+        "Cf",
+        "Sec",
+        "No",
+        "Vol",
+        "Ed",
+        "Inc",
+        "Ltd",
+        "Mr",
+        "Mrs",
+        "Dr",
+        "vs",
+        "v",
+    }
 
     # Split on sentence endings
-    sentence_pattern = r'[.!?]+\s+'
+    sentence_pattern = r"[.!?]+\s+"
     potential_sentences = re.split(sentence_pattern, text)
 
     # Reconstruct sentences, merging those that ended with abbreviations
@@ -287,11 +302,11 @@ def _split_by_sentences(
         # Check if this sentence ended with an abbreviation
         words = sentence.split()
         if words and i < len(potential_sentences) - 1:
-            last_word = words[-1].rstrip('.')
+            last_word = words[-1].rstrip(".")
             # If last word is an abbreviation, merge with next sentence
             if last_word in abbreviations:
                 if i + 1 < len(potential_sentences):
-                    sentence = sentence + '. ' + potential_sentences[i + 1].strip()
+                    sentence = sentence + ". " + potential_sentences[i + 1].strip()
                     i += 1  # Skip next sentence since we merged it
 
         if sentence:

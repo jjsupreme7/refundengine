@@ -168,9 +168,9 @@ The smart chunking happens automatically during ingestion!
 
 1. **Ingest a sample document** and check the chunks:
    ```sql
-   SELECT chunk_index, section_heading, LEFT(chunk_text, 100) 
-   FROM document_chunks 
-   WHERE document_id = 1 
+   SELECT chunk_index, section_heading, LEFT(chunk_text, 100)
+   FROM document_chunks
+   WHERE document_id = 1
    ORDER BY chunk_index;
    ```
 
@@ -178,7 +178,7 @@ The smart chunking happens automatically during ingestion!
 
 3. **Check chunk sizes** are reasonable:
    ```sql
-   SELECT 
+   SELECT
      AVG(LENGTH(chunk_text)) as avg_chars,
      MIN(LENGTH(chunk_text)) as min_chars,
      MAX(LENGTH(chunk_text)) as max_chars

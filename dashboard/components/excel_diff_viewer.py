@@ -5,10 +5,11 @@ GitHub-style diff viewer for Excel cell changes.
 Shows old → new values with color coding and filtering.
 """
 
-import streamlit as st
-import pandas as pd
-from typing import List, Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
+import streamlit as st
 
 
 def render_diff_viewer(
@@ -17,7 +18,7 @@ def render_diff_viewer(
     file_name: str,
     version_number: int,
     created_by: str,
-    created_at: datetime
+    created_at: datetime,
 ):
     """
     Render a GitHub-style diff viewer for Excel changes
@@ -44,9 +45,9 @@ def render_diff_viewer(
     # Summary stats
     col1, col2, col3, col4 = st.columns(4)
 
-    added = len([c for c in changes if c.get('change_type') == 'added'])
-    modified = len([c for c in changes if c.get('change_type') == 'modified'])
-    deleted = len([c for c in changes if c.get('change_type') == 'deleted'])
+    added = len([c for c in changes if c.get("change_type") == "added"])
+    modified = len([c for c in changes if c.get("change_type") == "modified"])
+    deleted = len([c for c in changes if c.get("change_type") == "deleted"])
 
     with col1:
         st.metric("Total Changes", len(changes))
@@ -65,42 +66,48 @@ def render_diff_viewer(
 
     with col1:
         # Get unique rows
-        unique_rows = sorted(set(c['row_index'] for c in changes))
+        unique_rows = sorted(set(c["row_index"] for c in changes))
         row_filter = st.multiselect(
             "Filter by Row",
             options=unique_rows,
             default=[],
-            help="Select specific rows to view"
+            help="Select specific rows to view",
         )
 
     with col2:
         # Get unique columns
-        unique_columns = sorted(set(c['column_name'] for c in changes))
+        unique_columns = sorted(set(c["column_name"] for c in changes))
         column_filter = st.multiselect(
             "Filter by Column",
             options=unique_columns,
             default=[],
-            help="Select specific columns to view"
+            help="Select specific columns to view",
         )
 
     with col3:
         change_type_filter = st.selectbox(
             "Filter by Type",
             options=["All", "Added", "Modified", "Deleted"],
-            help="Filter by change type"
+            help="Filter by change type",
         )
 
     # Apply filters
     filtered_changes = changes
 
     if row_filter:
-        filtered_changes = [c for c in filtered_changes if c['row_index'] in row_filter]
+        filtered_changes = [c for c in filtered_changes if c["row_index"] in row_filter]
 
     if column_filter:
-        filtered_changes = [c for c in filtered_changes if c['column_name'] in column_filter]
+        filtered_changes = [
+            c for c in filtered_changes if c["column_name"] in column_filter
+        ]
 
     if change_type_filter != "All":
-        filtered_changes = [c for c in filtered_changes if c.get('change_type') == change_type_filter.lower()]
+        filtered_changes = [
+            c
+            for c in filtered_changes
+            if c.get("change_type") == change_type_filter.lower()
+        ]
 
     st.markdown(f"**Showing {len(filtered_changes)} of {len(changes)} changes**")
 
@@ -109,7 +116,7 @@ def render_diff_viewer(
     # Group changes by row
     changes_by_row = {}
     for change in filtered_changes:
-        row_idx = change['row_index']
+        row_idx = change["row_index"]
         if row_idx not in changes_by_row:
             changes_by_row[row_idx] = []
         changes_by_row[row_idx].append(change)
@@ -124,9 +131,9 @@ def render_diff_viewer(
         # Create DataFrame for better display
         change_data = []
         for change in row_changes:
-            old_val = change.get('old_value', '(empty)')
-            new_val = change.get('new_value', '(empty)')
-            change_type = change.get('change_type', 'unknown')
+            old_val = change.get("old_value", "(empty)")
+            new_val = change.get("new_value", "(empty)")
+            change_type = change.get("change_type", "unknown")
 
             # Truncate long values
             if old_val and len(str(old_val)) > 100:
@@ -134,12 +141,14 @@ def render_diff_viewer(
             if new_val and len(str(new_val)) > 100:
                 new_val = str(new_val)[:100] + "..."
 
-            change_data.append({
-                'Column': change['column_name'],
-                'Old Value': old_val,
-                'New Value': new_val,
-                'Type': change_type.upper()
-            })
+            change_data.append(
+                {
+                    "Column": change["column_name"],
+                    "Old Value": old_val,
+                    "New Value": new_val,
+                    "Type": change_type.upper(),
+                }
+            )
 
         # Display as table
         if change_data:
@@ -147,13 +156,13 @@ def render_diff_viewer(
 
             # Color code based on change type
             def highlight_changes(row):
-                if row['Type'] == 'ADDED':
-                    return ['background-color: #d4edda'] * len(row)
-                elif row['Type'] == 'DELETED':
-                    return ['background-color: #f8d7da'] * len(row)
-                elif row['Type'] == 'MODIFIED':
-                    return ['background-color: #fff3cd'] * len(row)
-                return [''] * len(row)
+                if row["Type"] == "ADDED":
+                    return ["background-color: #d4edda"] * len(row)
+                elif row["Type"] == "DELETED":
+                    return ["background-color: #f8d7da"] * len(row)
+                elif row["Type"] == "MODIFIED":
+                    return ["background-color: #fff3cd"] * len(row)
+                return [""] * len(row)
 
             styled_df = df.style.apply(highlight_changes, axis=1)
             st.dataframe(styled_df, use_container_width=True, hide_index=True)
@@ -165,14 +174,16 @@ def render_diff_viewer(
             with col1:
                 st.markdown("**Before (Old Values)**")
                 for change in row_changes:
-                    st.markdown(f"**{change['column_name']}:** {change.get('old_value', '(empty)')}")
+                    st.markdown(
+                        f"**{change['column_name']}:** {change.get('old_value', '(empty)')}"
+                    )
 
             with col2:
                 st.markdown("**After (New Values)**")
                 for change in row_changes:
-                    new_val = change.get('new_value', '(empty)')
+                    new_val = change.get("new_value", "(empty)")
                     # Highlight if changed
-                    if change.get('change_type') == 'modified':
+                    if change.get("change_type") == "modified":
                         st.markdown(f"**{change['column_name']}:** ⚡ {new_val}")
                     else:
                         st.markdown(f"**{change['column_name']}:** {new_val}")
@@ -188,15 +199,17 @@ def render_diff_viewer(
             # Create CSV of all changes
             export_data = []
             for change in filtered_changes:
-                export_data.append({
-                    'Row': change['row_index'],
-                    'Column': change['column_name'],
-                    'Old Value': change.get('old_value', ''),
-                    'New Value': change.get('new_value', ''),
-                    'Change Type': change.get('change_type', ''),
-                    'Changed By': change.get('changed_by', ''),
-                    'Changed At': change.get('changed_at', '')
-                })
+                export_data.append(
+                    {
+                        "Row": change["row_index"],
+                        "Column": change["column_name"],
+                        "Old Value": change.get("old_value", ""),
+                        "New Value": change.get("new_value", ""),
+                        "Change Type": change.get("change_type", ""),
+                        "Changed By": change.get("changed_by", ""),
+                        "Changed At": change.get("changed_at", ""),
+                    }
+                )
 
             if export_data:
                 df_export = pd.DataFrame(export_data)
@@ -205,7 +218,7 @@ def render_diff_viewer(
                     label="⬇️ Download CSV",
                     data=csv,
                     file_name=f"changes_v{version_number}_{datetime.now().strftime('%Y%m%d')}.csv",
-                    mime="text/csv"
+                    mime="text/csv",
                 )
 
     with col2:
@@ -247,8 +260,8 @@ def render_compact_change_summary(changes: List[Dict[str, Any]], max_display: in
 
     # Show first few changes
     for i, change in enumerate(changes[:max_display]):
-        old_val = str(change.get('old_value', '(empty)'))
-        new_val = str(change.get('new_value', '(empty)'))
+        old_val = str(change.get("old_value", "(empty)"))
+        new_val = str(change.get("new_value", "(empty)"))
 
         # Truncate long values
         if len(old_val) > 30:
@@ -257,10 +270,10 @@ def render_compact_change_summary(changes: List[Dict[str, Any]], max_display: in
             new_val = new_val[:30] + "..."
 
         # Icon based on change type
-        change_type = change.get('change_type', 'modified')
-        if change_type == 'added':
+        change_type = change.get("change_type", "modified")
+        if change_type == "added":
             icon = "✨"
-        elif change_type == 'deleted':
+        elif change_type == "deleted":
             icon = "🗑️"
         else:
             icon = "✏️"
@@ -279,7 +292,7 @@ def compare_two_versions(
     version2_id: str,
     version1_data: Dict,
     version2_data: Dict,
-    supabase_client
+    supabase_client,
 ):
     """
     Compare two versions side-by-side
@@ -308,20 +321,28 @@ def compare_two_versions(
     st.markdown("---")
 
     # Get changes for both versions
-    changes1_response = supabase_client.table('excel_cell_changes')\
-        .select('*')\
-        .eq('version_id', version1_id)\
+    changes1_response = (
+        supabase_client.table("excel_cell_changes")
+        .select("*")
+        .eq("version_id", version1_id)
         .execute()
+    )
 
-    changes2_response = supabase_client.table('excel_cell_changes')\
-        .select('*')\
-        .eq('version_id', version2_id)\
+    changes2_response = (
+        supabase_client.table("excel_cell_changes")
+        .select("*")
+        .eq("version_id", version2_id)
         .execute()
+    )
 
     changes1 = changes1_response.data if changes1_response.data else []
     changes2 = changes2_response.data if changes2_response.data else []
 
     # TODO: Implement more sophisticated comparison logic
     st.info("Detailed comparison view coming soon!")
-    st.markdown(f"Version {version1_data['version_number']} has {len(changes1)} changes")
-    st.markdown(f"Version {version2_data['version_number']} has {len(changes2)} changes")
+    st.markdown(
+        f"Version {version1_data['version_number']} has {len(changes1)} changes"
+    )
+    st.markdown(
+        f"Version {version2_data['version_number']} has {len(changes2)} changes"
+    )

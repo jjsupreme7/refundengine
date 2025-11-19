@@ -22,8 +22,9 @@ File endpoint: http://localhost:5001/documents/<filename>
 import os
 import sys
 from pathlib import Path
-from flask import Flask, send_file, abort, jsonify
 from urllib.parse import unquote
+
+from flask import Flask, abort, jsonify, send_file
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -34,24 +35,22 @@ app = Flask(__name__)
 KNOWLEDGE_BASE_DIR = Path(__file__).parent.parent / "knowledge_base"
 
 # Security: Only serve PDF files
-ALLOWED_EXTENSIONS = {'.pdf'}
+ALLOWED_EXTENSIONS = {".pdf"}
 
 # File index cache: {filename: Path}
 # Built at startup to avoid rglob() on every request
 FILE_INDEX = {}
 
 
-@app.route('/health', methods=['GET'])
+@app.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint"""
-    return jsonify({
-        'status': 'healthy',
-        'service': 'document-server',
-        'version': '1.0.0'
-    })
+    return jsonify(
+        {"status": "healthy", "service": "document-server", "version": "1.0.0"}
+    )
 
 
-@app.route('/documents/<path:filename>', methods=['GET'])
+@app.route("/documents/<path:filename>", methods=["GET"])
 def serve_document(filename):
     """
     Serve a document file securely
@@ -69,14 +68,16 @@ def serve_document(filename):
     # Decode URL-encoded filename
     filename = unquote(filename)
 
-    if not filename or filename.strip() == '':
+    if not filename or filename.strip() == "":
         abort(400, description="Invalid filename")
 
     # Security check: validate extension BEFORE file lookup
     # This prevents information disclosure of non-PDF files
     file_ext = Path(filename).suffix.lower()
     if file_ext not in ALLOWED_EXTENSIONS:
-        app.logger.warning(f"Blocked request for non-PDF file: {filename} (extension: {file_ext})")
+        app.logger.warning(
+            f"Blocked request for non-PDF file: {filename} (extension: {file_ext})"
+        )
         abort(403, description="Only PDF files are served")
 
     # Search for the file in knowledge_base directory using cached index
@@ -106,9 +107,9 @@ def serve_document(filename):
     # Send file
     return send_file(
         file_path,
-        mimetype='application/pdf',
+        mimetype="application/pdf",
         as_attachment=False,  # Display in browser if possible
-        download_name=filename
+        download_name=filename,
     )
 
 
@@ -175,28 +176,19 @@ def build_file_index():
 @app.errorhandler(404)
 def not_found(error):
     """Custom 404 error handler"""
-    return jsonify({
-        'error': 'Not Found',
-        'message': str(error.description)
-    }), 404
+    return jsonify({"error": "Not Found", "message": str(error.description)}), 404
 
 
 @app.errorhandler(403)
 def forbidden(error):
     """Custom 403 error handler"""
-    return jsonify({
-        'error': 'Forbidden',
-        'message': str(error.description)
-    }), 403
+    return jsonify({"error": "Forbidden", "message": str(error.description)}), 403
 
 
 @app.errorhandler(400)
 def bad_request(error):
     """Custom 400 error handler"""
-    return jsonify({
-        'error': 'Bad Request',
-        'message': str(error.description)
-    }), 400
+    return jsonify({"error": "Bad Request", "message": str(error.description)}), 400
 
 
 def main():
@@ -233,10 +225,10 @@ def main():
 
     # Run Flask app
     app.run(
-        host='0.0.0.0',
+        host="0.0.0.0",
         port=5001,
         debug=False,  # Set to True for development
-        threaded=True
+        threaded=True,
     )
 
 

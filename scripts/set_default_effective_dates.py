@@ -30,10 +30,12 @@ def set_default_effective_dates():
 
     # Get documents without effective_date
     print("Step 1: Finding documents without effective_date...")
-    result = supabase.table('knowledge_documents')\
-        .select('id, citation, title, effective_date')\
-        .is_('effective_date', 'null')\
+    result = (
+        supabase.table("knowledge_documents")
+        .select("id, citation, title, effective_date")
+        .is_("effective_date", "null")
         .execute()
+    )
 
     if not result.data:
         print("✅ All documents already have effective_date set!")
@@ -47,12 +49,16 @@ def set_default_effective_dates():
     old_law_docs = []
 
     for doc in result.data:
-        citation = doc.get('citation', '')
-        title = doc.get('title', '')
+        citation = doc.get("citation", "")
+        title = doc.get("title", "")
 
         # Check if this is an ESSB 5814 document
-        if 'ESSB 5814' in citation or 'ESSB 5814' in title or \
-           'essb 5814' in citation.lower() or 'essb 5814' in title.lower():
+        if (
+            "ESSB 5814" in citation
+            or "ESSB 5814" in title
+            or "essb 5814" in citation.lower()
+            or "essb 5814" in title.lower()
+        ):
             essb_docs.append(doc)
         else:
             old_law_docs.append(doc)
@@ -64,7 +70,7 @@ def set_default_effective_dates():
 
     # Confirm with user
     response = input("Proceed with setting effective dates? (yes/no): ")
-    if response.lower() not in ['yes', 'y']:
+    if response.lower() not in ["yes", "y"]:
         print("Cancelled.")
         return
 
@@ -75,10 +81,9 @@ def set_default_effective_dates():
     if essb_docs:
         print(f"\nSetting {len(essb_docs)} ESSB 5814 documents to 2025-10-01...")
         for i, doc in enumerate(essb_docs, 1):
-            supabase.table('knowledge_documents')\
-                .update({'effective_date': '2025-10-01'})\
-                .eq('id', doc['id'])\
-                .execute()
+            supabase.table("knowledge_documents").update(
+                {"effective_date": "2025-10-01"}
+            ).eq("id", doc["id"]).execute()
 
             if i % 10 == 0 or i == len(essb_docs):
                 print(f"  Updated {i}/{len(essb_docs)}...")
@@ -90,16 +95,17 @@ def set_default_effective_dates():
         # Batch update for efficiency
         batch_size = 100
         for i in range(0, len(old_law_docs), batch_size):
-            batch = old_law_docs[i:i+batch_size]
-            batch_ids = [doc['id'] for doc in batch]
+            batch = old_law_docs[i : i + batch_size]
+            batch_ids = [doc["id"] for doc in batch]
 
             # Update batch
-            supabase.table('knowledge_documents')\
-                .update({'effective_date': '2024-01-01'})\
-                .in_('id', batch_ids)\
-                .execute()
+            supabase.table("knowledge_documents").update(
+                {"effective_date": "2024-01-01"}
+            ).in_("id", batch_ids).execute()
 
-            print(f"  Updated {min(i+batch_size, len(old_law_docs))}/{len(old_law_docs)}...")
+            print(
+                f"  Updated {min(i+batch_size, len(old_law_docs))}/{len(old_law_docs)}..."
+            )
 
     print()
     print("=" * 80)
@@ -115,9 +121,19 @@ def set_default_effective_dates():
 
     # Verify
     print("Step 3: Verification...")
-    total = supabase.table('knowledge_documents').select('id', count='exact').execute()
-    with_date = supabase.table('knowledge_documents').select('id', count='exact').not_.is_('effective_date', 'null').execute()
-    without_date = supabase.table('knowledge_documents').select('id', count='exact').is_('effective_date', 'null').execute()
+    total = supabase.table("knowledge_documents").select("id", count="exact").execute()
+    with_date = (
+        supabase.table("knowledge_documents")
+        .select("id", count="exact")
+        .not_.is_("effective_date", "null")
+        .execute()
+    )
+    without_date = (
+        supabase.table("knowledge_documents")
+        .select("id", count="exact")
+        .is_("effective_date", "null")
+        .execute()
+    )
 
     print(f"  Total documents: {total.count}")
     print(f"  With effective_date: {with_date.count}")
@@ -126,7 +142,9 @@ def set_default_effective_dates():
     if without_date.count == 0:
         print("\n✅ Perfect! All documents now have effective_date set.")
     else:
-        print(f"\n⚠️  Warning: {without_date.count} documents still don't have effective_date")
+        print(
+            f"\n⚠️  Warning: {without_date.count} documents still don't have effective_date"
+        )
 
 
 if __name__ == "__main__":

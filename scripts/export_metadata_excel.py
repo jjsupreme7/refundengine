@@ -9,14 +9,15 @@ Usage:
     python scripts/export_metadata_excel.py --output metadata.xlsx
 """
 
+import argparse
 import os
 import sys
 from datetime import datetime
 from pathlib import Path
+
 from dotenv import load_dotenv
-import argparse
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
 # Add parent directory to path for imports

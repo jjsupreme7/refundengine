@@ -26,22 +26,23 @@ Usage:
     python scripts/research_vendors.py --import outputs/Vendor_Research_Results.xlsx
 """
 
+import argparse
 import os
 import sys
-import argparse
 import time
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
 from tqdm import tqdm
-from datetime import datetime
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
-from openai import OpenAI
 from fuzzywuzzy import fuzz, process
+from openai import OpenAI
 
 # Import centralized Supabase client
 from core.database import get_supabase_client

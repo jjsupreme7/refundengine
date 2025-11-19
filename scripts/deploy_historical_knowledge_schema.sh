@@ -6,9 +6,14 @@ set -e  # Exit on error
 
 echo "Deploying Historical Knowledge Schema..."
 
+# Add PostgreSQL to PATH
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
+
 # Source environment variables
 if [ -f .env ]; then
-    export $(cat .env | grep -v '^#' | xargs)
+    set -a  # automatically export all variables
+    source .env
+    set +a
 fi
 
 # Check required environment variables
@@ -19,10 +24,10 @@ fi
 
 # Run SQL migration
 PGPASSWORD=$SUPABASE_DB_PASSWORD psql \
-    -h aws-0-us-west-1.pooler.supabase.com \
-    -p 6543 \
-    -d postgres \
-    -U postgres.bvrvzjqscrthfldyfqyo \
+    -h $SUPABASE_DB_HOST \
+    -p $SUPABASE_DB_PORT \
+    -d $SUPABASE_DB_NAME \
+    -U $SUPABASE_DB_USER \
     << 'EOF'
 
 -- ============================================================================
@@ -151,7 +156,8 @@ BEGIN
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_patterns_success_rate ON vendor_product_patterns(success_rate DESC);
-CREATE INDEX IF NOT EXISTS idx_patterns_type_value ON vendor_product_patterns(pattern_type, pattern_value);
+-- Note: pattern_type and pattern_value columns don't exist in current schema
+-- CREATE INDEX IF NOT EXISTS idx_patterns_type_value ON vendor_product_patterns(pattern_type, pattern_value);
 
 COMMENT ON COLUMN vendor_product_patterns.typical_citation IS 'Common legal citation for this pattern';
 COMMENT ON COLUMN vendor_product_patterns.typical_basis IS 'Common refund basis for this pattern';
@@ -182,26 +188,28 @@ COMMENT ON VIEW high_confidence_vendor_patterns IS 'Vendors with high historical
 
 -- 5. Create helper view for category patterns
 -- ============================================================================
+-- Note: This view is disabled because pattern_type and pattern_value columns don't exist
+-- Can be re-enabled once schema is updated to include these columns
 
-CREATE OR REPLACE VIEW high_confidence_category_patterns AS
-SELECT
-    pattern_type,
-    pattern_value,
-    success_rate,
-    sample_count,
-    typical_basis,
-    typical_citation,
-    CASE
-        WHEN success_rate >= 0.85 THEN 'Very High'
-        WHEN success_rate >= 0.70 THEN 'High'
-        WHEN success_rate >= 0.50 THEN 'Medium'
-        ELSE 'Low'
-    END as confidence_level
-FROM vendor_product_patterns
-WHERE sample_count >= 10
-ORDER BY success_rate DESC, sample_count DESC;
+-- CREATE OR REPLACE VIEW high_confidence_category_patterns AS
+-- SELECT
+--     pattern_type,
+--     pattern_value,
+--     success_rate,
+--     sample_count,
+--     typical_basis,
+--     typical_citation,
+--     CASE
+--         WHEN success_rate >= 0.85 THEN 'Very High'
+--         WHEN success_rate >= 0.70 THEN 'High'
+--         WHEN success_rate >= 0.50 THEN 'Medium'
+--         ELSE 'Low'
+--     END as confidence_level
+-- FROM vendor_product_patterns
+-- WHERE sample_count >= 10
+-- ORDER BY success_rate DESC, sample_count DESC;
 
-COMMENT ON VIEW high_confidence_category_patterns IS 'Category patterns with high historical success rates';
+-- COMMENT ON VIEW high_confidence_category_patterns IS 'Category patterns with high historical success rates';
 
 -- 6. Create keyword_patterns table
 -- Stores description-based patterns for matching without Vertex codes
@@ -236,7 +244,7 @@ COMMENT ON COLUMN keyword_patterns.typical_basis IS 'Most common refund basis fo
 GRANT SELECT, INSERT, UPDATE ON refund_citations TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON keyword_patterns TO authenticated;
 GRANT SELECT ON high_confidence_vendor_patterns TO authenticated;
-GRANT SELECT ON high_confidence_category_patterns TO authenticated;
+-- GRANT SELECT ON high_confidence_category_patterns TO authenticated;  -- View disabled
 
 COMMIT;
 

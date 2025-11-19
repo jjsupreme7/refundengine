@@ -6,14 +6,15 @@ This script takes a list of vendor names, researches them using AI,
 and creates an Excel file ready for review and import.
 """
 
+import json
 import os
 import sys
 from pathlib import Path
-from openai import OpenAI
-from dotenv import load_dotenv
+
 import pandas as pd
+from dotenv import load_dotenv
+from openai import OpenAI
 from tqdm import tqdm
-import json
 
 # Load environment
 load_dotenv()
@@ -169,7 +170,7 @@ def create_vendor_background_xlsx(vendors: list, output_path: str):
 
     # Format the Excel file
     from openpyxl import load_workbook
-    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.styles import Alignment, Font, PatternFill
 
     wb = load_workbook(output_path)
     ws = wb["Metadata"]

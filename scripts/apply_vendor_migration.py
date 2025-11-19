@@ -6,8 +6,9 @@ Executes the migration SQL file via Supabase Management API
 
 import os
 import sys
-import requests
 from pathlib import Path
+
+import requests
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

@@ -4,8 +4,10 @@ Excel Masking Module
 Masks PII in Excel exports for safe sharing with reviewers.
 """
 
-import pandas as pd
 from typing import Dict, List
+
+import pandas as pd
+
 from .encryption import EncryptionService, PIIFieldMapper
 
 
