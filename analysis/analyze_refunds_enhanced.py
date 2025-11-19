@@ -42,7 +42,9 @@ class EnhancedRefundAnalyzer:
     - Hybrid search (vector + keyword)
     """
 
-    def __init__(self, docs_folder: str = "client_docs", enable_dynamic_models: bool = True):
+    def __init__(
+        self, docs_folder: str = "client_docs", enable_dynamic_models: bool = True
+    ):
         self.docs_folder = Path(docs_folder)
         self.embedding_model = "text-embedding-3-small"
         self.analysis_model = "gpt-4o"
@@ -57,9 +59,15 @@ class EnhancedRefundAnalyzer:
         print("   - Hybrid Search: ON")
         if enable_dynamic_models:
             print("   - Dynamic Model Selection: ON")
-            print(f"     • High stakes (>${self.rag.stakes_threshold_high:,}): Claude Sonnet 4.5")
-            print(f"     • Medium stakes (${self.rag.stakes_threshold_medium:,}-${self.rag.stakes_threshold_high:,}): GPT-4o")
-            print(f"     • Low stakes (<${self.rag.stakes_threshold_medium:,}): gpt-4o-mini")
+            print(
+                f"     • High stakes (>${self.rag.stakes_threshold_high:,}): Claude Sonnet 4.5"
+            )
+            print(
+                f"     • Medium stakes (${self.rag.stakes_threshold_medium:,}-${self.rag.stakes_threshold_high:,}): GPT-4o"
+            )
+            print(
+                f"     • Low stakes (<${self.rag.stakes_threshold_medium:,}): gpt-4o-mini"
+            )
         else:
             print("   - Dynamic Model Selection: OFF")
         print()

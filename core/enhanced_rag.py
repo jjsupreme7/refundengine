@@ -32,8 +32,12 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 class EnhancedRAG:
     """Enhanced Retrieval Augmented Generation with validation and correction"""
 
-    def __init__(self, supabase_client: Client = None, tax_rules_path: str = None,
-                 enable_dynamic_models: bool = False):
+    def __init__(
+        self,
+        supabase_client: Client = None,
+        tax_rules_path: str = None,
+        enable_dynamic_models: bool = False,
+    ):
         """
         Initialize Enhanced RAG
 
@@ -149,8 +153,12 @@ class EnhancedRAG:
         if base_stakes > 0:
             print(f"\n💰 Stakes Calculation:")
             print(f"   Base: ${base_stakes:,.0f} ({source})")
-            print(f"   Complexity: {complexity} ({complexity_multipliers.get(complexity, 1.0)}x)")
-            print(f"   Client tier: {client_tier} ({tier_multipliers.get(client_tier, 1.0)}x)")
+            print(
+                f"   Complexity: {complexity} ({complexity_multipliers.get(complexity, 1.0)}x)"
+            )
+            print(
+                f"   Client tier: {client_tier} ({tier_multipliers.get(client_tier, 1.0)}x)"
+            )
             print(f"   Final stakes: ${final_stakes:,.0f}")
 
         return int(final_stakes)
