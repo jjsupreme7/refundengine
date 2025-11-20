@@ -628,13 +628,16 @@ class EnhancedRAG:
     def _assess_chunk_relevance(self, query: str, chunk: Dict) -> Dict:
         """Use AI to assess if chunk is truly relevant"""
 
-        prompt = """Assess the relevance of this legal text to the query.
+        citation = chunk.get('citation', 'Unknown')
+        chunk_text = chunk.get('chunk_text', '')[:800]
+
+        prompt = f"""Assess the relevance of this legal text to the query.
 
 Query: {query}
 
 Legal Text:
-Citation: {chunk.get('citation', 'Unknown')}
-{chunk.get('chunk_text', '')[:800]}
+Citation: {citation}
+{chunk_text}
 
 Rate relevance on 0.0-1.0 scale. Consider:
 1. Does this legal text apply to the query's scenario?
@@ -750,7 +753,7 @@ Return only the refined query, no explanation.
             chunks_text += f"\n[{i}] Citation: {chunk.get('citation', 'N/A')}\n"
             chunks_text += f"Preview: {chunk.get('chunk_text', '')[:300]}...\n"
 
-        prompt = """Rank these legal text chunks by relevance to the query.
+        prompt = f"""Rank these legal text chunks by relevance to the query.
 
 Query: {query}
 
@@ -837,7 +840,7 @@ Return JSON array of indices in order of MOST to LEAST relevant:
     def _expand_query(self, original_query: str) -> List[str]:
         """Generate multiple variations of query for better retrieval"""
 
-        prompt = """Original Query: {original_query}
+        prompt = f"""Original Query: {original_query}
 
 Generate 3 alternative phrasings using Washington State tax terminology:
 1. Using legal/technical terms (RCW/WAC citations, legal definitions)
