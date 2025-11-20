@@ -14,15 +14,13 @@ Usage:
     python scripts/train_pattern_learner.py
 """
 
+import pandas as pd
+from collections import Counter, defaultdict
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from collections import Counter, defaultdict
-
-import pandas as pd
 
 
 class Phase2MasterProcessor:
@@ -177,13 +175,13 @@ class Phase2PatternLearner:
                         self.patterns["pass_keywords"][kw] += 1
 
         print(f"\n[OK] Training complete: {self.training_count} records processed")
-        print(f"\nDecision distribution:")
+        print("\nDecision distribution:")
         for decision, count in self.decision_distribution.most_common(10):
             print(f"  {decision}: {count:,}")
 
     def _extract_keywords(self, text: str):
         """Extract meaningful keywords"""
-        import re
+        import re  # noqa: E402
 
         if not text or text == "nan":
             return []
@@ -201,7 +199,7 @@ class Phase2PatternLearner:
             "at",
             "to",
             "for",
-            "of",
+            "o",
             "with",
             "by",
             "from",
@@ -264,7 +262,7 @@ class Phase2PatternLearner:
             print(f"  {i:2}. '{kw}': {count} occurrences")
 
         # Best product types for refunds
-        print(f"\nBest Product Types for Refunds:")
+        print("\nBest Product Types for Refunds:")
         product_refund_rates = []
         for product_type, distribution in self.patterns[
             "product_type_patterns"
@@ -289,7 +287,7 @@ class Phase2PatternLearner:
             print(f"  {i:2}. '{ptype}': {rate:.1%} refund rate ({count} samples)")
 
         # Best tax categories for refunds
-        print(f"\nBest Tax Categories for Refunds:")
+        print("\nBest Tax Categories for Refunds:")
         tax_refund_rates = []
         for tax_cat, distribution in self.patterns["tax_category_patterns"].items():
             total = sum(distribution.values())
@@ -310,7 +308,7 @@ class Phase2PatternLearner:
             print(f"  {i:2}. '{tax_cat}': {rate:.1%} refund rate ({count} samples)")
 
         # Most common refund bases
-        print(f"\nMost Common Refund Bases:")
+        print("\nMost Common Refund Bases:")
         refund_basis_counts = []
         for basis, distribution in self.patterns["refund_basis_patterns"].items():
             if basis and str(basis) != "nan":
@@ -323,7 +321,7 @@ class Phase2PatternLearner:
             print(f"  {i:2}. '{basis}': {count} occurrences")
 
         # Top methodologies
-        print(f"\nTop Methodologies:")
+        print("\nTop Methodologies:")
         methodology_counts = []
         for methodology, distribution in self.patterns["methodology_patterns"].items():
             if methodology and str(methodology) != "nan":
@@ -359,14 +357,14 @@ def main():
         print(f"Average refund amount: ${stats['avg_refund_amount']:,.2f}")
 
     if "status_breakdown" in stats and stats["status_breakdown"]:
-        print(f"\nStatus breakdown (top 10):")
+        print("\nStatus breakdown (top 10):")
         for status, count in sorted(
             stats["status_breakdown"].items(), key=lambda x: x[1], reverse=True
         )[:10]:
             print(f"  {status}: {count:,}")
 
     if "product_types" in stats and stats["product_types"]:
-        print(f"\nProduct types (top 10):")
+        print("\nProduct types (top 10):")
         for ptype, count in sorted(
             stats["product_types"].items(), key=lambda x: x[1], reverse=True
         )[:10]:
@@ -383,7 +381,8 @@ def main():
     print(" TRAINING COMPLETE")
     print("=" * 80)
     print(
-        f"\nThe pattern learner has been trained on {learner.training_count:,} historical refund decisions."
+        f"\nThe pattern learner has been trained on {
+            learner.training_count:,} historical refund decisions."
     )
     print(
         "You can now use these learned patterns to classify new invoices automatically."

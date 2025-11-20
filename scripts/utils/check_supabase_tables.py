@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check what tables exist in Supabase - both current and deprecated"""
 
+from core.database import get_supabase_client
 import os
 import sys
 from pathlib import Path
@@ -14,7 +15,6 @@ except ImportError:
 
 # Import centralized Supabase client
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 

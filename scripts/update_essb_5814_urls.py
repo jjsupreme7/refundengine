@@ -5,16 +5,14 @@ Update file_url for ESSB 5814 Documents
 Adds official WA DOR URLs to ESSB 5814 documents in the database
 """
 
-import os
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -133,7 +131,7 @@ def update_essb_5814_urls():
             except Exception as e:
                 print(f"   ❌ Error updating: {e}")
         else:
-            print(f"   ⚠️  No URL mapping found")
+            print("   ⚠️  No URL mapping found")
             no_match_count += 1
 
         print()

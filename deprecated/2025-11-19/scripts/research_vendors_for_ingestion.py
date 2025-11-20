@@ -26,23 +26,23 @@ def research_vendor(vendor_name: str) -> dict:
     Research a vendor and extract structured metadata
     """
 
-    prompt = f"""You are a business research assistant. Research the company "{vendor_name}" and provide structured information.
+    prompt = """You are a business research assistant. Research the company "{
+        vendor_name}" and provide structured information.
 
-IMPORTANT: Base your response on your knowledge of this company. Provide your best assessment even if you're not 100% certain.
+IMPORTANT: Base your response on your knowledge of this company. Provide your best assessment even if you're not 100% certain.  # noqa: E501
 
 Return a JSON object with the following fields:
 
-{{
-  "vendor_name": "Official company name",
-  "industry": "Primary industry (e.g., Technology, Professional Services, Manufacturing, etc.)",
-  "business_model": "Business model type (e.g., B2B SaaS, B2B Services, Manufacturing, Retail, etc.)",
+{"vendor_name": "Official company name",
+  "industry": "Primary industry (e.g., Technology, Professional Services, Manufacturing, etc.)",  # noqa: E501
+  "business_model": "Business model type (e.g., B2B SaaS, B2B Services, Manufacturing, Retail, etc.)",  # noqa: E501
   "primary_products": ["Product/service 1", "Product/service 2", "Product/service 3"],
-  "typical_delivery": "How products/services are delivered (e.g., Cloud-based, On-premise, Hybrid, In-person, Physical goods)",
-  "tax_notes": "Tax-relevant notes for Washington state sales/use tax (e.g., 'Digital automated services', 'Professional services - likely exempt', 'Physical goods - taxable', 'SaaS - subject to B&O tax')",
+  "typical_delivery": "How products/services are delivered (e.g., Cloud-based, On-premise, Hybrid, In-person, Physical goods)",  # noqa: E501
+  "tax_notes": "Tax-relevant notes for Washington state sales/use tax (e.g., 'Digital automated services', 'Professional services - likely exempt', 'Physical goods - taxable', 'SaaS - subject to B&O tax')",  # noqa: E501
   "confidence_score": 85.0,
   "document_title": "Vendor Background: [Company Name]",
   "document_summary": "Brief 1-2 sentence summary of what this company does"
-}}
+}
 
 For tax_notes, consider:
 - Digital products and SaaS are generally subject to WA sales tax
@@ -58,7 +58,7 @@ Be specific and accurate. Return ONLY the JSON object, no other text."""
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a business research expert. Provide accurate, structured vendor information in JSON format.",
+                    "content": "You are a business research expert. Provide accurate, structured vendor information in JSON format.",  # noqa: E501
                 },
                 {"role": "user", "content": prompt},
             ],
@@ -195,7 +195,7 @@ def create_vendor_background_xlsx(vendors: list, output_path: str):
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except BaseException:
                 pass
 
         adjusted_width = min(max_length + 2, 50)
@@ -206,23 +206,23 @@ def create_vendor_background_xlsx(vendors: list, output_path: str):
 
     wb.save(output_path)
 
-    print(f"\n{'='*70}")
-    print(f"✅ VENDOR RESEARCH COMPLETE")
-    print(f"{'='*70}")
+    print(f"\n{'=' * 70}")
+    print("✅ VENDOR RESEARCH COMPLETE")
+    print(f"{'=' * 70}")
     print(f"📊 Researched: {len(metadata_rows)} vendors")
     print(f"📁 Excel file created: {output_path}")
-    print(f"\n📋 Next steps:")
+    print("\n📋 Next steps:")
     print(f"  1. Open {output_path}")
-    print(f"  2. Review AI-suggested metadata for each vendor")
-    print(f"  3. Edit any fields you want to change")
-    print(f"  4. Update 'Status' column:")
-    print(f"     - 'Approved' = Ready to ingest")
-    print(f"     - 'Skip' = Don't ingest this vendor")
-    print(f"  5. Save the Excel file")
+    print("  2. Review AI-suggested metadata for each vendor")
+    print("  3. Edit any fields you want to change")
+    print("  4. Update 'Status' column:")
+    print("     - 'Approved' = Ready to ingest")
+    print("     - 'Skip' = Don't ingest this vendor")
+    print("  5. Save the Excel file")
     print(
-        f"  6. Run: python core/ingest_documents.py --import-metadata {output_path} --yes"
+        f"  6. Run: python core/ingest_documents.py --import-metadata {output_path} --yes"  # noqa: E501
     )
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
 
 if __name__ == "__main__":

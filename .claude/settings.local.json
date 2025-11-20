@@ -150,7 +150,8 @@
       "Bash(else echo \"No .env file\")",
       "Bash(pmset:*)",
       "Bash(bash scripts/deploy_historical_knowledge_schema.sh:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(autopep8:*)"
     ],
     "deny": [],
     "ask": []

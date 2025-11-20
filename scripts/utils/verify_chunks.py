@@ -17,7 +17,6 @@ Current Schema (Post-Migration):
 """
 
 import argparse
-import sys
 
 from core.database import get_supabase_client
 
@@ -42,7 +41,7 @@ def quick_summary():
     print(f"✅ Chunks: {format_count(chunks.count)}")
 
     if docs.count > 0:
-        print(f"✅ Average: {chunks.count/docs.count:.1f} chunks/document")
+        print(f"✅ Average: {chunks.count / docs.count:.1f} chunks/document")
 
     print("\n" + "=" * 70 + "\n")
 
@@ -71,8 +70,9 @@ def main(mode="standard"):
 
     if docs_result.count > 0:
         print(
-            f"📊 Average chunks per document: {chunks_result.count / docs_result.count:.2f}"
-        )
+            f"📊 Average chunks per document: {
+                chunks_result.count /
+                docs_result.count:.2f}")
     else:
         print("\n⚠️  No documents found - run ingestion scripts to populate database")
 
@@ -94,19 +94,17 @@ def main(mode="standard"):
     for chunk in sample_chunks.data:
         text = chunk["chunk_text"]
         has_html = "<" in text and ">" in text
-        has_embedding = chunk["embedding"] is not None
 
         if has_html:
             html_count += 1
         else:
             text_count += 1
 
-    print(f"\nOut of 10 sample chunks:")
+    print("\nOut of 10 sample chunks:")
     print(f"  Clean text (no HTML): {text_count}")
     print(f"  Contains HTML tags: {html_count}")
-    print(
-        f"  All have embeddings: {all(chunk['embedding'] is not None for chunk in sample_chunks.data)}"
-    )
+    print(f"  All have embeddings: {
+        all(chunk['embedding'] is not None for chunk in sample_chunks.data)}")
 
     # Show document type breakdown
     print("\n" + "=" * 80)
@@ -123,7 +121,7 @@ def main(mode="standard"):
 
     for i, doc in enumerate(recent.data, 1):
         # Extract file type from path
-        if ".pdf" in doc["source_file"]:
+        if ".pd" in doc["source_file"]:
             doc_type = "PDF (WTD)"
         elif ".html" in doc["source_file"] or ".htm" in doc["source_file"]:
             doc_type = "HTML (WAC/RCW)"
@@ -146,11 +144,11 @@ def main(mode="standard"):
 
     chunk_sizes = [len(chunk["chunk_text"]) for chunk in sample_100.data]
 
-    print(f"\nChunk character counts:")
+    print("\nChunk character counts:")
     print(f"  Min: {min(chunk_sizes)}")
     print(f"  Max: {max(chunk_sizes)}")
     print(f"  Average: {sum(chunk_sizes) / len(chunk_sizes):.0f}")
-    print(f"  Median: {sorted(chunk_sizes)[len(chunk_sizes)//2]}")
+    print(f"  Median: {sorted(chunk_sizes)[len(chunk_sizes) // 2]}")
 
     # Count chunks by size range
     ranges = [
@@ -158,15 +156,14 @@ def main(mode="standard"):
         (500, 2000, "Small"),
         (2000, 5000, "Medium"),
         (5000, 10000, "Large"),
-        (10000, float("inf"), "Very Large"),
+        (10000, float("in"), "Very Large"),
     ]
 
-    print(f"\nChunk size ranges (out of 100 samples):")
+    print("\nChunk size ranges (out of 100 samples):")
     for min_size, max_size, label in ranges:
         count = sum(1 for size in chunk_sizes if min_size <= size < max_size)
-        print(
-            f"  {label} ({min_size}-{max_size if max_size != float('inf') else '∞'} chars): {count}"
-        )
+        print(f"  {label} ({min_size}-{max_size if max_size !=
+                                       float('in') else '∞'} chars): {count}")
 
     print("\n" + "=" * 80)
     print("✅ VERIFICATION COMPLETE")
@@ -190,7 +187,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--full",
-        "-f",
+        "-",
         action="store_true",
         help="Full detailed analysis (same as standard)",
     )

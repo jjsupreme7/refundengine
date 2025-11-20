@@ -175,7 +175,8 @@ def render_diff_viewer(
                 st.markdown("**Before (Old Values)**")
                 for change in row_changes:
                     st.markdown(
-                        f"**{change['column_name']}:** {change.get('old_value', '(empty)')}"
+                        f"**{change['column_name']
+                             }:** {change.get('old_value', '(empty)')}"
                     )
 
             with col2:
@@ -217,13 +218,14 @@ def render_diff_viewer(
                 st.download_button(
                     label="⬇️ Download CSV",
                     data=csv,
-                    file_name=f"changes_v{version_number}_{datetime.now().strftime('%Y%m%d')}.csv",
+                    file_name=f"changes_v{version_number}_{
+                        datetime.now().strftime('%Y%m%d')}.csv",
                     mime="text/csv",
                 )
 
     with col2:
         if st.button("📋 Copy Summary", key=f"copy_summary_{version_id}"):
-            summary = f"""
+            summary = """
 Version {version_number} Changes Summary
 File: {file_name}
 Changed by: {created_by}
@@ -239,7 +241,14 @@ Changes by Row:
             for row_idx in sorted(changes_by_row.keys()):
                 summary += f"\nRow {row_idx}:\n"
                 for change in changes_by_row[row_idx]:
-                    summary += f"  - {change['column_name']}: {change.get('old_value', '(empty)')} → {change.get('new_value', '(empty)')}\n"
+                    summary += f"  - {
+                        change['column_name']}: {
+                        change.get(
+                            'old_value',
+                            '(empty)')} → {
+                        change.get(
+                            'new_value',
+                            '(empty)')}\n"
 
             st.code(summary, language=None)
 

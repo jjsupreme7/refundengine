@@ -10,8 +10,8 @@ Usage:
     python scripts/import_metadata_excel.py --file metadata.xlsx --auto-confirm
 """
 
+from core.database import get_supabase_client
 import argparse
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -27,7 +27,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 load_dotenv()
 
 # Import centralized database client
-from core.database import get_supabase_client
 
 
 class ExcelMetadataImporter:
@@ -79,7 +78,7 @@ class ExcelMetadataImporter:
         all_data = []
 
         for i in range(0, len(ids), batch_size):
-            batch_ids = ids[i : i + batch_size]
+            batch_ids = ids[i: i + batch_size]
             result = (
                 self.supabase.table(table_name)
                 .select("*")
@@ -159,7 +158,8 @@ class ExcelMetadataImporter:
         if hasattr(value, "date"):
             return str(value.date())
 
-        # Handle arrays - convert both database arrays and Excel strings to sorted comma-separated strings
+        # Handle arrays - convert both database arrays and Excel strings to sorted
+        # comma-separated strings
         if isinstance(value, list):
             # Database array: ['sales tax', 'use tax'] → 'sales tax, use tax'
             return ", ".join(sorted(value)) if value else None
@@ -447,7 +447,7 @@ def main():
 
     except Exception as e:
         print(f"\n❌ Error during import: {e}")
-        import traceback
+        import traceback  # noqa: E402
 
         traceback.print_exc()
         return 1

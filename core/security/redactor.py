@@ -65,7 +65,8 @@ class Redactor:
         if not findings:
             return text, {}
 
-        # Sort findings by position (reverse order to maintain positions during replacement)
+        # Sort findings by position (reverse order to maintain positions during
+        # replacement)
         findings.sort(key=lambda f: f.start, reverse=True)
 
         # Build redaction map
@@ -85,7 +86,7 @@ class Redactor:
 
             # Replace in text (from end to start to maintain positions)
             redacted_text = (
-                redacted_text[: finding.start] + token + redacted_text[finding.end :]
+                redacted_text[: finding.start] + token + redacted_text[finding.end:]
             )
 
         return redacted_text, redaction_map

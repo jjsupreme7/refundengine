@@ -56,7 +56,7 @@ def serve_document(filename):
     Serve a document file securely
 
     Args:
-        filename: URL-encoded filename (e.g., "WAC 458-20-100.pdf")
+        filename: URL-encoded filename (e.g., "WAC 458-20-100.pd")
 
     Security:
         - URL-decodes filename only (no secure_filename mutation)
@@ -107,7 +107,7 @@ def serve_document(filename):
     # Send file
     return send_file(
         file_path,
-        mimetype="application/pdf",
+        mimetype="application/pd",
         as_attachment=False,  # Display in browser if possible
         download_name=filename,
     )
@@ -167,7 +167,7 @@ def build_file_index():
                         f"Duplicate filename found: {filename}\n"
                         f"  Existing: {existing}\n"
                         f"  Duplicate: {file_path}\n"
-                        f"  Keeping existing entry."
+                        "  Keeping existing entry."
                     )
 
     return len(FILE_INDEX)
@@ -217,9 +217,9 @@ def main():
         sys.exit(1)
 
     print()
-    print(f"Server URL: http://localhost:5001")
-    print(f"Health Check: http://localhost:5001/health")
-    print(f"File Endpoint: http://localhost:5001/documents/<filename>")
+    print("Server URL: http://localhost:5001")
+    print("Health Check: http://localhost:5001/health")
+    print("File Endpoint: http://localhost:5001/documents/<filename>")
     print("=" * 70)
     print("\nPress Ctrl+C to stop\n")
 

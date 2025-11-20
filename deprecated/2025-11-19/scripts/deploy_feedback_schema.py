@@ -3,13 +3,12 @@
 Deploy Feedback Schema to Supabase using Python
 """
 
+from core.database import get_supabase_client
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from core.database import get_supabase_client
 
 
 def deploy_schema():
@@ -95,7 +94,7 @@ def deploy_schema():
                 result = supabase.rpc("exec_sql", {"sql": statement}).execute()
                 print("✅")
                 success_count += 1
-            except:
+            except BaseException:
                 # If RPC doesn't work, we'll need direct PostgreSQL access
                 # For now, just mark as needing manual execution
                 print("⚠️  (Needs manual execution)")
@@ -109,7 +108,7 @@ def deploy_schema():
     print("=" * 80)
 
     if error_count > 0:
-        print(f"⚠️  Schema deployment incomplete")
+        print("⚠️  Schema deployment incomplete")
         print(f"   Successfully executed: {success_count}")
         print(f"   Failed/Skipped: {error_count}")
         print()
@@ -142,9 +141,9 @@ def deploy_schema():
 
     for table in tables_to_check:
         try:
-            result = supabase.table(table).select("*").limit(1).execute()
+            result = supabase.table(table).select("*").limit(1).execute()  # noqa: F841
             print(f"  ✅ {table} exists")
-        except Exception as e:
+        except Exception as e:  # noqa: F841
             print(f"  ❌ {table} not found - needs manual creation")
 
     print()

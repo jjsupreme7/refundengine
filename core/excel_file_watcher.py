@@ -13,6 +13,8 @@ Database Schema Required:
 - excel_row_tracking table (row-level hashes)
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import hashlib
 import os
 import sys
@@ -25,9 +27,6 @@ import pandas as pd
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -193,9 +192,9 @@ class ExcelFileWatcher:
         Returns:
             Dictionary with processing summary
         """
-        print(f"\n{'='*70}")
-        print(f"EXCEL FILE CHANGE DETECTION")
-        print(f"{'='*70}")
+        print(f"\n{'=' * 70}")
+        print("EXCEL FILE CHANGE DETECTION")
+        print(f"{'=' * 70}")
         print(f"File: {file_path}")
         print()
 
@@ -249,7 +248,8 @@ class ExcelFileWatcher:
 
             status = "new" if is_new else "modified"
             print(
-                f"   [{processed_count + 1}/{len(changed_rows)}] Row {row_idx} ({status})"
+                f"   [{processed_count +
+                       1}/{len(changed_rows)}] Row {row_idx} ({status})"
             )
 
             # Call processor callback if provided
@@ -260,10 +260,10 @@ class ExcelFileWatcher:
                         # Update row tracking on success
                         self.update_row_tracking(file_path, row_idx, row_hash)
                         processed_count += 1
-                        print(f"      ✅ Processed successfully")
+                        print("      ✅ Processed successfully")
                     else:
                         error_count += 1
-                        print(f"      ❌ Processing failed")
+                        print("      ❌ Processing failed")
                 except Exception as e:
                     error_count += 1
                     print(f"      ❌ Error: {e}")
@@ -276,9 +276,9 @@ class ExcelFileWatcher:
         self.update_file_tracking(file_path, len(df))
 
         print()
-        print(f"{'='*70}")
-        print(f"✅ PROCESSING COMPLETE")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
+        print("✅ PROCESSING COMPLETE")
+        print(f"{'=' * 70}")
         print(f"Total rows in file: {len(df)}")
         print(f"Changed rows: {len(changed_rows)}")
         print(f"Successfully processed: {processed_count}")
@@ -304,15 +304,15 @@ class ExcelFileWatcher:
             pattern: File pattern (e.g., "*.xlsx", "Refund_Claim_*.xlsx")
             processor_callback: Function to call for each changed row
         """
-        print(f"\n{'='*70}")
-        print(f"WATCHING DIRECTORY FOR EXCEL FILES")
-        print(f"{'='*70}")
+        print(f"\n{'=' * 70}")
+        print("WATCHING DIRECTORY FOR EXCEL FILES")
+        print(f"{'=' * 70}")
         print(f"Directory: {directory}")
         print(f"Pattern: {pattern}")
         print()
 
-        import glob
-        from pathlib import Path
+        import glob  # noqa: E402
+        from pathlib import Path  # noqa: E402
 
         # Find matching files
         search_path = Path(directory) / pattern
@@ -374,7 +374,7 @@ def main():
     """
     Main entry point for testing
     """
-    import argparse
+    import argparse  # noqa: E402
 
     parser = argparse.ArgumentParser(
         description="Excel file change detection and processing"

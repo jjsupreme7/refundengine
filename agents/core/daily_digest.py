@@ -52,7 +52,7 @@ class DailyDigest:
         approved_today = self.queue.count_approved_today()
 
         # Build summary
-        summary = f"""
+        summary = """
 📧 REFUND ENGINE DAILY DIGEST
 {datetime.now().strftime('%A, %B %d, %Y')}
 
@@ -87,7 +87,7 @@ TOP HIGH PRIORITY PROPOSALS:
                 "pattern_learning": "🧠",
             }.get(proposal.team, "🤖")
 
-            summary += f"""
+            summary += """
 {i}. {team_emoji} {proposal.title}
    Team: {proposal.team.replace('_', ' ').title()}
    Impact: {proposal.impact[:100]}{'...' if len(proposal.impact) > 100 else ''}
@@ -97,7 +97,7 @@ TOP HIGH PRIORITY PROPOSALS:
         if not high_priority:
             summary += "\n   No high priority proposals\n"
 
-        summary += f"""
+        summary += """
 ═══════════════════════════════════════
 
 ✅ APPROVED TODAY: {approved_today} proposals
@@ -142,7 +142,7 @@ Agent System Configuration:
         success = post_to_discord("digest", summary, username="Daily Digest")
 
         if success:
-            print(f"Daily digest sent to Discord")
+            print("Daily digest sent to Discord")
         else:
             print("Failed to send daily digest")
 

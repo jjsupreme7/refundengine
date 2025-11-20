@@ -9,6 +9,8 @@ Usage:
     streamlit run dashboard_app.py --server.port 5001
 """
 
+from core.auth import require_authentication
+from dotenv import load_dotenv
 import sys
 from pathlib import Path
 
@@ -18,7 +20,6 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent))
 
 # Load environment
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -33,7 +34,6 @@ st.set_page_config(
 
 # AUTHENTICATION - Require login before accessing dashboard
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()

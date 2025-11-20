@@ -93,7 +93,7 @@ def generate_document_url(
 
     Args:
         citation: Document citation (e.g., "WAC 458-20-100", "RCW 82.04")
-        source_file: Local file path (e.g., "knowledge_base/wa_tax_law/some_doc.pdf")
+        source_file: Local file path (e.g., "knowledge_base/wa_tax_law/some_doc.pd")
         document_type: Type of document ('tax_law' or 'vendor_background')
 
     Returns:
@@ -143,21 +143,24 @@ def generate_document_url(
             rcw_match = re.search(rcw_file_pattern, source_file)
             if rcw_match:
                 if rcw_match.group(3):
-                    rcw_citation = f"{rcw_match.group(1)}.{rcw_match.group(2)}.{rcw_match.group(3)}"
+                    rcw_citation = f"{
+                        rcw_match.group(1)}.{
+                        rcw_match.group(2)}.{
+                        rcw_match.group(3)}"
                 else:
                     rcw_citation = f"{rcw_match.group(1)}.{rcw_match.group(2)}"
                 return generate_rcw_url(rcw_citation)
 
         # For PDF files, generate Supabase Storage URL
-        if source_file_lower.endswith(".pdf"):
+        if source_file_lower.endswith(".pd"):
             # Get Supabase URL from environment
             supabase_url = os.getenv(
                 "SUPABASE_URL", "https://yzycrptfkxszeutvhuhm.supabase.co"
             )
 
             # Extract path relative to knowledge_base/
-            # Example: "knowledge_base/wa_tax_law/tax_decisions/2010/29 WTD 1.pdf"
-            #       -> "wa_tax_law/tax_decisions/2010/29 WTD 1.pdf"
+            # Example: "knowledge_base/wa_tax_law/tax_decisions/2010/29 WTD 1.pd"
+            #       -> "wa_tax_law/tax_decisions/2010/29 WTD 1.pd"
             if "knowledge_base/" in source_file:
                 storage_path = source_file.split("knowledge_base/")[-1]
             else:
@@ -227,16 +230,24 @@ if __name__ == "__main__":
     print(f"  WAC citation: {generate_document_url('WAC 458-20-100', None)}")
     print(f"  RCW citation: {generate_document_url('RCW 82.04', None)}")
     print(
-        f"  HTML file: {generate_document_url(None, 'knowledge_base/wa_tax_law/wac/458_20_100_HTML.html')}"
+        f"  HTML file: {
+            generate_document_url(
+                None,
+                'knowledge_base/wa_tax_law/wac/458_20_100_HTML.html')}"
     )
     print(
-        f"  PDF file: {generate_document_url(None, 'knowledge_base/wa_tax_law/some_document.pdf')}"
+        f"  PDF file: {
+            generate_document_url(
+                None,
+                'knowledge_base/wa_tax_law/some_document.pd')}"
     )
 
     print("\nCitation Extraction Tests:")
     print(
-        f"  'See WAC 458-20-100': {extract_citation_from_text('See WAC 458-20-100 for details')}"
+        f"  'See WAC 458-20-100': {
+            extract_citation_from_text('See WAC 458-20-100 for details')}"
     )
     print(
-        f"  'According to RCW 82.04.050': {extract_citation_from_text('According to RCW 82.04.050')}"
+        f"  'According to RCW 82.04.050': {
+            extract_citation_from_text('According to RCW 82.04.050')}"
     )

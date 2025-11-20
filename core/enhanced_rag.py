@@ -15,7 +15,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from openai import OpenAI
 from supabase import Client
@@ -24,7 +24,7 @@ from supabase import Client
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import centralized database client
-from core.database import get_supabase_client
+from core.database import get_supabase_client  # noqa: E402
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -151,14 +151,17 @@ class EnhancedRAG:
         )
 
         if base_stakes > 0:
-            print(f"\n💰 Stakes Calculation:")
+            print("\n💰 Stakes Calculation:")
             print(f"   Base: ${base_stakes:,.0f} ({source})")
             print(
-                f"   Complexity: {complexity} ({complexity_multipliers.get(complexity, 1.0)}x)"
-            )
+                f"   Complexity: {complexity} ({
+                    complexity_multipliers.get(
+                        complexity, 1.0)}x)")
             print(
-                f"   Client tier: {client_tier} ({tier_multipliers.get(client_tier, 1.0)}x)"
-            )
+                f"   Client tier: {client_tier} ({
+                    tier_multipliers.get(
+                        client_tier,
+                        1.0)}x)")
             print(f"   Final stakes: ${final_stakes:,.0f}")
 
         return int(final_stakes)
@@ -276,7 +279,7 @@ class EnhancedRAG:
 
         Returns:
             Dictionary with:
-                - action: Decision taken (USE_CACHED | USE_RULES | RETRIEVE_SIMPLE | RETRIEVE_ENHANCED)
+                - action: Decision taken (USE_CACHED | USE_RULES | RETRIEVE_SIMPLE | RETRIEVE_ENHANCED)  # noqa: E501
                 - reasoning: Why this decision was made
                 - results: The actual search results/cached data
                 - confidence: Confidence score (0-1)
@@ -287,21 +290,20 @@ class EnhancedRAG:
             ...     "vendor": "Microsoft",
             ...     "product": "Azure",
             ...     "product_type": "iaas_paas",
-            ...     "prior_analysis": {"confidence_score": 0.92, "refund_eligible": True}
+            ...     "prior_analysis": {"confidence_score": 0.92, "refund_eligible": True}  # noqa: E501
             ... }
             >>> result = rag.search_with_decision("Is Azure taxable?", context)
             >>> print(result['action'])  # "USE_CACHED" (confidence 0.92 > 0.85)
         """
         context = context or {}
 
-        print(f"\n{'='*80}")
-        print(f"🤖 AGENTIC RAG: Making Retrieval Decision")
+        print(f"\n{'=' * 80}")
+        print("🤖 AGENTIC RAG: Making Retrieval Decision")
         print(f"Query: {query}")
         if context:
-            print(
-                f"Context: {', '.join([f'{k}={v}' for k, v in list(context.items())[:3]])}"
-            )
-        print(f"{'='*80}\n")
+            print(f"Context: {', '.join(
+                [f'{k}={v}' for k, v in list(context.items())[:3]])}")
+        print(f"{'=' * 80}\n")
 
         # Skip decision if forced retrieval
         if force_retrieval:
@@ -340,7 +342,8 @@ class EnhancedRAG:
 
         elif decision["action"] == "RETRIEVE_ENHANCED":
             print("🚀 Using enhanced retrieval (all improvements)...")
-            # Note: search_enhanced doesn't support filters yet, but basic search is called within it
+            # Note: search_enhanced doesn't support filters yet, but basic search is
+            # called within it
             results = self.search_enhanced(query, top_k)
             decision["results"] = results
             decision["confidence"] = 0.9  # High confidence for enhanced retrieval
@@ -376,11 +379,11 @@ class EnhancedRAG:
 
             if confidence >= self.confidence_threshold_high:
                 print(
-                    f"✅ High-confidence cached result found (confidence: {confidence:.2f})"
+                    f"✅ High-confidence cached result found (confidence: {confidence:.2f})"  # noqa: E501
                 )
                 return {
                     "action": "USE_CACHED",
-                    "reasoning": f"Prior analysis has high confidence ({confidence:.2f} ≥ {self.confidence_threshold_high})",
+                    "reasoning": f"Prior analysis has high confidence ({confidence:.2f} ≥ {self.confidence_threshold_high})",  # noqa: E501
                     "results": [{"source": "cached", "data": prior_analysis}],
                     "confidence": confidence,
                     "cost_saved": 0.015,  # Saved: ~5 embeddings + 1 LLM call
@@ -404,7 +407,7 @@ class EnhancedRAG:
         complexity = self._assess_query_complexity(query, context)
 
         if complexity == "simple":
-            print(f"📌 Simple query detected - using fast retrieval")
+            print("📌 Simple query detected - using fast retrieval")
             return {
                 "action": "RETRIEVE_SIMPLE",
                 "reasoning": "Query is straightforward, basic search sufficient",
@@ -413,7 +416,7 @@ class EnhancedRAG:
                 "cost_saved": 0.008,  # Saved: validation + reranking steps
             }
         else:
-            print(f"🔬 Complex query detected - using enhanced retrieval")
+            print("🔬 Complex query detected - using enhanced retrieval")
             return {
                 "action": "RETRIEVE_ENHANCED",
                 "reasoning": "Query requires comprehensive analysis",
@@ -516,17 +519,15 @@ class EnhancedRAG:
         """Basic vector search using new schema with optional filters"""
         query_embedding = self.get_embedding(query)
 
-        # Build RPC parameters with filters
+        # Build RPC parameters - only include non-None values to avoid function
+        # overloading issues
         rpc_params = {
             "query_embedding": query_embedding,
             "match_threshold": 0.3,  # Lowered from 0.5 to catch more relevant results
             "match_count": top_k,
-            "law_category_filter": None,
-            "tax_types_filter": None,
-            "industries_filter": None,
         }
 
-        # Apply filters if provided
+        # Apply filters if provided (only add non-None filters)
         if filters:
             if filters.get("law_category"):
                 rpc_params["law_category_filter"] = filters["law_category"]
@@ -535,9 +536,23 @@ class EnhancedRAG:
             if filters.get("industries"):
                 rpc_params["industries_filter"] = filters["industries"]
 
-        response = self.supabase.rpc("search_tax_law", rpc_params).execute()
-
-        return response.data if response.data else []
+        try:
+            response = self.supabase.rpc("search_tax_law", rpc_params).execute()
+            return response.data if response.data else []
+        except Exception as e:
+            print(f"⚠️  Error in basic_search: {e}")
+            # Fallback: try with minimal params only
+            try:
+                minimal_params = {
+                    "query_embedding": query_embedding,
+                    "match_threshold": 0.3,
+                    "match_count": top_k,
+                }
+                response = self.supabase.rpc("search_tax_law", minimal_params).execute()
+                return response.data if response.data else []
+            except Exception as e2:
+                print(f"❌ Fallback also failed: {e2}")
+                return []
 
     # ==================== IMPROVEMENT 1: CORRECTIVE RAG ====================
 
@@ -558,7 +573,7 @@ class EnhancedRAG:
         # Step 2: Validate each chunk
         validated = []
         for i, chunk in enumerate(candidates):
-            print(f"   Validating chunk {i+1}/{len(candidates)}...", end=" ")
+            print(f"   Validating chunk {i + 1}/{len(candidates)}...", end=" ")
 
             relevance = self._assess_chunk_relevance(query, chunk)
 
@@ -573,8 +588,8 @@ class EnhancedRAG:
             elif relevance["score"] > 0.4:
                 # Medium relevance - try to improve
                 print(
-                    f"⚠️  Medium relevance ({relevance['score']:.2f}), attempting correction..."
-                )
+                    f"⚠️  Medium relevance ({
+                        relevance['score']:.2f}), attempting correction...")
                 corrected = self._attempt_correction(query, chunk, relevance["reason"])
                 if corrected:
                     validated.append(corrected)
@@ -587,8 +602,8 @@ class EnhancedRAG:
         # Step 3: If not enough validated chunks, refine query and search again
         if len(validated) < 3:
             print(
-                f"\n⚠️  Only found {len(validated)} relevant chunks, expanding search..."
-            )
+                f"\n⚠️  Only found {
+                    len(validated)} relevant chunks, expanding search...")
             refined_query = self._refine_query_with_ai(query)
             print(f"   Refined query: {refined_query[:100]}...")
 
@@ -613,7 +628,7 @@ class EnhancedRAG:
     def _assess_chunk_relevance(self, query: str, chunk: Dict) -> Dict:
         """Use AI to assess if chunk is truly relevant"""
 
-        prompt = f"""Assess the relevance of this legal text to the query.
+        prompt = """Assess the relevance of this legal text to the query.
 
 Query: {query}
 
@@ -672,7 +687,7 @@ Return JSON:
     def _refine_query_with_ai(self, original_query: str) -> str:
         """Generate a refined query using AI with tax law terminology"""
 
-        prompt = f"""Original query: {original_query}
+        prompt = """Original query: {original_query}
 
 The search didn't find enough relevant results.
 Rewrite this query using Washington State tax law terminology.
@@ -735,7 +750,7 @@ Return only the refined query, no explanation.
             chunks_text += f"\n[{i}] Citation: {chunk.get('citation', 'N/A')}\n"
             chunks_text += f"Preview: {chunk.get('chunk_text', '')[:300]}...\n"
 
-        prompt = f"""Rank these legal text chunks by relevance to the query.
+        prompt = """Rank these legal text chunks by relevance to the query.
 
 Query: {query}
 
@@ -797,7 +812,7 @@ Return JSON array of indices in order of MOST to LEAST relevant:
         seen_ids = set()
 
         for i, q in enumerate(queries):
-            print(f"   Searching with variation {i+1}: {q[:80]}...")
+            print(f"   Searching with variation {i + 1}: {q[:80]}...")
             chunks = self.basic_search(q, top_k=3)
 
             for chunk in chunks:
@@ -808,9 +823,8 @@ Return JSON array of indices in order of MOST to LEAST relevant:
                     all_chunks.append(chunk)
                     seen_ids.add(chunk_id)
 
-            print(
-                f"      Found {len(chunks)} chunks ({len([c for c in chunks if c.get('id') not in seen_ids])} unique)"
-            )
+            print(f"      Found {len(chunks)} chunks ({
+                len([c for c in chunks if c.get('id') not in seen_ids])} unique)")
 
         # Step 3: Rerank combined results
         print(f"   Reranking {len(all_chunks)} total chunks...")
@@ -823,7 +837,7 @@ Return JSON array of indices in order of MOST to LEAST relevant:
     def _expand_query(self, original_query: str) -> List[str]:
         """Generate multiple variations of query for better retrieval"""
 
-        prompt = f"""Original Query: {original_query}
+        prompt = """Original Query: {original_query}
 
 Generate 3 alternative phrasings using Washington State tax terminology:
 1. Using legal/technical terms (RCW/WAC citations, legal definitions)
@@ -984,17 +998,17 @@ Return JSON:
     ) -> List[Dict]:
         """
         **RECOMMENDED METHOD**
-        Combines all improvements: Corrective RAG + Reranking + Query Expansion + Hybrid Search
+        Combines all improvements: Corrective RAG + Reranking + Query Expansion + Hybrid Search  # noqa: E501
 
         This is the most accurate but also most expensive method.
         Use for critical queries where accuracy is paramount.
         """
-        print(f"\n{'='*80}")
-        print(f"🚀 ENHANCED RAG SEARCH (All Improvements)")
+        print(f"\n{'=' * 80}")
+        print("🚀 ENHANCED RAG SEARCH (All Improvements)")
         print(f"Query: {query}")
         if vendor_name:
             print(f"Vendor: {vendor_name}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
 
         # Step 0: Retrieve vendor background if provided
         vendor_context = None
@@ -1010,7 +1024,7 @@ Return JSON:
         seen_ids = set()
 
         for i, exp_query in enumerate(expanded_queries):
-            print(f"🔀 Hybrid Search for variation {i+1}:")
+            print(f"🔀 Hybrid Search for variation {i + 1}:")
 
             # Vector search
             vector_results = self.basic_search(exp_query, top_k=3)
@@ -1026,9 +1040,8 @@ Return JSON:
                     all_candidates.append(chunk)
                     seen_ids.add(chunk_id)
 
-            print(
-                f"   Found {len(vector_results)} vector + {len(keyword_results)} keyword chunks\n"
-            )
+            print(f"   Found {len(vector_results)
+                              } vector + {len(keyword_results)} keyword chunks\n")
 
         print(f"📊 Total candidates: {len(all_candidates)}\n")
 
@@ -1047,7 +1060,7 @@ Return JSON:
         print(f"   ✅ Validated: {len(validated)} chunks passed threshold\n")
 
         # Step 4: Final reranking
-        print(f"🔄 Final Reranking...")
+        print("🔄 Final Reranking...")
         reranked = self._rerank_chunks(query, validated)
 
         # Step 5: Return top-k with vendor context
@@ -1058,16 +1071,15 @@ Return JSON:
             for result in final_results:
                 result["vendor_background"] = vendor_context
 
-        print(f"\n{'='*80}")
-        print(f"✅ ENHANCED RAG COMPLETE")
+        print(f"\n{'=' * 80}")
+        print("✅ ENHANCED RAG COMPLETE")
         print(f"   Final results: {len(final_results)} chunks")
         if final_results:
-            print(
-                f"   Average relevance: {sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}"
-            )
+            print(f"   Average relevance: {
+                sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}")  # noqa: E501
         if vendor_context:
-            print(f"   ✅ Vendor background included")
-        print(f"{'='*80}\n")
+            print("   ✅ Vendor background included")
+        print(f"{'=' * 80}\n")
 
         return final_results
 
@@ -1078,10 +1090,10 @@ Return JSON:
         Compare all RAG methods side-by-side
         Useful for testing and benchmarking
         """
-        print(f"\n{'='*80}")
-        print(f"📊 COMPARING ALL RAG METHODS")
+        print(f"\n{'=' * 80}")
+        print("📊 COMPARING ALL RAG METHODS")
         print(f"Query: {query}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
 
         results = {}
 
@@ -1115,6 +1127,6 @@ Return JSON:
         results["enhanced"] = self.search_enhanced(query, top_k)
         print(f"   Results: {len(results['enhanced'])}\n")
 
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
 
         return results

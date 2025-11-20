@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-RAG Chatbot Interface
+RAG Chatbot Interface with Enhanced RAG
 Ask questions in natural language and get answers from the knowledge base
+
+Now using Enhanced RAG for better accuracy:
+- Corrective RAG (validates legal citations)
+- Reranking (improves retrieval accuracy)
+- Query Expansion (better terminology matching)
+- Hybrid Search (vector + keyword)
 """
 
 import os
@@ -9,32 +15,56 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 # Load environment
 try:
-    from dotenv import load_dotenv
+    from dotenv import load_dotenv  # noqa: E402
 
     load_dotenv(Path(__file__).parent.parent / ".env")
-except:
+except Exception:
     pass
 
 # OpenAI
-from openai import OpenAI
+from openai import OpenAI  # noqa: E402
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Supabase - centralized client
-from core.database import get_supabase_client
+from core.database import get_supabase_client  # noqa: E402
+from core.enhanced_rag import EnhancedRAG  # noqa: E402
 
 supabase = get_supabase_client()
 
 
 class RAGChatbot:
-    """Natural language chatbot powered by RAG"""
+    """Natural language chatbot powered by Enhanced RAG"""
 
-    def __init__(self):
-        self.embedding_model = "text-embedding-3-small"
+    def __init__(self, use_enhanced_rag: bool = True):
+        """
+        Initialize RAG Chatbot
+
+        Args:
+            use_enhanced_rag: If True, uses Enhanced RAG (recommended).
+                            If False, falls back to basic search.
+        """
         self.chat_model = "gpt-4o-mini"
         self.conversation_history = []
+        self.use_enhanced_rag = use_enhanced_rag
+
+        # Initialize Enhanced RAG engine
+        if use_enhanced_rag:
+            self.enhanced_rag = EnhancedRAG(
+                supabase_client=supabase,
+                enable_dynamic_models=False,  # Keep models simple for chatbot
+            )
+            print(
+                "✅ Using Enhanced RAG (Corrective + Reranking + Query Expansion + Hybrid Search)"  # noqa: E501
+            )
+        else:
+            self.enhanced_rag = None
+            self.embedding_model = "text-embedding-3-small"
 
         # Metadata filters (can be set by user)
         self.filters = {
@@ -49,110 +79,127 @@ class RAGChatbot:
         return response.data[0].embedding
 
     def search_knowledge_base(self, query: str, top_k: int = 3) -> List[Dict]:
-        """Search both tax law and vendor background with metadata filters"""
-        query_embedding = self.get_embedding(query)
+        """
+        Search tax law and vendor background knowledge base
 
-        results = []
+        Uses Enhanced RAG if enabled, otherwise falls back to basic search
+        """
+        # Use Enhanced RAG if enabled
+        if self.use_enhanced_rag:
+            vendor_name = self.filters.get("vendor_name")
+            enhanced_results = self.enhanced_rag.search_enhanced(
+                query=query, top_k=top_k, vendor_name=vendor_name
+            )
 
-        # Search tax law with optional category filter
-        try:
-            rpc_params = {
-                "query_embedding": query_embedding,
-                "match_threshold": 0.3,
-                "match_count": top_k,
-            }
+            # Convert Enhanced RAG format to chatbot format
+            results = []
+            for chunk in enhanced_results:
+                # Apply citation filter if set
+                if self.filters.get("citation") and self.filters[
+                    "citation"
+                ] not in chunk.get("citation", ""):
+                    continue
 
-            # Add category filter if set
-            if self.filters.get("law_category"):
-                rpc_params["law_category_filter"] = self.filters["law_category"]
+                # Apply category filter if set
+                if (
+                    self.filters.get("law_category")
+                    and chunk.get("law_category") != self.filters["law_category"]
+                ):
+                    continue
 
-            tax_results = supabase.rpc("search_tax_law", rpc_params).execute()
+                results.append(
+                    {
+                        "source": "tax_law",
+                        "text": chunk.get("chunk_text", ""),
+                        "citation": chunk.get("citation", ""),
+                        "category": chunk.get("law_category", ""),
+                        "similarity": chunk.get(
+                            "relevance_score", chunk.get("similarity", 0)
+                        ),
+                        "chunk_number": chunk.get("chunk_number"),
+                        "page_number": chunk.get("section_title"),
+                        "document_id": chunk.get("document_id"),
+                        "enhanced_rag_score": chunk.get(
+                            "relevance_score"
+                        ),  # Track that this used Enhanced RAG
+                    }
+                )
 
-            if tax_results.data:
-                for r in tax_results.data:
-                    # Get document info for page numbers and section
-                    doc_id = r.get("document_id")
-                    chunk_number = None
-                    section_title = None
+            return results[:top_k]
 
-                    # Fetch full chunk info including section_title (which stores page number)
-                    chunk_info = (
-                        supabase.table("tax_law_chunks")
-                        .select("chunk_number, section_title")
-                        .eq("id", r.get("id"))
-                        .execute()
-                    )
-                    if chunk_info.data:
-                        chunk_number = chunk_info.data[0].get("chunk_number")
-                        section_title = chunk_info.data[0].get(
-                            "section_title"
-                        )  # This has page number
+        # Fallback to basic search (original implementation)
+        else:
+            query_embedding = self.get_embedding(query)
+            results = []
 
-                    # Apply citation filter if set
-                    if self.filters.get("citation") and self.filters[
-                        "citation"
-                    ] not in r.get("citation", ""):
-                        continue  # Skip if doesn't match citation filter
+            # Search tax law with optional category filter
+            try:
+                rpc_params = {
+                    "query_embedding": query_embedding,
+                    "match_threshold": 0.3,
+                    "match_count": top_k,
+                }
 
-                    results.append(
-                        {
-                            "source": "tax_law",
-                            "text": r.get("chunk_text", ""),
-                            "citation": r.get("citation", ""),
-                            "category": r.get("law_category", ""),
-                            "similarity": r.get("similarity", 0),
-                            "chunk_number": chunk_number,
-                            "page_number": section_title,  # section_title contains "Page X"
-                            "document_id": doc_id,
-                        }
-                    )
-        except Exception as e:
-            print(f"Error searching tax law: {e}")
+                # Add category filter if set
+                if self.filters.get("law_category"):
+                    rpc_params["law_category_filter"] = self.filters["law_category"]
 
-        # Search vendor background with optional vendor filter
-        try:
-            vendor_params = {
-                "query_embedding": query_embedding,
-                "match_threshold": 0.3,
-                "match_count": 2,
-            }
+                tax_results = supabase.rpc("search_tax_law", rpc_params).execute()
 
-            # Add vendor filter if set
-            if self.filters.get("vendor_name"):
-                vendor_params["vendor_filter"] = self.filters["vendor_name"]
+                if tax_results.data:
+                    for r in tax_results.data:
+                        # Get document info for page numbers and section
+                        doc_id = r.get("document_id")
+                        chunk_number = None
+                        section_title = None
 
-            vendor_results = supabase.rpc(
-                "search_vendor_background", vendor_params
-            ).execute()
+                        # Fetch full chunk info including section_title (which stores
+                        # page number)
+                        chunk_info = (
+                            supabase.table("tax_law_chunks")
+                            .select("chunk_number, section_title")
+                            .eq("id", r.get("id"))
+                            .execute()
+                        )
+                        if chunk_info.data:
+                            chunk_number = chunk_info.data[0].get("chunk_number")
+                            section_title = chunk_info.data[0].get("section_title")
 
-            if vendor_results.data:
-                for r in vendor_results.data:
-                    results.append(
-                        {
-                            "source": "vendor",
-                            "text": r.get("chunk_text", ""),
-                            "vendor": r.get("vendor_name", ""),
-                            "category": r.get("document_category", ""),
-                            "similarity": r.get("similarity", 0),
-                        }
-                    )
-        except Exception as e:
-            pass  # Vendor docs might not exist yet
+                        # Apply citation filter if set
+                        if self.filters.get("citation") and self.filters[
+                            "citation"
+                        ] not in r.get("citation", ""):
+                            continue
 
-        # Sort by similarity
-        results.sort(key=lambda x: x["similarity"], reverse=True)
-        return results[:top_k]
+                        results.append(
+                            {
+                                "source": "tax_law",
+                                "text": r.get("chunk_text", ""),
+                                "citation": r.get("citation", ""),
+                                "category": r.get("law_category", ""),
+                                "similarity": r.get("similarity", 0),
+                                "chunk_number": chunk_number,
+                                "page_number": section_title,
+                                "document_id": doc_id,
+                            }
+                        )
+            except Exception as e:
+                print(f"Error searching tax law: {e}")
+
+            # Sort by similarity
+            results.sort(key=lambda x: x["similarity"], reverse=True)
+            return results[:top_k]
 
     def answer_question(self, question: str) -> str:
         """Answer a question using RAG"""
 
-        print(f"\n💭 Searching knowledge base...", end="", flush=True)
+        print("\n💭 Searching knowledge base...", end="", flush=True)
 
         # Search knowledge base
         relevant_docs = self.search_knowledge_base(question, top_k=3)
 
         if not relevant_docs:
-            return "❌ I couldn't find any relevant information in the knowledge base for that question. Try asking about software taxation, digital products, or computer software."
+            return "❌ I couldn't find any relevant information in the knowledge base for that question. Try asking about software taxation, digital products, or computer software."  # noqa: E501
 
         print(f" Found {len(relevant_docs)} relevant documents!\n")
 
@@ -161,20 +208,21 @@ class RAGChatbot:
         for i, doc in enumerate(relevant_docs, 1):
             if doc["source"] == "tax_law":
                 page_ref = doc.get("page_number", "")  # "Page X"
-                context += f"\n[Source {i}: {doc['citation']}, {page_ref} - {doc['category']}]\n"
+                context += f"\n[Source {i}: {doc['citation']
+                                             }, {page_ref} - {doc['category']}]\n"
             else:
                 context += f"\n[Source {i}: {doc['vendor']} - {doc['category']}]\n"
             # Include full text for better citation
             context += doc["text"] + "\n"
 
         # Generate answer using GPT
-        system_prompt = """You are a helpful assistant that answers questions about Washington State tax law.
+        system_prompt = """You are a helpful assistant that answers questions about Washington State tax law.  # noqa: E501
 
 IMPORTANT INSTRUCTIONS:
 1. Use ONLY the information provided in the context below to answer questions
 2. ALWAYS cite specific RCW/WAC references when making legal statements
 3. Include DIRECT QUOTES from the source documents using quotation marks
-4. Reference the specific section number when citing (e.g., "According to WAC 458-20-15502, Section 1...")
+4. Reference the specific section number when citing (e.g., "According to WAC 458-20-15502, Section 1...")  # noqa: E501
 5. If quoting, use this format: "According to [CITATION]: '[EXACT QUOTE]'"
 6. If the context doesn't contain enough information, say so
 7. Be precise and thorough, maintaining legal accuracy"""
@@ -183,7 +231,7 @@ IMPORTANT INSTRUCTIONS:
             {"role": "system", "content": system_prompt},
             {
                 "role": "user",
-                "content": f"""Context from knowledge base:
+                "content": """Context from knowledge base:
 {context}
 
 Question: {question}
@@ -220,12 +268,23 @@ Please answer the question based on the context above.""",
                         if doc.get("page_number")
                         else ""
                     )
-                    sources_text += f"\n  [{i}] {doc['citation']}{page_info} - {doc['category']} (relevance: {sim:.2f})"
+                    # Show Enhanced RAG score if available
+                    if doc.get("enhanced_rag_score"):
+                        score_info = (
+                            f" (Enhanced RAG score: {doc['enhanced_rag_score']:.2f})"
+                        )
+                    else:
+                        score_info = f" (relevance: {sim:.2f})"
+                    sources_text += f"\n  [{i}] {doc['citation']
+                                                 }{page_info} - {doc['category']}{score_info}"  # noqa: E501
                 else:
-                    sources_text += f"\n  [{i}] {doc['vendor']} - {doc['category']} (relevance: {sim:.2f})"
+                    sources_text += f"\n  [{i}] {doc['vendor']
+                                                 } - {doc['category']} (relevance: {sim:.2f})"  # noqa: E501
 
-            # Add note about citations
-            sources_text += "\n\n💡 Tip: Page numbers help you locate the exact section in the original documents."
+            # Add note about Enhanced RAG if used
+            if self.use_enhanced_rag:
+                sources_text += "\n\n🚀 Using Enhanced RAG (Corrective + Reranking + Query Expansion + Hybrid Search)"  # noqa: E501
+            sources_text += "\n💡 Tip: Page numbers help you locate the exact section in the original documents."  # noqa: E501
 
             return answer + sources_text
 
@@ -255,14 +314,16 @@ Please answer the question based on the context above.""",
             for key, value in active_filters.items():
                 print(f"  • {key}: {value}")
 
-        print(f"\nAvailable filters: law_category, vendor_name, citation")
-        print(f"Set filter: filter <name> <value>")
-        print(f"Clear filter: filter <name> clear\n")
+        print("\nAvailable filters: law_category, vendor_name, citation")
+        print("Set filter: filter <name> <value>")
+        print("Clear filter: filter <name> clear\n")
 
     def chat(self):
         """Start interactive chat"""
         print("\n" + "=" * 80)
-        print("💬 RAG CHATBOT - Ask me about Washington State Tax Law!")
+        print("💬 RAG CHATBOT - Washington State Tax Law")
+        if self.use_enhanced_rag:
+            print("🚀 Enhanced RAG Mode (Better Accuracy + Validation)")
         print("=" * 80)
         print("\nI can answer questions like:")
         print("  • How is computer software taxed in Washington?")
@@ -274,7 +335,7 @@ Please answer the question based on the context above.""",
         print("  • filter citation WAC-458-20-15502 - Search specific citation")
         print("  • filters                          - Show active filters")
         print(
-            "\nType 'quit' to exit, 'stats' to see knowledge base info, 'help' for all commands"
+            "\nType 'quit' to exit, 'stats' to see knowledge base info, 'help' for all commands"  # noqa: E501
         )
         print("=" * 80 + "\n")
 
@@ -337,14 +398,13 @@ Please answer the question based on the context above.""",
             )
             tax_chunk_count = tax_chunks.count if hasattr(tax_chunks, "count") else 0
 
-            print(f"\n📊 Knowledge Base Stats:")
-            print(
-                f"  Documents: {len(docs.data)} ({len(tax_docs)} tax law, {len(vendor_docs)} vendor)"
-            )
+            print("\n📊 Knowledge Base Stats:")
+            print(f"  Documents: {len(docs.data)} ({
+                len(tax_docs)} tax law, {len(vendor_docs)} vendor)")
             print(f"  Chunks: {tax_chunk_count}")
 
             if tax_docs:
-                print(f"\n  Tax Law Documents:")
+                print("\n  Tax Law Documents:")
                 for doc in tax_docs:
                     print(f"    • {doc.get('citation', 'N/A')}")
             print()

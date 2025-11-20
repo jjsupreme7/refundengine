@@ -325,7 +325,7 @@ if __name__ == "__main__":
     print("🚀 LAUNCHING DASHBOARD PREVIEW")
     print("=" * 80)
     print(f"\n📊 Loaded {len(df)} transactions from {EXCEL_PATH.name}")
-    print(f"\n🌐 Opening dashboard at: http://localhost:5001")
+    print("\n🌐 Opening dashboard at: http://localhost:5001")
     print("\n📝 Press CTRL+C to stop the server\n")
 
     app.run(debug=True, port=5001, use_reloader=False)

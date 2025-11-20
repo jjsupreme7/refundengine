@@ -3,7 +3,7 @@ Celery Tasks for Async Processing
 Handles async processing of invoices with parallel workers
 """
 
-import json
+import json  # noqa: F401
 import os
 import sys
 from pathlib import Path
@@ -66,7 +66,7 @@ def analyze_single_invoice(self, row_data: Dict[str, Any]) -> Dict[str, Any]:
         Dict with analysis results
     """
     try:
-        from analysis.analyze_refunds_enhanced import EnhancedRefundAnalyzer
+        from analysis.analyze_refunds_enhanced import EnhancedRefundAnalyzer  # noqa: E402
 
         # Initialize analyzer (using Enhanced RAG with decision intelligence)
         analyzer = EnhancedRefundAnalyzer()
@@ -111,7 +111,13 @@ def analyze_single_invoice(self, row_data: Dict[str, Any]) -> Dict[str, Any]:
         )
 
         # Search legal knowledge
-        search_query = f"{line_item.get('product_desc', '')} {line_item.get('product_type', '')} Washington tax"
+        search_query = f"{
+            line_item.get(
+                'product_desc',
+                '')} {
+            line_item.get(
+                'product_type',
+                '')} Washington tax"
         legal_context = analyzer.search_legal_knowledge(search_query, top_k=5)
 
         # Analyze with AI (simplified - full implementation would call AI analysis)
@@ -149,13 +155,13 @@ def analyze_batch(self, excel_path: str, start_row: int = 0, num_rows: int = Non
         Dict with batch status
     """
     try:
-        import pandas as pd
+        import pandas as pd  # noqa: E402
 
         # Read Excel
         df = pd.read_excel(excel_path)
 
         if num_rows:
-            df = df.iloc[start_row : start_row + num_rows]
+            df = df.iloc[start_row: start_row + num_rows]
         else:
             df = df.iloc[start_row:]
 
@@ -194,7 +200,7 @@ def get_batch_progress(task_ids: list) -> Dict[str, Any]:
     Returns:
         Dict with progress stats
     """
-    from celery.result import AsyncResult
+    from celery.result import AsyncResult  # noqa: E402
 
     completed = 0
     failed = 0

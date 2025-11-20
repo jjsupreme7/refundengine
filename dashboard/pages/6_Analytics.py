@@ -9,6 +9,9 @@ Shows key metrics and visualizations for:
 - System learning and improvement over time
 """
 
+from core.auth import require_authentication
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -21,9 +24,6 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -35,7 +35,6 @@ supabase = get_supabase_client()
 st.set_page_config(page_title="Analytics - TaxDesk", page_icon="📊", layout="wide")
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -430,6 +429,7 @@ These patterns are used to improve future analysis accuracy for similar products
 
 st.markdown("---")
 st.caption(
-    f"🔄 Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Data cached for 5 minutes"
+    f"🔄 Last refreshed: {datetime.now().strftime(
+        '%Y-%m-%d %H:%M:%S')} | Data cached for 5 minutes"
 )
 st.caption("📊 Analytics powered by Supabase + Streamlit")

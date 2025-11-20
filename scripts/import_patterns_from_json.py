@@ -14,6 +14,7 @@ Imports:
     - citation_patterns.json → refund_citations table
 """
 
+from core.database import get_supabase_client
 import argparse
 import json
 import os
@@ -22,8 +23,6 @@ from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from core.database import get_supabase_client
 
 
 def import_vendor_patterns(supabase, vendor_data):
@@ -213,9 +212,9 @@ def main():
         sys.exit(1)
 
     # Load and import patterns
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("IMPORTING HISTORICAL PATTERNS")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
     total_imported = 0
     total_updated = 0
@@ -245,14 +244,14 @@ def main():
         total_imported += imported
         total_updated += updated
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("IMPORT COMPLETE")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     print(f"Total records imported: {total_imported}")
     print(f"Total records updated: {total_updated}")
-    print(f"\nHistorical pattern learning is now active!")
+    print("\nHistorical pattern learning is now active!")
     print(
-        f"Test it with: python analysis/analyze_refunds.py --input test.xlsx --output results.xlsx"
+        "Test it with: python analysis/analyze_refunds.py --input test.xlsx --output results.xlsx"
     )
 
 

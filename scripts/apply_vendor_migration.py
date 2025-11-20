@@ -4,6 +4,7 @@ Apply Vendor Metadata Migration to Supabase
 Executes the migration SQL file via Supabase Management API
 """
 
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -13,7 +14,6 @@ import requests
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()

@@ -8,14 +8,14 @@ Ultra-fast invoice analysis using:
 - State-aware legal research
 
 Usage:
-    python scripts/5_fast_batch_analyzer.py --excel "Master Refunds.xlsx" --state washington
+    python scripts/5_fast_batch_analyzer.py \\
+        --excel "Master Refunds.xlsx" --state washington
 """
 
 import argparse
 import json
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -26,11 +26,11 @@ from tqdm import tqdm
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Imports
-from dotenv import load_dotenv
-from openai import OpenAI
+from dotenv import load_dotenv  # noqa: E402
+from openai import OpenAI  # noqa: E402
 
-from core.database import get_supabase_client
-from scripts.utils.smart_cache import SmartCache
+from core.database import get_supabase_client  # noqa: E402
+from scripts.utils.smart_cache import SmartCache  # noqa: E402
 
 # Load environment
 load_dotenv()
@@ -55,11 +55,10 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
     print(f"  📄 Extracting: {Path(file_path).name}")
 
     try:
-        import base64
-        from io import BytesIO
+        import base64  # noqa: E402
+        from io import BytesIO  # noqa: E402
 
-        import pdfplumber
-        from PIL import Image
+        import pdfplumber  # noqa: E402
 
         # Convert first page to image
         with pdfplumber.open(file_path) as pdf:
@@ -164,11 +163,24 @@ def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
     try:
         # Create query based on category
         category_queries = {
-            "saas_subscription": "Washington tax law cloud services SaaS multi-point use digital products",
-            "professional_services": "Washington tax law professional services primarily human effort consulting",
-            "iaas_paas": "Washington tax law cloud infrastructure IaaS PaaS allocation",
-            "software_license": "Washington tax law software licenses prewritten custom",
-            "tangible_personal_property": "Washington tax tangible personal property exemptions",
+            "saas_subscription": (
+                "Washington tax law cloud services SaaS "
+                "multi-point use digital products"
+            ),
+            "professional_services": (
+                "Washington tax law professional services "
+                "primarily human effort consulting"
+            ),
+            "iaas_paas": (
+                "Washington tax law cloud infrastructure "
+                "IaaS PaaS allocation"
+            ),
+            "software_license": (
+                "Washington tax law software licenses prewritten custom"
+            ),
+            "tangible_personal_property": (
+                "Washington tax tangible personal property exemptions"
+            ),
         }
 
         query_text = category_queries.get(category, f"Washington tax law {category}")
@@ -211,14 +223,6 @@ def analyze_batch(
     """
     Batch analyze multiple line items at once
     """
-    # Load state tax rules
-    tax_rules_path = Path(f"knowledge_base/states/{state.lower()}/tax_rules.json")
-    if tax_rules_path.exists():
-        with open(tax_rules_path, "r") as f:
-            tax_rules = json.load(f)
-    else:
-        tax_rules = {}
-
     # Build prompt for batch analysis
     items_text = ""
     for i, item in enumerate(items, 1):
@@ -242,7 +246,9 @@ def analyze_batch(
         if docs:
             legal_text += f"\n{category.upper()} - Relevant Laws:\n"
             for doc in docs[:3]:  # Top 3 per category
-                legal_text += f"  - {doc.get('document_title', 'Unknown')} ({doc.get('citation', 'N/A')})\n"
+                doc_title = doc.get('document_title', 'Unknown')
+                doc_citation = doc.get('citation', 'N/A')
+                legal_text += f"  - {doc_title} ({doc_citation})\n"
 
     prompt = f"""You are a Washington State tax refund expert.
 
@@ -286,13 +292,14 @@ Return JSON array:
 }}"""
 
     try:
+        system_msg = (
+            "You are a Washington State tax expert. "
+            "Provide accurate analysis with legal citations."
+        )
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a Washington State tax expert. Provide accurate analysis with legal citations.",
-                },
+                {"role": "system", "content": system_msg},
                 {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_object"},
@@ -345,17 +352,30 @@ def main():
         if file_path.exists():
             invoice_data[inv_file] = extract_invoice_with_vision(str(file_path))
 
-    # Prepare analysis queue
+    # Prepare analysis queue with skip tracking
     print("\n🔍 Matching line items...")
     analysis_queue = []
+    skipped_rows = {
+        "no_invoice_file": [],
+        "extraction_failed": [],
+        "no_line_item_match": [],
+    }
 
     for idx, row in df.iterrows():
         inv_file = row.get("Inv_1_File")
-        if pd.isna(inv_file) or inv_file not in invoice_data:
+        if pd.isna(inv_file):
+            skipped_rows["no_invoice_file"].append(idx)
+            continue
+
+        if inv_file not in invoice_data:
+            skipped_rows["no_invoice_file"].append(idx)
             continue
 
         inv_data = invoice_data[inv_file]
         if "error" in inv_data:
+            skipped_rows["extraction_failed"].append(
+                (idx, inv_data.get("error", "Unknown error"))
+            )
             continue
 
         # Match line item by amount
@@ -386,8 +406,60 @@ def main():
                     "category": category,
                 }
             )
+        else:
+            skipped_rows["no_line_item_match"].append((idx, amount))
 
-    print(f"✓ Matched {len(analysis_queue)} line items")
+    # Report matching results
+    total_rows = len(df)
+    total_skipped = sum(
+        (
+            len(v)
+            if isinstance(v, list) and not isinstance(v[0] if v else None, tuple)
+            else len(v)
+        )
+        for v in skipped_rows.values()
+    )
+
+    print("\n📊 MATCHING SUMMARY:")
+    print(f"   Total rows: {total_rows}")
+    print(f"   ✓ Matched: {len(analysis_queue)}")
+    print(f"   ✗ Skipped: {total_skipped}")
+
+    if total_skipped > 0:
+        print("\n⚠️  SKIPPED ROWS BREAKDOWN:")
+        if skipped_rows["no_invoice_file"]:
+            no_inv_count = len(skipped_rows['no_invoice_file'])
+            print(f"   • No invoice file: {no_inv_count} rows")
+            if no_inv_count <= 10:
+                print(f"     Rows: {skipped_rows['no_invoice_file']}")
+        if skipped_rows["extraction_failed"]:
+            extract_fail_count = len(skipped_rows['extraction_failed'])
+            print(
+                "   • Invoice extraction failed: "
+                f"{extract_fail_count} rows"
+            )
+            if extract_fail_count <= 5:
+                for idx, error in skipped_rows["extraction_failed"]:
+                    print(f"     Row {idx}: {error}")
+        if skipped_rows["no_line_item_match"]:
+            no_match_count = len(skipped_rows['no_line_item_match'])
+            print(f"   • No line item match: {no_match_count} rows")
+            if no_match_count <= 10:
+                for idx, amount in skipped_rows["no_line_item_match"]:
+                    print(f"     Row {idx}: ${amount:,.2f}")
+
+    if total_skipped > len(analysis_queue):
+        analyzed_count = len(analysis_queue)
+        print(
+            f"\n🚨 WARNING: More rows skipped ({total_skipped}) "
+            f"than analyzed ({analyzed_count})!"
+        )
+        print("   You may want to review your invoice files and data.")
+
+    if len(analysis_queue) == 0:
+        print("\n❌ ERROR: No rows matched for analysis!")
+        print("   Check that your invoice files exist and amounts match.")
+        sys.exit(1)
 
     # Get unique categories and search legal docs
     print("\n📚 Researching legal context...")
@@ -403,28 +475,69 @@ def main():
     all_analyses = []
 
     for i in range(0, len(analysis_queue), batch_size):
-        batch = analysis_queue[i : i + batch_size]
-        print(f"  Batch {i//batch_size + 1}/{(len(analysis_queue)-1)//batch_size + 1}")
+        batch = analysis_queue[i: i + batch_size]
+        batch_num = i // batch_size + 1
+        total_batches = (len(analysis_queue) - 1) // batch_size + 1
+        print(f"  Batch {batch_num}/{total_batches}")
 
         analyses = analyze_batch(batch, legal_context, args.state.upper())
         all_analyses.extend(analyses)
 
     # Write results back to DataFrame
     print("\n📝 Writing results...")
-    for i, analysis in enumerate(all_analyses):
-        if i < len(analysis_queue):
-            idx = analysis_queue[i]["excel_row_idx"]
-            line_item = analysis_queue[i]["line_item"]
 
-            df.loc[idx, "Product_Desc"] = line_item.get("description", "")
-            df.loc[idx, "Product_Type"] = analysis.get("product_classification", "")
-            df.loc[idx, "Refund_Basis"] = analysis.get("refund_basis", "")
-            df.loc[idx, "Citation"] = ", ".join(analysis.get("legal_citations", []))
-            df.loc[idx, "Confidence"] = f"{analysis.get('confidence_score', 0)}%"
-            df.loc[idx, "Estimated_Refund"] = (
-                f"${analysis.get('estimated_refund_amount', 0):,.2f}"
+    # Validate analysis count
+    if len(all_analyses) != len(analysis_queue):
+        analyses_count = len(all_analyses)
+        queue_count = len(analysis_queue)
+        print(
+            f"⚠️  WARNING: Got {analyses_count} analyses "
+            f"for {queue_count} items"
+        )
+        print("   Some results may be missing or duplicated!")
+
+    # Create mapping by transaction_id for safe alignment
+    analysis_map = {}
+    for analysis in all_analyses:
+        tid = analysis.get("transaction_id")
+        if tid is not None:
+            analysis_map[tid] = analysis
+
+    # Write results using transaction_id matching
+    matched_count = 0
+    for i, queue_item in enumerate(analysis_queue):
+        # Try to match by transaction_id (1-indexed in the prompt)
+        transaction_id = i + 1
+        analysis = analysis_map.get(transaction_id)
+
+        if analysis is None:
+            row_idx = queue_item['excel_row_idx']
+            print(
+                "⚠️  No analysis found for transaction "
+                f"{transaction_id} (row {row_idx})"
             )
-            df.loc[idx, "Explanation"] = analysis.get("explanation", "")
+            continue
+
+        idx = queue_item["excel_row_idx"]
+        line_item = queue_item["line_item"]
+
+        df.loc[idx, "Product_Desc"] = line_item.get("description", "")
+        df.loc[idx, "Product_Type"] = analysis.get("product_classification", "")
+        df.loc[idx, "Refund_Basis"] = analysis.get("refund_basis", "")
+        df.loc[idx, "Citation"] = ", ".join(analysis.get("legal_citations", []))
+        df.loc[idx, "Confidence"] = f"{analysis.get('confidence_score', 0)}%"
+        df.loc[idx, "Estimated_Refund"] = (
+            f"${analysis.get('estimated_refund_amount', 0):,.2f}"
+        )
+        df.loc[idx, "Explanation"] = analysis.get("explanation", "")
+        matched_count += 1
+
+    if matched_count < len(analysis_queue):
+        queue_count = len(analysis_queue)
+        print(
+            f"⚠️  Only matched {matched_count}/{queue_count} items - "
+            "some rows may be incomplete!"
+        )
 
     # Save output
     if not args.output:
@@ -436,7 +549,18 @@ def main():
     print("\n✅ ANALYSIS COMPLETE!")
     print("=" * 70)
     print(f"Output: {args.output}")
-    print(f"Analyzed: {len(all_analyses)} items")
+    print("\n📊 FINAL SUMMARY:")
+    print(f"   Total rows in Excel: {total_rows}")
+    print(f"   ✓ Analyzed successfully: {matched_count}")
+    print(f"   ✗ Skipped: {total_skipped}")
+    if total_skipped > 0:
+        coverage_pct = (matched_count / total_rows * 100) if total_rows > 0 else 0
+        print(f"   Coverage: {coverage_pct:.1f}%")
+        if coverage_pct < 80:
+            print(
+                "\n⚠️  Low coverage! "
+                "Review skipped rows above to improve results."
+            )
     print("\n💡 Open the Excel file to review results!")
 
 

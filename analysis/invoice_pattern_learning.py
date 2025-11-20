@@ -216,7 +216,7 @@ class InvoicePatternLearner:
             "at",
             "to",
             "for",
-            "of",
+            "o",
             "with",
             "by",
             "from",
@@ -299,13 +299,15 @@ class InvoicePatternLearner:
                 if refund_pct > 0.7:
                     score += 3.0
                     reasons.append(
-                        f"Vertex category '{vertex_cat}' shows {refund_pct:.0%} refund rate"
+                        f"Vertex category '{vertex_cat}' shows {
+                            refund_pct:.0%} refund rate"
                     )
                     matched_patterns["vertex_category"] = (vertex_cat, refund_pct)
                 elif no_opp_pct > 0.7:
                     score -= 2.0
                     reasons.append(
-                        f"Vertex category '{vertex_cat}' shows {no_opp_pct:.0%} no-opp rate"
+                        f"Vertex category '{vertex_cat}' shows {
+                            no_opp_pct:.0%} no-opp rate"
                     )
 
         # Check material group
@@ -327,13 +329,15 @@ class InvoicePatternLearner:
                 if refund_pct > 0.6:
                     score += 1.5
                     reasons.append(
-                        f"Material group '{material_group}' shows {refund_pct:.0%} refund rate"
+                        f"Material group '{material_group}' shows {
+                            refund_pct:.0%} refund rate"
                     )
                     matched_patterns["material_group"] = (material_group, refund_pct)
                 elif refund_pct < 0.2:
                     score -= 1.0
                     reasons.append(
-                        f"Material group '{material_group}' rarely refunds ({refund_pct:.0%})"
+                        f"Material group '{
+                            material_group}' rarely refunds ({refund_pct:.0%})"
                     )
 
         # Check vendor history
@@ -357,7 +361,8 @@ class InvoicePatternLearner:
                 if refund_pct > 0.5:
                     score += 1.0
                     reasons.append(
-                        f"Vendor '{vendor}' has {refund_pct:.0%} refund rate ({total} samples)"
+                        f"Vendor '{vendor}' has {
+                            refund_pct:.0%} refund rate ({total} samples)"
                     )
                     matched_patterns["vendor"] = (vendor, refund_pct)
 
@@ -386,13 +391,14 @@ class InvoicePatternLearner:
                 ]
                 if top_kws:
                     reasons.append(
-                        f"Description contains refund keywords: {', '.join(top_kws[:3])}"
+                        f"Description contains refund keywords: {
+                            ', '.join(top_kws[:3])}"
                     )
             elif (
                 no_opp_keyword_score > refund_keyword_score and no_opp_keyword_score > 5
             ):
                 score -= 0.5
-                reasons.append(f"Description contains no-opp keywords")
+                reasons.append("Description contains no-opp keywords")
 
         # Determine final decision
         if score >= 2.0:

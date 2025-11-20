@@ -9,6 +9,16 @@ Features:
 - File matching status
 """
 
+from core.auth import require_authentication
+from dashboard.utils.data_loader import get_projects_from_db
+from dashboard.components.excel_diff_viewer import (
+    render_compact_change_summary,
+    render_diff_viewer,
+)
+from core.excel_versioning import ExcelVersionManager
+from core.database import get_supabase_client
+from core.ai_change_summarizer import generate_change_summary
+import core.excel_versioning
 import importlib
 import os
 import sys
@@ -22,24 +32,14 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Force reload modules to pick up changes
-import core.excel_versioning
 
 importlib.reload(core.excel_versioning)
 
-from core.ai_change_summarizer import generate_change_summary
-from core.database import get_supabase_client
-from core.excel_versioning import ExcelVersionManager
-from dashboard.components.excel_diff_viewer import (
-    render_compact_change_summary,
-    render_diff_viewer,
-)
-from dashboard.utils.data_loader import get_projects_from_db
 
 # Page configuration
 st.set_page_config(page_title="Excel Manager - TaxDesk", page_icon="📊", layout="wide")
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -102,7 +102,7 @@ with tab1:
     with col1:
         invoice_files = st.file_uploader(
             "Upload Invoice PDFs",
-            type=["pdf", "png", "jpg", "jpeg"],
+            type=["pd", "png", "jpg", "jpeg"],
             accept_multiple_files=True,
             help="Upload invoice PDF files referenced in Excel",
             key="invoice_upload",
@@ -111,7 +111,7 @@ with tab1:
     with col2:
         po_files = st.file_uploader(
             "Upload Purchase Order Files",
-            type=["pdf", "png", "jpg", "jpeg"],
+            type=["pd", "png", "jpg", "jpeg"],
             accept_multiple_files=True,
             help="Upload PO files referenced in Excel",
             key="po_upload",
@@ -170,7 +170,8 @@ with tab1:
                             change_summary="",  # Will be filled by AI
                         )
                         st.info(
-                            f"📝 Creating new version for existing file: {excel_file.name}"
+                            f"📝 Creating new version for existing file: {
+                                excel_file.name}"
                         )
                     else:
                         # New file - upload it
@@ -225,7 +226,8 @@ with tab1:
                                 ).eq("id", version_id).execute()
 
                                 st.success(
-                                    f"✅ AI summary generated! ({len(changes_response.data)} changes detected)"
+                                    f"✅ AI summary generated! ({len(
+                                        changes_response.data)} changes detected)"
                                 )
                             else:
                                 if version_number == 1:
@@ -252,11 +254,11 @@ with tab1:
                             {"change_summary": summary_text}
                         ).eq("id", version_response.data[0]["id"]).execute()
 
-                st.success(f"✅ Files uploaded successfully!")
+                st.success("✅ Files uploaded successfully!")
 
                 # Show upload summary with AI-generated summary
                 st.info(
-                    f"""
+                    """
                 **Upload Summary:**
                 - Excel file: {excel_file.name}
                 - Invoice files: {invoice_count}
@@ -275,7 +277,7 @@ with tab1:
 
             except Exception as e:
                 st.error(f"❌ Error uploading files: {str(e)}")
-                import traceback
+                import traceback  # noqa: E402
 
                 st.code(traceback.format_exc())
 
@@ -305,7 +307,8 @@ with tab2:
 
                 with st.expander(
                     f"📄 {version['excel_file_tracking']['file_name']} - "
-                    f"{created_at.strftime('%b %d, %Y %I:%M %p')} by {version['created_by']}",
+                    f"{created_at.strftime('%b %d, %Y %I:%M %p')} by {
+                        version['created_by']}",
                     expanded=False,
                 ):
                     # Summary stats
@@ -342,7 +345,8 @@ with tab2:
 
                     if changes_response.data:
                         st.markdown(
-                            f"**Cell Changes:** {len(changes_response.data)} cells modified"
+                            f"**Cell Changes:** {len(changes_response.data)
+                                                 } cells modified"
                         )
 
                         # Use compact change summary component
@@ -352,7 +356,7 @@ with tab2:
 
                         # View all changes button
                         if st.button(
-                            f"👁️ View All Changes", key=f"view_changes_{version['id']}"
+                            "👁️ View All Changes", key=f"view_changes_{version['id']}"
                         ):
                             st.session_state[f'show_diff_{version["id"]}'] = True
                             st.rerun()
@@ -372,7 +376,7 @@ with tab2:
                         )
 
                         if st.button(
-                            f"❌ Close Diff View", key=f"close_diff_{version['id']}"
+                            "❌ Close Diff View", key=f"close_diff_{version['id']}"
                         ):
                             st.session_state[f'show_diff_{version["id"]}'] = False
                             st.rerun()
@@ -482,7 +486,7 @@ with tab4:
                     activity_type = "User Edit"
 
                 st.markdown(
-                    f"""
+                    """
                 **{created_at.strftime('%b %d, %Y %I:%M %p')}** - {activity['created_by']}
                 {icon} {activity_type} - {activity['excel_file_tracking']['file_name']}
                 {activity.get('change_summary', 'No description')}

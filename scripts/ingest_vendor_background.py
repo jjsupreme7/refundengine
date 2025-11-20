@@ -10,6 +10,8 @@ And populates the knowledge_documents table with vendor metadata
 (industry, business_model, primary_products, typical_delivery, tax_notes)
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import json
 import os
 import sys
@@ -21,9 +23,6 @@ import pandas as pd
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -61,7 +60,7 @@ class VendorBackgroundIngester:
                 self.error_count += 1
 
         print()
-        print(f"✅ JSON ingestion complete")
+        print("✅ JSON ingestion complete")
         print(f"   New vendors: {self.ingested_count}")
         print(f"   Updated vendors: {self.updated_count}")
         print(f"   Errors: {self.error_count}")
@@ -148,7 +147,7 @@ class VendorBackgroundIngester:
                     self.error_count += 1
 
             print()
-            print(f"✅ Excel ingestion complete")
+            print("✅ Excel ingestion complete")
             print(f"   New vendors: {self.ingested_count}")
             print(f"   Updated vendors: {self.updated_count}")
             print(f"   Errors: {self.error_count}")

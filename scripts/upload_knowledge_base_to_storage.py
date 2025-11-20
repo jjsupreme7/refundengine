@@ -12,6 +12,7 @@ Usage:
     python scripts/upload_knowledge_base_to_storage.py [--dry-run]
 """
 
+from core.database import get_supabase_client
 import argparse
 import os
 import sys
@@ -25,7 +26,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 load_dotenv()
 
 # Import centralized Supabase client
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 
@@ -48,7 +48,7 @@ def create_storage_bucket_if_not_exists():
                     "public": False,  # Private bucket for security
                     "file_size_limit": 52428800,  # 50MB limit
                     "allowed_mime_types": [
-                        "application/pdf",
+                        "application/pd",
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         "application/vnd.ms-excel",
                     ],
@@ -70,11 +70,12 @@ def upload_file(local_path: Path, storage_path: str):
         supabase.storage.from_(BUCKET_NAME).upload(
             storage_path,
             file_data,
-            {"content-type": "application/pdf", "upsert": "true"},
+            {"content-type": "application/pd", "upsert": "true"},
         )
 
         # Get public URL (even though bucket is private, this is the path)
-        file_url = f"{os.getenv('SUPABASE_URL')}/storage/v1/object/public/{BUCKET_NAME}/{storage_path}"
+        file_url = f"{os.getenv('SUPABASE_URL')
+                      }/storage/v1/object/public/{BUCKET_NAME}/{storage_path}"
 
         print(f"  ✓ Uploaded: {storage_path}")
         return file_url
@@ -93,7 +94,7 @@ def upload_knowledge_base(dry_run=False):
         return
 
     # Find all PDFs (only PDFs - HTML files will link to WA Legislature)
-    pdf_files = list(knowledge_base_dir.rglob("*.pdf"))
+    pdf_files = list(knowledge_base_dir.rglob("*.pd"))
 
     if not pdf_files:
         print(f"⚠️  No PDF files found in {knowledge_base_dir}")
@@ -101,7 +102,8 @@ def upload_knowledge_base(dry_run=False):
 
     print(f"\n📁 Found {len(pdf_files)} PDF files to upload")
     print(
-        f"   Total size: {sum(f.stat().st_size for f in pdf_files) / 1024 / 1024:.1f} MB"
+        f"   Total size: {
+            sum(f.stat().st_size for f in pdf_files) / 1024 / 1024:.1f} MB"
     )
 
     if dry_run:
@@ -138,7 +140,7 @@ def upload_knowledge_base(dry_run=False):
             print("✗")
 
     print("\n" + "=" * 80)
-    print(f"\n✅ Upload complete!")
+    print("\n✅ Upload complete!")
     print(f"   Uploaded: {uploaded_count}")
     print(f"   Failed: {failed_count}")
     print(f"   Total: {len(pdf_files)}")

@@ -15,6 +15,8 @@ Matches the format expected by DocumentsPage.tsx:
 - "Description of the date"
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import os
 import random
 import sys
@@ -26,9 +28,6 @@ import pandas as pd
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -46,7 +45,7 @@ class DashboardTestDataGenerator:
         self.test_transactions = [
             # REFUND OPPORTUNITIES - DAS/SaaS with MPU
             {
-                "file_name": "INV-10021.pdf",
+                "file_name": "INV-10021.pd",
                 "vendor": "Microsoft Corporation",
                 "invoice_number": "INV-10021",
                 "purchase_order": "PO-5001",
@@ -66,7 +65,7 @@ class DashboardTestDataGenerator:
                 ],
             },
             {
-                "file_name": "INV-10022.pdf",
+                "file_name": "INV-10022.pd",
                 "vendor": "Salesforce Inc",
                 "invoice_number": "INV-10022",
                 "purchase_order": "PO-5002",
@@ -87,7 +86,7 @@ class DashboardTestDataGenerator:
             },
             # TANGIBLE GOODS - Out of State Shipment
             {
-                "file_name": "INV-10023.pdf",
+                "file_name": "INV-10023.pd",
                 "vendor": "Dell Technologies",
                 "invoice_number": "INV-10023",
                 "purchase_order": "PO-5003",
@@ -108,7 +107,7 @@ class DashboardTestDataGenerator:
             },
             # PROFESSIONAL SERVICES - Non-Taxable
             {
-                "file_name": "INV-10024.pdf",
+                "file_name": "INV-10024.pd",
                 "vendor": "Deloitte Consulting LLP",
                 "invoice_number": "INV-10024",
                 "purchase_order": "PO-5004",
@@ -129,7 +128,7 @@ class DashboardTestDataGenerator:
             },
             # CUSTOM SOFTWARE DEVELOPMENT - Non-Taxable (OLD LAW)
             {
-                "file_name": "INV-10025.pdf",
+                "file_name": "INV-10025.pd",
                 "vendor": "Accenture",
                 "invoice_number": "INV-10025",
                 "purchase_order": "PO-5005",
@@ -150,7 +149,7 @@ class DashboardTestDataGenerator:
             },
             # AMBIGUOUS - Installation bundled with equipment
             {
-                "file_name": "INV-10026.pdf",
+                "file_name": "INV-10026.pd",
                 "vendor": "Red Bison Tech Services",
                 "invoice_number": "INV-10026",
                 "purchase_order": "PO-5006",
@@ -193,7 +192,7 @@ class DashboardTestDataGenerator:
             },
             # CLOUD SERVICES - Out of State
             {
-                "file_name": "INV-10027.pdf",
+                "file_name": "INV-10027.pd",
                 "vendor": "Amazon Web Services",
                 "invoice_number": "INV-10027",
                 "purchase_order": "",
@@ -214,7 +213,7 @@ class DashboardTestDataGenerator:
             },
             # TELECOM - Properly Taxed (NO REFUND)
             {
-                "file_name": "INV-10028.pdf",
+                "file_name": "INV-10028.pd",
                 "vendor": "Verizon Wireless",
                 "invoice_number": "INV-10028",
                 "purchase_order": "",
@@ -235,7 +234,7 @@ class DashboardTestDataGenerator:
             },
             # LICENSE vs SAAS - Needs Review
             {
-                "file_name": "INV-10029.pdf",
+                "file_name": "INV-10029.pd",
                 "vendor": "Oracle America Inc",
                 "invoice_number": "INV-10029",
                 "purchase_order": "PO-5007",
@@ -256,7 +255,7 @@ class DashboardTestDataGenerator:
             },
             # SMALL DOLLAR - Office Supplies (NO REFUND)
             {
-                "file_name": "INV-10030.pdf",
+                "file_name": "INV-10030.pd",
                 "vendor": "Office Depot",
                 "invoice_number": "INV-10030",
                 "purchase_order": "",

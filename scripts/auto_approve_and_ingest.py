@@ -3,7 +3,6 @@
 Auto-approve all documents in Excel metadata files and ingest to Supabase
 """
 import subprocess
-import sys
 import time
 from pathlib import Path
 
@@ -35,7 +34,7 @@ def auto_approve_excel(excel_path: str):
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except:
+                except BaseException:
                     pass
             adjusted_width = min(max_length + 2, 50)  # Cap at 50
             worksheet.column_dimensions[column_letter].width = adjusted_width

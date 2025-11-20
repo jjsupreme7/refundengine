@@ -9,13 +9,12 @@ This script assigns effective dates to documents that don't have them:
 This allows the Old Law vs New Law comparison to work properly.
 """
 
+from core.database import get_supabase_client
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from core.database import get_supabase_client
 
 
 def set_default_effective_dates():
@@ -63,7 +62,7 @@ def set_default_effective_dates():
         else:
             old_law_docs.append(doc)
 
-    print(f"Categorized documents:")
+    print("Categorized documents:")
     print(f"  - ESSB 5814 documents (will set to 2025-10-01): {len(essb_docs)}")
     print(f"  - Old law documents (will set to 2024-01-01): {len(old_law_docs)}")
     print()
@@ -95,7 +94,7 @@ def set_default_effective_dates():
         # Batch update for efficiency
         batch_size = 100
         for i in range(0, len(old_law_docs), batch_size):
-            batch = old_law_docs[i : i + batch_size]
+            batch = old_law_docs[i: i + batch_size]
             batch_ids = [doc["id"] for doc in batch]
 
             # Update batch
@@ -104,7 +103,8 @@ def set_default_effective_dates():
             ).in_("id", batch_ids).execute()
 
             print(
-                f"  Updated {min(i+batch_size, len(old_law_docs))}/{len(old_law_docs)}..."
+                f"  Updated {min(i + batch_size, len(old_law_docs))
+                             }/{len(old_law_docs)}..."
             )
 
     print()
@@ -143,7 +143,8 @@ def set_default_effective_dates():
         print("\n✅ Perfect! All documents now have effective_date set.")
     else:
         print(
-            f"\n⚠️  Warning: {without_date.count} documents still don't have effective_date"
+            f"\n⚠️  Warning: {
+                without_date.count} documents still don't have effective_date"
         )
 
 

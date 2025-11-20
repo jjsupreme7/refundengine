@@ -10,6 +10,8 @@ Usage:
     python scripts/check_storage_usage.py --detailed  # Show file breakdown
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import argparse
 import sys
 from pathlib import Path
@@ -17,11 +19,9 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
 
 load_dotenv()
 
-from core.database import get_supabase_client
 
 BUCKET_NAME = "knowledge-base"
 FREE_TIER_LIMIT_GB = 1.0  # Supabase free tier: 1GB
@@ -60,10 +60,10 @@ def get_storage_usage(detailed=False):
         total_count = len(files)
 
         # Breakdown by type
-        pdf_files = [f for f in files if f["name"].endswith(".pdf")]
+        pdf_files = [f for f in files if f["name"].endswith(".pd")]
         html_files = [f for f in files if f["name"].endswith((".html", ".htm"))]
         other_files = [
-            f for f in files if not f["name"].endswith((".pdf", ".html", ".htm"))
+            f for f in files if not f["name"].endswith((".pd", ".html", ".htm"))
         ]
 
         pdf_size = sum(f.get("metadata", {}).get("size", 0) for f in pdf_files)
@@ -99,14 +99,18 @@ def get_storage_usage(detailed=False):
             )
         if other_files:
             print(
-                f"Other: {len(other_files):>6,} files  |  {format_bytes(other_size):>12}"
+                f"Other: {
+                    len(other_files):>6,} files  |  {
+                    format_bytes(other_size):>12}"
             )
         print()
 
         # Space remaining
         remaining_bytes = (FREE_TIER_LIMIT_GB * 1024**3) - total_size
         print(
-            f"💾 Space Remaining: {format_bytes(remaining_bytes)} ({100 - usage_percent:.1f}%)"
+            f"💾 Space Remaining: {
+                format_bytes(remaining_bytes)} ({
+                100 - usage_percent:.1f}%)"
         )
         print()
 
@@ -140,20 +144,28 @@ def get_storage_usage(detailed=False):
                 )
                 print(f"\n📁 {folder}/")
                 print(
-                    f"   Files: {len(folder_files):,}  |  Size: {format_bytes(folder_size)}"
+                    f"   Files: {
+                        len(folder_files):,                    }  |  Size: {
+                        format_bytes(folder_size)}"
                 )
 
                 if len(folder_files) <= 10:
                     for f in folder_files:
                         file_size = f.get("metadata", {}).get("size", 0)
                         print(
-                            f"      • {Path(f['name']).name} ({format_bytes(file_size)})"
+                            f"      • {
+                                Path(
+                                    f['name']).name} ({
+                                format_bytes(file_size)})"
                         )
                 else:
                     for f in folder_files[:5]:
                         file_size = f.get("metadata", {}).get("size", 0)
                         print(
-                            f"      • {Path(f['name']).name} ({format_bytes(file_size)})"
+                            f"      • {
+                                Path(
+                                    f['name']).name} ({
+                                format_bytes(file_size)})"
                         )
                     print(f"      ... and {len(folder_files) - 5} more files")
 
@@ -163,7 +175,7 @@ def get_storage_usage(detailed=False):
 
     except Exception as e:
         print(f"❌ Error checking storage: {e}")
-        import traceback
+        import traceback  # noqa: E402
 
         traceback.print_exc()
 

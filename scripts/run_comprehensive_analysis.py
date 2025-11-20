@@ -78,7 +78,8 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Add to Claim - Custom Software Exemption"
         confidence = 92
         citation = "WAC 458-20-15502(3)(a)"
-        notes = f"Custom software development services are exempt under WAC 458-20-15502(3)(a). {vendor} provided {desc[:50]}... which qualifies as custom programming."
+        notes = f"Custom software development services are exempt under WAC 458-20-15502(3)(a). {
+            vendor} provided {desc[:50]}... which qualifies as custom programming."
 
     elif (
         "professional" in desc_lower
@@ -96,7 +97,10 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Add to Claim - Non-Taxable Professional Services"
             confidence = 88
             citation = "WAC 458-20-144"
-            notes = f"Professional services are non-taxable. ANOMALY DETECTED: Odd dollar amount ${amount:,.2f} suggests hidden tax. Implied base: ${implied_base:,.2f}, implied tax: ${implied_tax:,.2f}. Professional consulting services do not constitute retail sales under WAC 458-20-144."
+            notes = f"Professional services are non-taxable. ANOMALY DETECTED: Odd dollar amount ${
+                amount:,.2f} suggests hidden tax. Implied base: ${
+                implied_base:,.2f}, implied tax: ${
+                implied_tax:,.2f}. Professional consulting services do not constitute retail sales under WAC 458-20-144."
         else:
             category = "Services"
             additional = "Professional"
@@ -104,7 +108,8 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Add to Claim - Non-Taxable Professional Services"
             confidence = 94
             citation = "WAC 458-20-144"
-            notes = f"Professional {desc[:30]}... services are exempt from sales tax under WAC 458-20-144."
+            notes = f"Professional {
+                desc[:30]}... services are exempt from sales tax under WAC 458-20-144."
 
     elif "hosting" in desc_lower or "cloud" in desc_lower:
         category = "Digital Goods"
@@ -113,7 +118,8 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Add to Claim - Digital Goods Exemption"
         confidence = 90
         citation = "RCW 82.04.050(6)"
-        notes = f"Cloud hosting services qualify as digital goods and are exempt under RCW 82.04.050(6). {vendor}'s hosting services do not constitute taxable retail sales."
+        notes = f"Cloud hosting services qualify as digital goods and are exempt under RCW 82.04.050(6). {
+            vendor}'s hosting services do not constitute taxable retail sales."
 
     elif "license" in desc_lower and "custom" not in desc_lower:
         category = "License"
@@ -122,7 +128,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Do Not Add to Claim - Correctly Taxed"
         confidence = 95
         citation = "WAC 458-20-15502"
-        notes = f"Prewritten software licenses are taxable under WAC 458-20-15502. Tax correctly applied."
+        notes = "Prewritten software licenses are taxable under WAC 458-20-15502. Tax correctly applied."
 
     elif "hardware" in desc_lower or "server" in desc_lower or "tablet" in desc_lower:
         category = "Tangible Goods"
@@ -131,7 +137,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Do Not Add to Claim - Correctly Taxed"
         confidence = 97
         citation = "RCW 82.08.020"
-        notes = f"Tangible personal property (hardware) is taxable under RCW 82.08.020. Tax correctly applied."
+        notes = "Tangible personal property (hardware) is taxable under RCW 82.08.020. Tax correctly applied."
 
     elif "installation" in desc_lower or "setup" in desc_lower:
         if tax_amount > 0:
@@ -141,7 +147,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Add to Claim - Installation Services Exempt"
             confidence = 85
             citation = "WAC 458-20-111"
-            notes = f"Installation services when separately stated may be exempt under WAC 458-20-111. Requires review of invoice to confirm separate billing."
+            notes = "Installation services when separately stated may be exempt under WAC 458-20-111. Requires review of invoice to confirm separate billing."
         else:
             category = "Services"
             additional = "Installation"
@@ -149,7 +155,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Do Not Add to Claim - Correctly Exempt"
             confidence = 93
             citation = "WAC 458-20-111"
-            notes = f"Installation services correctly exempted."
+            notes = "Installation services correctly exempted."
 
     elif "maintenance" in desc_lower or "support" in desc_lower:
         category = "Software Maintenance"
@@ -158,7 +164,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Add to Claim - Software Maintenance Exemption"
         confidence = 91
         citation = "WAC 458-20-15502(3)(c)"
-        notes = f"Software maintenance and support agreements are exempt under WAC 458-20-15502(3)(c)."
+        notes = "Software maintenance and support agreements are exempt under WAC 458-20-15502(3)(c)."
 
     elif (
         "construction" in desc_lower
@@ -173,7 +179,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Add to Claim - Construction Retainage Tax Overpayment"
             confidence = 78
             citation = "WAC 458-20-170"
-            notes = f"CONSTRUCTION RETAINAGE ISSUE: Retainage amount should not have been taxed upfront. Tax was charged on full PO amount including retainage. Refund due on retainage portion per WAC 458-20-170."
+            notes = "CONSTRUCTION RETAINAGE ISSUE: Retainage amount should not have been taxed upfront. Tax was charged on full PO amount including retainage. Refund due on retainage portion per WAC 458-20-170."
         else:
             category = "Services"
             additional = "Construction"
@@ -181,7 +187,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Needs Review - Construction Tax Rules Complex"
             confidence = 72
             citation = "WAC 458-20-170"
-            notes = f"Construction contracts have complex tax rules under WAC 458-20-170. Requires manual review of contract terms and payment structure."
+            notes = "Construction contracts have complex tax rules under WAC 458-20-170. Requires manual review of contract terms and payment structure."
 
     elif "training" in desc_lower or "workshop" in desc_lower:
         category = "Services"
@@ -190,7 +196,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Add to Claim - Training Services Exempt"
         confidence = 89
         citation = "WAC 458-20-244"
-        notes = f"Training and educational services are exempt under WAC 458-20-244."
+        notes = "Training and educational services are exempt under WAC 458-20-244."
 
     elif "testing" in desc_lower or "quality assurance" in desc_lower:
         category = "Services"
@@ -199,7 +205,7 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Add to Claim - Testing Services Exempt"
         confidence = 87
         citation = "WAC 458-20-244"
-        notes = f"Testing and QA services as professional services are exempt."
+        notes = "Testing and QA services as professional services are exempt."
 
     elif tax_type == "Use Tax" and tax_amount > 0:
         # Use tax scenario - check if services should be exempt
@@ -210,7 +216,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Add to Claim - Use Tax on Exempt Services"
             confidence = 86
             citation = "WAC 458-20-178"
-            notes = f"USE TAX SCENARIO: Services performed out-of-state are not subject to WA use tax under WAC 458-20-178. Refund of self-assessed use tax warranted."
+            notes = "USE TAX SCENARIO: Services performed out-of-state are not subject to WA use tax under WAC 458-20-178. Refund of self-assessed use tax warranted."
         else:
             category = "Tangible Goods"
             additional = None
@@ -218,7 +224,7 @@ def analyze_line_item(row: pd.Series) -> dict:
             decision = "Do Not Add to Claim - Use Tax Correctly Self-Assessed"
             confidence = 92
             citation = "RCW 82.12.020"
-            notes = f"Use tax correctly self-assessed on goods shipped from out-of-state per RCW 82.12.020."
+            notes = "Use tax correctly self-assessed on goods shipped from out-of-state per RCW 82.12.020."
 
     else:
         # Default case
@@ -228,7 +234,8 @@ def analyze_line_item(row: pd.Series) -> dict:
         decision = "Needs Review - Unclear Category"
         confidence = 65
         citation = "Requires manual review"
-        notes = f"Unable to definitively categorize. Description: {desc[:100]}. Requires manual analyst review."
+        notes = f"Unable to definitively categorize. Description: {
+            desc[:100]}. Requires manual analyst review."
 
     # Calculate estimated refund
     if "Add to Claim" in decision:
@@ -305,7 +312,7 @@ def main():
     print(f"\n📊 Average Confidence: {avg_confidence:.1f}%")
 
     flagged = len(df[df["AI_Confidence"] < 90])
-    print(f"   Flagged for Review (<90%): {flagged} ({flagged/len(df)*100:.1f}%)")
+    print(f"   Flagged for Review (<90%): {flagged} ({flagged / len(df) * 100:.1f}%)")
 
     total_refund = df["Estimated_Refund"].sum()
     print(f"\n💰 Total Estimated Refund: ${total_refund:,.2f}")
@@ -326,7 +333,7 @@ def main():
 
     print("\n✅ Analysis complete!")
     print(f"   Analyzed Excel: {output_file}")
-    print(f"   Summary: test_data/ANALYSIS_SUMMARY.txt")
+    print("   Summary: test_data/ANALYSIS_SUMMARY.txt")
 
     print("\n" + "=" * 80)
     print("NEXT STEP: Load into dashboard for preview")

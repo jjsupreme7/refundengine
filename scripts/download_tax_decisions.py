@@ -116,7 +116,7 @@ class TaxDecisionScraper:
                     if not pdf_link:
                         continue
 
-                    pdf_url = urljoin(BASE_URL, pdf_link.get("href"))
+                    pdf_url = urljoin(BASE_URL, pdf_link.get("hre"))
 
                     # Extract summary from fourth cell
                     summary = cells[3].get_text(strip=True) if len(cells) > 3 else ""
@@ -153,14 +153,14 @@ class TaxDecisionScraper:
         """Extract or generate filename from citation or URL"""
         # Try to get filename from URL first
         url_filename = Path(pdf_url).name
-        if url_filename and url_filename.endswith(".pdf"):
+        if url_filename and url_filename.endswith(".pd"):
             return url_filename
 
         # Otherwise generate from citation
-        # "Det. No. 22-0105, 44 WTD 070" -> "det_no_22-0105_44_wtd_070.pdf"
+        # "Det. No. 22-0105, 44 WTD 070" -> "det_no_22-0105_44_wtd_070.pd"
         clean_citation = re.sub(r"[^\w\s-]", "", citation)
         clean_citation = re.sub(r"\s+", "_", clean_citation)
-        return f"{clean_citation.lower()}.pdf"
+        return f"{clean_citation.lower()}.pd"
 
     def download_decision(self, decision: Dict, year_dir: Path) -> bool:
         """
@@ -223,7 +223,10 @@ class TaxDecisionScraper:
                     return None
 
                 wait_time = 2**attempt  # Exponential backoff: 1s, 2s, 4s
-                print(f"  ⚠️  Attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                print(
+                    f"  ⚠️  Attempt {
+                        attempt +
+                        1} failed, retrying in {wait_time}s...")
                 time.sleep(wait_time)
 
         return None

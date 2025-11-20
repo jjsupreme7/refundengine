@@ -88,7 +88,7 @@ def generate_change_summary(
     # Create prompt for AI (adjust verbosity based on change count)
     if len(changes) > 100:
         # Very concise for large change sets
-        prompt = f"""Analyze {summary_data['total_changes']} Excel changes across {summary_data['rows_affected']} rows.
+        prompt = """Analyze {summary_data['total_changes']} Excel changes across {summary_data['rows_affected']} rows.
 
 Changes by Column: {format_dict(summary_data['changes_by_column'])}
 
@@ -99,7 +99,7 @@ Create a 2-3 sentence executive summary focusing on:
 Be extremely concise."""
     else:
         # More detailed for smaller change sets
-        prompt = f"""Analyze these Excel file changes and create a concise, professional summary.
+        prompt = """Analyze these Excel file changes and create a concise, professional summary.
 
 Total Changes: {summary_data['total_changes']}
 Rows Affected: {summary_data['rows_affected']}
@@ -218,7 +218,7 @@ def generate_snapshot_summary(
     version_num = version_data.get("version_number", "Unknown")
     created_by = version_data.get("created_by", "Unknown")
 
-    summary = f"""Snapshot #{version_num} created by {created_by}
+    summary = """Snapshot #{version_num} created by {created_by}
 
 {change_summary}
 

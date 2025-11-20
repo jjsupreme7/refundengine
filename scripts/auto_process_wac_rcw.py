@@ -62,10 +62,10 @@ def check_downloads_complete():
 
 def run_ai_analysis(folder, output_file):
     """Run AI analysis on a folder and export to Excel"""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Running AI analysis: {folder}")
     print(f"Output: {output_file}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     cmd = [
         "python",
@@ -83,9 +83,9 @@ def run_ai_analysis(folder, output_file):
 
 def combine_all_excel_files():
     """Combine all tax law Excel files into master files"""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("Combining all Excel files into master files")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # Combine tax decisions (already done, but regenerate to be safe)
     subprocess.run(["python", "scripts/combine_tax_law_excel.py"])
@@ -256,7 +256,7 @@ def main():
         incomplete = [k for k, v in status.items() if k != "all_complete" and not v]
         if incomplete:
             print(f"\n⏳ Still downloading: {', '.join(incomplete)}")
-            print(f"   Checking again in {check_interval//60} minutes...")
+            print(f"   Checking again in {check_interval // 60} minutes...")
             time.sleep(check_interval)
 
 

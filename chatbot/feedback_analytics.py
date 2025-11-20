@@ -12,7 +12,8 @@ Usage:
     streamlit run chatbot/feedback_analytics.py --server.port 8504
 """
 
-import os
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -26,11 +27,9 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
-from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-from core.database import get_supabase_client
 
 # Page config
 st.set_page_config(page_title="Feedback Analytics", page_icon="📊", layout="wide")
@@ -356,20 +355,21 @@ def main():
         if not detailed_feedback.empty:
             for idx, row in detailed_feedback.iterrows():
                 with st.expander(
-                    f"{row['feedback_type']} - {row['created_at']} - Rating: {row.get('rating', 'N/A')}"
+                    f"{row['feedback_type']} - {row['created_at']
+                                                } - Rating: {row.get('rating', 'N/A')}"
                 ):
                     st.write(f"**Query:** {row['query']}")
 
                     if pd.notna(row.get("suggested_answer")):
-                        st.write(f"**Suggested Answer:**")
+                        st.write("**Suggested Answer:**")
                         st.write(row["suggested_answer"])
 
                     if pd.notna(row.get("suggested_structure")):
-                        st.write(f"**Suggested Structure:**")
+                        st.write("**Suggested Structure:**")
                         st.write(row["suggested_structure"])
 
                     if pd.notna(row.get("feedback_comment")):
-                        st.write(f"**Comment:**")
+                        st.write("**Comment:**")
                         st.write(row["feedback_comment"])
         else:
             st.info("No detailed feedback available")

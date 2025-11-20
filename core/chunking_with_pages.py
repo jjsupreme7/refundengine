@@ -159,7 +159,11 @@ if __name__ == "__main__":
         print(f"  Pages: {chunk.get('page_numbers', [])}")
         print(f"  Page Ref: {chunk.get('page_reference', 'N/A')}")
         print(
-            f"  Combined: {format_section_with_page(chunk.get('section_id', ''), chunk.get('page_reference', ''))}"
+            f"  Combined: {
+                format_section_with_page(
+                    chunk.get(
+                        'section_id', ''), chunk.get(
+                        'page_reference', ''))}"
         )
         print(f"  Preview: {chunk['chunk_text'][:100]}...")
         print()

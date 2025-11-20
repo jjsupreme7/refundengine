@@ -4,6 +4,9 @@ Review Queue Page - Review flagged transactions
 Review and approve/reject transactions flagged for manual review.
 """
 
+from core.auth import require_authentication
+from dashboard.utils.data_loader import get_review_queue, load_analyzed_transactions
+from core.html_utils import escape_html
 import sys
 from pathlib import Path
 
@@ -13,14 +16,11 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from core.html_utils import escape_html
-from dashboard.utils.data_loader import get_review_queue, load_analyzed_transactions
 
 # Page configuration
 st.set_page_config(page_title="Review Queue - TaxDesk", page_icon="🔍", layout="wide")
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -151,7 +151,7 @@ else:
             decision_class = "neutral"
 
         with st.expander(
-            f"🔍 {row['Vendor_Name']} - ${row['Total_Amount']:,.2f} | {row['Line_Item_Description'][:80]}...",
+            f"🔍 {row['Vendor_Name']} - ${row['Total_Amount']                                         :,.2f} | {row['Line_Item_Description'][:80]}...",
             expanded=False,
         ):
             col1, col2 = st.columns([2, 1])
@@ -170,11 +170,13 @@ else:
 
                 st.markdown("#### 🤖 AI Analysis")
                 st.markdown(
-                    f"**Decision:** <span class='badge {decision_class}'>{escape_html(decision)}</span>",
+                    f"**Decision:** <span class='badge {
+                        decision_class}'>{escape_html(decision)}</span>",
                     unsafe_allow_html=True,
                 )
                 st.markdown(
-                    f"**Confidence:** <span class='badge {conf_class}'>{escape_html(str(confidence)):.1f}%</span>",
+                    f"**Confidence:** <span class='badge {conf_class}'>{
+                        escape_html(str(confidence)):.1f}%</span>",
                     unsafe_allow_html=True,
                 )
                 st.markdown(f"**Est. Refund:** ${row['Estimated_Refund']:,.2f}")
@@ -235,7 +237,8 @@ else:
                         st.success(f"Saved decision for {row['Vendor_Name']}")
 
                 with col_b:
-                    if st.button("⏭️ Skip", key=f"skip_{idx}", use_container_width=True):
+                    if st.button("⏭️ Skip", key=f"skip_{
+                                 idx}", use_container_width=True):
                         st.info("Skipped to next item")
 
             st.markdown("---")
@@ -245,7 +248,7 @@ else:
 
             if pd.notna(row.get("Legal_Citation")):
                 st.markdown(
-                    f"""
+                    """
                 <div class="section-card">
                     <h4>Primary Citation: {row['Legal_Citation']}</h4>
                     <p style="color: #4a5568; margin-top: 0.5rem;">
@@ -264,7 +267,8 @@ else:
                         use_container_width=True,
                     ):
                         st.info(
-                            f"View full text of {row['Legal_Citation']} (feature coming soon)"
+                            f"View full text of {
+                                row['Legal_Citation']} (feature coming soon)"
                         )
 
                 with col_legal2:

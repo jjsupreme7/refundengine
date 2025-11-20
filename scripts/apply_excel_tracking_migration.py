@@ -4,6 +4,8 @@ Apply Excel File Tracking Migration to Supabase
 Executes the migration SQL file to enable automatic Excel change detection
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -11,9 +13,6 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment variables
 load_dotenv()
@@ -56,7 +55,7 @@ def apply_migration():
         print("Attempting direct SQL execution via psql...")
         return False
 
-    import requests
+    import requests  # noqa: E402
 
     url = f"https://api.supabase.com/v1/projects/{SUPABASE_PROJECT_ID}/database/query"
     headers = {

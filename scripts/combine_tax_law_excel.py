@@ -66,7 +66,7 @@ def combine_excel_files():
     print("=" * 70)
     print(f"📁 File: {master_file}")
     print(f"📊 Total documents: {total_docs}")
-    print(f"📅 Years: 2010-2025")
+    print("📅 Years: 2010-2025")
     print("\n📋 Next steps:")
     print("  1. Open outputs/WA_Tax_Decisions_Complete.xlsx")
     print("  2. Review AI suggestions in each row")

@@ -35,7 +35,6 @@ Usage:
 """
 
 import hashlib
-import json
 import os
 from datetime import datetime
 from pathlib import Path
@@ -184,7 +183,7 @@ class ExcelVersionManager:
         print(f"✅ Uploaded file: {file_name} (ID: {file_id})")
         print(f"   - Size: {file_size:,} bytes")
         print(f"   - Rows: {row_count}")
-        print(f"   - Version: 1")
+        print("   - Version: 1")
 
         return file_id
 

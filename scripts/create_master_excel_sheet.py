@@ -49,8 +49,8 @@ def create_master_excel_sheet():
             "Tax_Amount": 1155.00,
             "Tax_Remitted": 1155.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0001.pdf",  # Vendor invoice
-            "Invoice_File_Name_2": "0001_internal.pdf",  # Internal version
+            "Invoice_File_Name_1": "0001.pd",  # Vendor invoice
+            "Invoice_File_Name_2": "0001_internal.pd",  # Internal version
             # OUTPUT COLUMNS (blank for now - AI will fill)
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -71,7 +71,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 1890.00,
             "Tax_Remitted": 1890.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0002.pdf",
+            "Invoice_File_Name_1": "0002.pd",
             "Invoice_File_Name_2": "",  # No internal version
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -92,8 +92,8 @@ def create_master_excel_sheet():
             "Tax_Amount": 10710.00,
             "Tax_Remitted": 10710.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0003.pdf",
-            "Invoice_File_Name_2": "0003_internal.pdf",
+            "Invoice_File_Name_1": "0003.pd",
+            "Invoice_File_Name_2": "0003_internal.pd",
             "Analysis_Notes": "",
             "Final_Decision": "",
             "Tax_Category": "",
@@ -113,7 +113,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 7350.00,
             "Tax_Remitted": 7350.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0004.pdf",
+            "Invoice_File_Name_1": "0004.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -134,8 +134,8 @@ def create_master_excel_sheet():
             "Tax_Amount": 8925.00,
             "Tax_Remitted": 8925.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0005.pdf",
-            "Invoice_File_Name_2": "0005_internal.pdf",
+            "Invoice_File_Name_1": "0005.pd",
+            "Invoice_File_Name_2": "0005_internal.pd",
             "Analysis_Notes": "",
             "Final_Decision": "",
             "Tax_Category": "",
@@ -155,7 +155,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 1312.50,
             "Tax_Remitted": 1312.50,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0006.pdf",
+            "Invoice_File_Name_1": "0006.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -176,7 +176,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 1890.00,
             "Tax_Remitted": 1890.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0007.pdf",
+            "Invoice_File_Name_1": "0007.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -197,7 +197,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 630.00,
             "Tax_Remitted": 630.00,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0008.pdf",
+            "Invoice_File_Name_1": "0008.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -218,8 +218,8 @@ def create_master_excel_sheet():
             "Tax_Amount": 4987.50,
             "Tax_Remitted": 4987.50,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0009.pdf",
-            "Invoice_File_Name_2": "0009_internal.pdf",
+            "Invoice_File_Name_1": "0009.pd",
+            "Invoice_File_Name_2": "0009_internal.pd",
             "Analysis_Notes": "",
             "Final_Decision": "",
             "Tax_Category": "",
@@ -239,7 +239,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 446.25,
             "Tax_Remitted": 446.25,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0010.pdf",
+            "Invoice_File_Name_1": "0010.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -260,7 +260,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 88.73,
             "Tax_Remitted": 88.73,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0011.pdf",
+            "Invoice_File_Name_1": "0011.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -281,7 +281,7 @@ def create_master_excel_sheet():
             "Tax_Amount": 89.37,
             "Tax_Remitted": 89.37,
             "Tax_Rate_Charged": "10.5%",
-            "Invoice_File_Name_1": "0012.pdf",
+            "Invoice_File_Name_1": "0012.pd",
             "Invoice_File_Name_2": "",
             "Analysis_Notes": "",
             "Final_Decision": "",
@@ -339,7 +339,7 @@ def create_master_excel_sheet():
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except:
+                except BaseException:
                     pass
             adjusted_width = min(max_length + 2, 50)
             worksheet.column_dimensions[column_letter].width = adjusted_width

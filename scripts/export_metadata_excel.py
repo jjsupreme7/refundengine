@@ -9,8 +9,8 @@ Usage:
     python scripts/export_metadata_excel.py --output metadata.xlsx
 """
 
+from core.database import get_supabase_client
 import argparse
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -27,7 +27,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 load_dotenv()
 
 # Import centralized database client
-from core.database import get_supabase_client
 
 
 def style_header(ws):
@@ -53,7 +52,7 @@ def auto_adjust_columns(ws):
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
-            except:
+            except BaseException:
                 pass
 
         adjusted_width = min(max_length + 2, 50)  # Cap at 50
@@ -362,7 +361,7 @@ def main():
         return 0
     except Exception as e:
         print(f"\n❌ Error during export: {e}")
-        import traceback
+        import traceback  # noqa: E402
 
         traceback.print_exc()
         return 1

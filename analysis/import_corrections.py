@@ -9,8 +9,7 @@ import argparse
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import pandas as pd
 
@@ -19,7 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import centralized Supabase client
 try:
-    from core.database import get_supabase_client
+    from core.database import get_supabase_client  # noqa: E402
 
     supabase = get_supabase_client()
 except ImportError:
@@ -166,7 +165,7 @@ class CorrectionImporter:
 
                 return True
             else:
-                print(f"    ✗ Failed to save review")
+                print("    ✗ Failed to save review")
                 return False
 
         except Exception as e:
@@ -220,11 +219,11 @@ class CorrectionImporter:
                             + 1,
                         }
                     ).eq("id", existing.data[0]["id"]).execute()
-                    print(f"    ✓ Updated vendor_products")
+                    print("    ✓ Updated vendor_products")
                 else:
                     # Insert new
                     supabase.table("vendor_products").insert(product_data).execute()
-                    print(f"    ✓ Added to vendor_products")
+                    print("    ✓ Added to vendor_products")
                     self.stats["products_learned"] += 1
 
             except Exception as e:
@@ -279,7 +278,7 @@ class CorrectionImporter:
                     supabase.table("vendor_product_patterns").insert(
                         pattern_data
                     ).execute()
-                    print(f"    ✓ Created new pattern")
+                    print("    ✓ Created new pattern")
                     self.stats["patterns_learned"] += 1
 
             except Exception as e:
@@ -293,7 +292,9 @@ class CorrectionImporter:
         try:
             for field, new_value in corrections.items():
                 field_name = field.replace("corrected_", "")
-                old_value = row.get(f'AI_{field_name.title().replace("_", " ")}')
+                # Use underscore format to match actual column names
+                # (AI_Product_Desc, not AI_Product Desc)
+                old_value = row.get(f"AI_{field_name.title()}")
 
                 audit_data = {
                     "event_type": "human_correction",
@@ -331,13 +332,13 @@ def main():
 
     args = parser.parse_args()
 
-    print(f"\n{'='*80}")
-    print(f"IMPORT CORRECTIONS FROM EXCEL")
-    print(f"{'='*80}")
+    print(f"\n{'=' * 80}")
+    print("IMPORT CORRECTIONS FROM EXCEL")
+    print(f"{'=' * 80}")
     print(f"File:     {args.reviewed_excel}")
     print(f"Reviewer: {args.reviewer}")
     print(f"Dry run:  {args.dry_run}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     # Load Excel
     df = pd.read_excel(args.reviewed_excel)
@@ -364,16 +365,16 @@ def main():
             importer.import_review(row)
 
     # Print summary
-    print(f"\n{'='*80}")
-    print(f"IMPORT SUMMARY")
-    print(f"{'='*80}")
+    print(f"\n{'=' * 80}")
+    print("IMPORT SUMMARY")
+    print(f"{'=' * 80}")
     print(f"  Approved:         {importer.stats['approved']}")
     print(f"  Corrected:        {importer.stats['corrected']}")
     print(f"  Rejected:         {importer.stats['rejected']}")
     print(f"  Skipped:          {importer.stats['skipped']}")
     print(f"  Products learned: {importer.stats['products_learned']}")
     print(f"  Patterns learned: {importer.stats['patterns_learned']}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     if args.dry_run:
         print("This was a dry run. No changes were made to the database.")

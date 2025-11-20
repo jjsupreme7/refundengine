@@ -4,6 +4,8 @@ Documents Page - Upload and manage documents
 Upload invoices, contracts, and supporting documentation for analysis.
 """
 
+from core.auth import require_authentication
+from dashboard.utils.data_loader import get_documents_from_db, get_projects_from_db
 import sys
 from pathlib import Path
 
@@ -12,12 +14,11 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from dashboard.utils.data_loader import get_documents_from_db, get_projects_from_db
 
 # File upload security settings
 MAX_FILE_SIZE_MB = 10
 MAX_TOTAL_SIZE_MB = 50
-ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".xlsx", ".csv"}
+ALLOWED_EXTENSIONS = {".pd", ".jpg", ".jpeg", ".png", ".xlsx", ".csv"}
 DANGEROUS_EXTENSIONS = {
     ".exe",
     ".bat",
@@ -34,7 +35,6 @@ DANGEROUS_EXTENSIONS = {
 st.set_page_config(page_title="Documents - TaxDesk", page_icon="📄", layout="wide")
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -85,7 +85,7 @@ if st.session_state.get("show_upload", False):
         uploaded_files = st.file_uploader(
             "Choose files",
             accept_multiple_files=True,
-            type=["pdf", "jpg", "jpeg", "png", "xlsx", "csv"],
+            type=["pd", "jpg", "jpeg", "png", "xlsx", "csv"],
             help=f"Max {MAX_FILE_SIZE_MB}MB per file, {MAX_TOTAL_SIZE_MB}MB total",
         )
 
@@ -102,12 +102,14 @@ if st.session_state.get("show_upload", False):
 
                 if file_size_mb > MAX_FILE_SIZE_MB:
                     validation_errors.append(
-                        f"❌ {file.name}: File too large ({file_size_mb:.1f}MB, max {MAX_FILE_SIZE_MB}MB)"
+                        f"❌ {
+                            file.name}: File too large ({
+                            file_size_mb:.1f}MB, max {MAX_FILE_SIZE_MB}MB)"
                     )
                     continue
 
                 # Check file extension
-                import os
+                import os  # noqa: E402
 
                 file_ext = os.path.splitext(file.name)[1].lower()
 
@@ -129,7 +131,8 @@ if st.session_state.get("show_upload", False):
             # Check total size
             if total_size > MAX_TOTAL_SIZE_MB:
                 st.error(
-                    f"❌ Total file size ({total_size:.1f}MB) exceeds limit of {MAX_TOTAL_SIZE_MB}MB"
+                    f"❌ Total file size ({total_size:.1f}MB) exceeds limit of {
+                        MAX_TOTAL_SIZE_MB}MB"
                 )
                 valid_files = []
 
@@ -221,7 +224,7 @@ else:
         }.get(doc["status"], "neutral")
 
         st.markdown(
-            f"""
+            """
         <div class="section-card">
             <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 1rem; align-items: center;">
                 <div>
@@ -286,7 +289,8 @@ else:
                     st.markdown("#### 📋 Document Information")
                     st.markdown(f"**File Name:** {doc['id']}")
                     st.markdown(
-                        f"**File Type:** {doc['type']} (`.{doc.get('file_extension', 'unknown').lower()}`)"
+                        f"**File Type:** {doc['type']
+                                          } (`.{doc.get('file_extension', 'unknown').lower()}`)"
                     )
                     st.markdown(f"**Vendor:** {doc['vendor']}")
                     st.markdown(f"**Invoice Number:** {doc['invoice_number']}")
@@ -309,7 +313,7 @@ else:
                 st.markdown("#### 📎 File Preview")
 
                 # Check if file actually exists
-                from pathlib import Path
+                from pathlib import Path  # noqa: E402
 
                 file_path = Path("test_data/invoices") / doc["id"]
 
@@ -326,20 +330,21 @@ else:
                             label="📥 Download PDF",
                             data=pdf_bytes,
                             file_name=doc["id"],
-                            mime="application/pdf",
+                            mime="application/pd",
                             use_container_width=True,
                         )
 
                         # Show PDF using base64 encoding in iframe
-                        import base64
+                        import base64  # noqa: E402
 
                         base64_pdf = base64.b64encode(pdf_bytes).decode("utf-8")
-                        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="600" type="application/pdf"></iframe>'
+                        pdf_display = f'<iframe src="data:application/pdf;base64,{
+                            base64_pdf}" width="100%" height="600" type="application/pd"></iframe>'
                         st.markdown(pdf_display, unsafe_allow_html=True)
 
                     elif file_ext in ["XLSX", "XLS"]:
                         # Display Excel data
-                        import pandas as pd
+                        import pandas as pd  # noqa: E402
 
                         excel_df = pd.read_excel(file_path)
                         st.dataframe(excel_df, use_container_width=True)
@@ -358,7 +363,7 @@ else:
                     elif file_ext in ["JPG", "JPEG", "PNG"]:
                         # Display image
                         try:
-                            from PIL import Image
+                            from PIL import Image  # noqa: E402
 
                             img = Image.open(file_path)
                             st.image(img, use_column_width=True)
@@ -427,16 +432,17 @@ else:
                                 label="📥 Download PO",
                                 data=po_bytes,
                                 file_name=doc["purchase_order_file"],
-                                mime="application/pdf",
+                                mime="application/pd",
                                 use_container_width=True,
                                 key=f"download_po_{doc['id']}",
                             )
 
                             # Display PO PDF
-                            import base64
+                            import base64  # noqa: E402
 
                             base64_po = base64.b64encode(po_bytes).decode("utf-8")
-                            po_display = f'<iframe src="data:application/pdf;base64,{base64_po}" width="100%" height="600" type="application/pdf"></iframe>'
+                            po_display = f'<iframe src="data:application/pdf;base64,{
+                                base64_po}" width="100%" height="600" type="application/pd"></iframe>'
                             st.markdown(po_display, unsafe_allow_html=True)
                     else:
                         st.info(f"📋 PO File: {doc['purchase_order_file']} (not found)")

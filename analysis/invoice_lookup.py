@@ -78,7 +78,7 @@ class InvoiceLookup:
                 if not self._validate_path(file):
                     print(f"Warning: Skipping file outside trusted directory: {file}")
                     continue
-                if file.suffix.lower() in [".pdf", ".tif", ".tiff", ".xls", ".xlsx"]:
+                if file.suffix.lower() in [".pd", ".ti", ".tif", ".xls", ".xlsx"]:
                     # Extract invoice number from filename
                     # Format: 000005000021-1.PDF -> 000005000021
                     invoice_num = file.stem.split("-")[0]
@@ -154,7 +154,7 @@ class InvoiceLookup:
                     'invoice_number': 'INV123',
                     'inv1_link': 'https://...',
                     'inv2_link': 'https://...',
-                    'inv1_text': 'Invoice 1.pdf',
+                    'inv1_text': 'Invoice 1.pd',
                     'inv2_text': 'Invoice 2.pdf'
                 },
                 ...
@@ -220,13 +220,13 @@ class InvoiceLookup:
             if "Inv-1PDF" in col_map:
                 val = ws.cell(row_idx, col_map["Inv-1PDF"]).value
                 if val:
-                    row_data["inv1_pdf"] = val
+                    row_data["inv1_pd"] = val
                     has_data = True
 
             if "Inv-2 PDF" in col_map:
                 val = ws.cell(row_idx, col_map["Inv-2 PDF"]).value
                 if val:
-                    row_data["inv2_pdf"] = val
+                    row_data["inv2_pd"] = val
                     has_data = True
 
             if has_data:
@@ -318,7 +318,7 @@ class InvoiceLookup:
                 'found': bool,
                 'file_path': Path or None,
                 'match_confidence': 'exact'|'partial'|'none',
-                'file_type': 'pdf'|'tif'|'xlsx'|etc
+                'file_type': 'pd'|'ti'|'xlsx'|etc
             }
         """
         result = {
@@ -441,7 +441,7 @@ def create_invoice_download_script(
                 script_lines.append(f"        'url1': '{link_data['inv1_link']}',")
             if "inv2_link" in link_data:
                 script_lines.append(f"        'url2': '{link_data['inv2_link']}',")
-            script_lines.append(f"    }},")
+            script_lines.append("    }},")
 
     script_lines.extend(
         [
@@ -452,14 +452,14 @@ def create_invoice_download_script(
             "    inv_num = invoice['invoice']",
             "    ",
             "    if 'url1' in invoice:",
-            "        filename = output_folder / f'{vendor}_{inv_num}_1.pdf'",
+            "        filename = output_folder / f'{vendor}_{inv_num}_1.pd'",
             "        print(f'Downloading {filename}...')",
             "        # response = requests.get(invoice['url1'])",
             "        # with open(filename, 'wb') as f:",
             "        #     f.write(response.content)",
             "    ",
             "    if 'url2' in invoice:",
-            "        filename = output_folder / f'{vendor}_{inv_num}_2.pdf'",
+            "        filename = output_folder / f'{vendor}_{inv_num}_2.pd'",
             "        print(f'Downloading {filename}...')",
             "        # response = requests.get(invoice['url2'])",
             "        # with open(filename, 'wb') as f:",
@@ -503,7 +503,8 @@ if __name__ == "__main__":
             print("\nFirst 5 links:")
             for link in links[:5]:
                 print(
-                    f"  Row {link['row']}: {link.get('vendor')} - {link.get('invoice_number')}"
+                    f"  Row {link['row']}: {
+                        link.get('vendor')} - {link.get('invoice_number')}"
                 )
                 if "inv1_link" in link:
                     print(f"    Link 1: {link['inv1_link']}")

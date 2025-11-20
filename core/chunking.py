@@ -275,7 +275,7 @@ def _split_by_sentences(
     abbreviations = {
         "RCW",
         "WAC",
-        "Cf",
+        "C",
         "Sec",
         "No",
         "Vol",

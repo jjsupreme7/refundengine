@@ -9,7 +9,9 @@ Problem: Vendor documents exist in knowledge_documents but have 0 chunks
 Solution: Generate meaningful text from vendor metadata, chunk it, embed it
 """
 
-import json
+from core.database import get_supabase_client
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -18,10 +20,6 @@ from typing import Dict, List
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-from openai import OpenAI
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -57,12 +55,13 @@ def generate_vendor_text(vendor_doc: Dict) -> str:
 
     if business_model:
         text_parts.append(
-            f"## Business Model\n{vendor_name} follows a {business_model} business model.\n"
+            f"## Business Model\n{vendor_name} follows a {
+                business_model} business model.\n"
         )
 
     # Primary products/services
     if primary_products and len(primary_products) > 0:
-        text_parts.append(f"## Primary Products and Services\n")
+        text_parts.append("## Primary Products and Services\n")
         text_parts.append(
             f"{vendor_name} provides the following products and services:\n"
         )
@@ -72,18 +71,18 @@ def generate_vendor_text(vendor_doc: Dict) -> str:
 
     # Delivery method
     if typical_delivery:
-        text_parts.append(f"## Typical Delivery Method\n")
+        text_parts.append("## Typical Delivery Method\n")
         text_parts.append(
             f"{vendor_name} typically delivers products/services via {typical_delivery}.\n"
         )
 
     # Tax treatment notes
     if tax_notes:
-        text_parts.append(f"## Tax Treatment Notes\n")
+        text_parts.append("## Tax Treatment Notes\n")
         text_parts.append(f"{tax_notes}\n")
 
     # Additional searchable keywords for RAG
-    text_parts.append(f"\n## Vendor Summary\n")
+    text_parts.append("\n## Vendor Summary\n")
     text_parts.append(
         f"When analyzing invoices or purchase orders from {vendor_name}, consider "
     )
@@ -198,15 +197,15 @@ def process_vendor(vendor_doc: Dict) -> bool:
         return True
 
     # Generate vendor text
-    print(f"  📝 Generating descriptive text...")
+    print("  📝 Generating descriptive text...")
     vendor_text = generate_vendor_text(vendor_doc)
 
     if not vendor_text or len(vendor_text) < 50:
-        print(f"  ⚠️  Insufficient data to create meaningful chunks")
+        print("  ⚠️  Insufficient data to create meaningful chunks")
         return False
 
     # Create chunks
-    print(f"  ✂️  Creating chunks...")
+    print("  ✂️  Creating chunks...")
     chunks = chunk_vendor_text(vendor_text, vendor_name)
     print(f"  📊 Created {len(chunks)} chunk(s)")
 
@@ -218,7 +217,7 @@ def process_vendor(vendor_doc: Dict) -> bool:
         print(f"  🔢 Processing chunk {chunk_num}/{len(chunks)}...")
 
         # Generate embedding
-        print(f"     🧮 Generating embedding...")
+        print("     🧮 Generating embedding...")
         embedding = create_embedding(chunk_text)
 
         if not embedding:
@@ -251,7 +250,7 @@ def process_vendor(vendor_doc: Dict) -> bool:
         supabase.table("knowledge_documents").update(
             {"total_chunks": len(chunks), "processing_status": "completed"}
         ).eq("id", doc_id).execute()
-        print(f"  ✅ Document metadata updated")
+        print("  ✅ Document metadata updated")
     except Exception as e:
         print(f"  ⚠️  Warning: Could not update document metadata: {e}")
 

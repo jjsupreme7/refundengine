@@ -12,7 +12,8 @@ Usage:
     python scripts/populate_file_urls.py --dry-run  # Preview changes without updating
 """
 
-import os
+from core.document_urls import generate_document_url
+from core.database import get_supabase_client
 import sys
 from pathlib import Path
 from typing import Dict, List
@@ -22,8 +23,6 @@ from tqdm import tqdm
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.database import get_supabase_client
-from core.document_urls import generate_document_url
 
 # Load environment variables
 load_dotenv()
@@ -96,7 +95,7 @@ def generate_urls_for_documents(documents: List[Dict]) -> List[Dict]:
             print(f"\n⚠️  Could not generate URL for: {title}")
             print(f"   Citation: {citation}, Source: {source_file}")
 
-    print(f"\n📊 URL Generation Summary:")
+    print("\n📊 URL Generation Summary:")
     print(f"   ✅ URLs generated: {len(updates)}")
     print(f"   ⏭️  Already have URL: {already_have_url}")
     print(f"   ⚠️  Skipped (no valid citation/file): {skipped_count}")
@@ -112,7 +111,7 @@ def preview_updates(updates: List[Dict], limit: int = 10):
     print("=" * 100)
 
     for i, update in enumerate(updates[:limit]):
-        print(f"\n{i+1}. {update['title'][:60]}")
+        print(f"\n{i + 1}. {update['title'][:60]}")
         print(f"   Citation: {update.get('citation', 'N/A')}")
         print(f"   Source: {update.get('source_file', 'N/A')[:80]}")
         print(f"   → New URL: {update['file_url']}")
@@ -165,16 +164,16 @@ def apply_updates(updates: List[Dict], dry_run: bool = False):
             print(f"\n❌ Failed to update {update['title']}: {e}")
             failed += 1
 
-    print(f"\n{'='*70}")
-    print(f"📊 UPDATE SUMMARY")
-    print(f"{'='*70}")
+    print(f"\n{'=' * 70}")
+    print("📊 UPDATE SUMMARY")
+    print(f"{'=' * 70}")
     print(f"✅ Successfully updated: {successful}")
     print(f"❌ Failed: {failed}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
 
 def main():
-    import argparse
+    import argparse  # noqa: E402
 
     parser = argparse.ArgumentParser(
         description="Populate file_url field for existing documents"

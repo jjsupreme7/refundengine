@@ -386,7 +386,7 @@ class FeedbackSystem:
         # Use AI to synthesize the pattern into an actionable rule
         examples = pattern["examples"][:3]  # Use first 3 examples
 
-        prompt = f"""Based on these user feedback examples, create an improvement rule.
+        prompt = """Based on these user feedback examples, create an improvement rule.
 
 Feedback Type: {pattern['feedback_type']}
 Common Terms: {', '.join(pattern['key_terms'])}
@@ -427,7 +427,8 @@ Create a rule in this format:
 
             self.supabase.table("learned_improvements").insert(improvement).execute()
             print(
-                f"🎯 Created new improvement rule from pattern with {pattern['count']} instances"
+                f"🎯 Created new improvement rule from pattern with {
+                    pattern['count']} instances"
             )
 
         except Exception as e:
@@ -569,7 +570,7 @@ Create a rule in this format:
         self, query: str, ai_answer: str, suggested_answer: str
     ) -> Dict:
         """Use AI to analyze what makes the suggested answer better"""
-        prompt = f"""Analyze the difference between these two answers.
+        prompt = """Analyze the difference between these two answers.
 
 Query: {query}
 
@@ -617,7 +618,7 @@ Return JSON:
             "at",
             "to",
             "for",
-            "of",
+            "o",
             "and",
             "or",
         }

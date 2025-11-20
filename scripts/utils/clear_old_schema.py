@@ -19,6 +19,7 @@ This script is useful for:
 See: database/archive/old_schema/README.md for more information
 """
 
+from core.database import get_supabase_client
 import os
 import sys
 from pathlib import Path
@@ -32,7 +33,6 @@ except ImportError:
 
 # Import centralized Supabase client
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 

@@ -23,19 +23,23 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 # OpenAI
-from openai import OpenAI
+from openai import OpenAI  # noqa: E402
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Supabase - centralized client
-from core.database import get_supabase_client
+from core.database import get_supabase_client  # noqa: E402
+from core.enhanced_rag import EnhancedRAG  # noqa: E402
 
 supabase = get_supabase_client()
+
+# Initialize Enhanced RAG
+enhanced_rag = EnhancedRAG(supabase_client=supabase, enable_dynamic_models=False)
 
 
 # Page configuration
@@ -105,35 +109,32 @@ def get_embedding(text: str) -> List[float]:
 
 
 def search_knowledge_base(query: str, top_k: int = 3) -> List[Dict]:
-    """Search tax law knowledge base with filters"""
-    query_embedding = get_embedding(query)
+    """
+    Search tax law knowledge base using Enhanced RAG
 
-    # Build RPC params
-    rpc_params = {
-        "query_embedding": query_embedding,
-        "match_threshold": 0.3,
-        "match_count": top_k,
-    }
-
-    # Add filters if set
-    filters = st.session_state.filters
-    if filters.get("law_category"):
-        rpc_params["law_category_filter"] = filters["law_category"]
-
-    if filters.get("tax_types"):
-        rpc_params["tax_types_filter"] = filters["tax_types"]
-
-    if filters.get("industries"):
-        rpc_params["industries_filter"] = filters["industries"]
-
+    Uses: Corrective RAG + Reranking + Query Expansion + Hybrid Search
+    """
     try:
-        results = supabase.rpc("search_tax_law", rpc_params).execute()
+        # Get filters from session state
+        filters = st.session_state.filters
 
+        # Use Enhanced RAG for search
+        with st.spinner(
+            "🔍 Searching with Enhanced RAG (Corrective + Reranking + Query Expansion)..."  # noqa: E501
+        ):
+            enhanced_results = enhanced_rag.search_enhanced(query=query, top_k=top_k)
+
+        # Convert Enhanced RAG results to web chat format
         chunks = []
-        for r in results.data:
-            # Apply citation filter (client-side)
+        for r in enhanced_results:
+            # Apply filters
             if filters.get("citation") and filters["citation"] not in r.get(
                 "citation", ""
+            ):
+                continue
+            if (
+                filters.get("law_category")
+                and r.get("law_category") != filters["law_category"]
             ):
                 continue
 
@@ -146,12 +147,15 @@ def search_knowledge_base(query: str, top_k: int = 3) -> List[Dict]:
                     "tax_types": r.get("tax_types", []),
                     "industries": r.get("industries", []),
                     "topic_tags": r.get("topic_tags", []),
-                    "file_url": r.get("file_url", ""),  # Get the file URL!
-                    "similarity": r.get("similarity", 0),
+                    "file_url": r.get("file_url", ""),
+                    "similarity": r.get("relevance_score", r.get("similarity", 0)),
+                    "enhanced_rag_score": r.get(
+                        "relevance_score"
+                    ),  # Track Enhanced RAG was used
                 }
             )
 
-        return chunks
+        return chunks[:top_k]
 
     except Exception as e:
         st.error(f"Search error: {e}")
@@ -170,7 +174,7 @@ def generate_answer(question: str, relevant_docs: List[Dict]) -> str:
         context += f"]\n{doc['text']}\n"
 
     # System prompt
-    system_prompt = """You are a helpful assistant specializing in Washington State tax law.
+    system_prompt = """You are a helpful assistant specializing in Washington State tax law.  # noqa: E501
 
 INSTRUCTIONS:
 1. Answer questions using ONLY the provided context
@@ -190,7 +194,7 @@ RESPONSE FORMAT:
         {"role": "system", "content": system_prompt},
         {
             "role": "user",
-            "content": f"""Context from Washington tax law:
+            "content": """Context from Washington tax law:
 {context}
 
 Question: {question}
@@ -228,7 +232,8 @@ def render_source_with_link(doc: Dict, index: int):
     # Create citation display with link if URL exists
     if file_url:
         citation_display = (
-            f'<a href="{file_url}" target="_blank" class="citation-link">{citation}</a>'
+            f'<a href="{file_url}" target="_blank" '
+            f'class="citation-link">{citation}</a>'
         )
     else:
         citation_display = f'<span class="citation-link">{citation}</span>'
@@ -242,11 +247,11 @@ def render_source_with_link(doc: Dict, index: int):
         for industry in industries:
             tags_html += f'<span class="tag">Industry: {industry}</span>'
 
-    # Build source HTML
+    # Build source HTML with section if available
+    section_part = f" - {section}" if section else ""
     source_html = f"""
     <div class="source-box">
-        <strong>[{index}]</strong> {citation_display}
-        {f" - {section}" if section else ""}
+        <strong>[{index}]</strong> {citation_display}{section_part}
         <br/>
         {tags_html}
         <span class="tag">Relevance: {similarity:.2%}</span>
@@ -260,6 +265,10 @@ def main():
     # Header
     st.markdown(
         '<div class="main-header">💬 Washington Tax Law Chatbot</div>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        '🚀 <span style="color: #1f77b4; font-weight: bold;">Enhanced RAG Mode</span> - Corrective + Reranking + Query Expansion + Hybrid Search',  # noqa: E501
         unsafe_allow_html=True,
     )
 
@@ -348,9 +357,8 @@ def main():
 
                     with st.expander("View all documents"):
                         for doc in docs.data:
-                            st.write(
-                                f"• **{doc.get('citation', 'N/A')}**: {doc.get('title', 'N/A')[:60]}..."
-                            )
+                            st.write(f"• **{doc.get('citation', 'N/A')
+                                            }**: {doc.get('title', 'N/A')[:60]}...")
                 except Exception as e:
                     st.error(f"Error: {e}")
 
@@ -404,7 +412,7 @@ def main():
                 relevant_docs = search_knowledge_base(prompt, top_k=3)
 
                 if not relevant_docs:
-                    response = "❌ No relevant information found. Try adjusting your filters or rephrasing your question."
+                    response = "❌ No relevant information found. Try adjusting your filters or rephrasing your question."  # noqa: E501
                     st.warning(response)
                     st.session_state.messages.append(
                         {"role": "assistant", "content": response}
@@ -435,7 +443,7 @@ def main():
     # Footer
     st.divider()
     st.caption(
-        "💬 Powered by OpenAI GPT-4 | 🔍 Vector Search with Supabase | 📚 Washington State Tax Law Database"
+        "💬 Powered by OpenAI GPT-4 | 🚀 Enhanced RAG (Corrective + Reranking + Query Expansion) | 📚 Washington State Tax Law Database"  # noqa: E501
     )
 
 

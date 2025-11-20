@@ -18,7 +18,7 @@ Features:
 
 Usage:
     # Step 1: Research vendors from Excel list
-    python scripts/research_vendors.py --file outputs/Vendors_To_Research.xlsx --output outputs/Vendor_Research_Results.xlsx --limit 10
+    python scripts/research_vendors.py --file outputs/Vendors_To_Research.xlsx --output outputs/Vendor_Research_Results.xlsx --limit 10  # noqa: E501
 
     # Step 2: Review/edit the output Excel
 
@@ -26,6 +26,10 @@ Usage:
     python scripts/research_vendors.py --import outputs/Vendor_Research_Results.xlsx
 """
 
+from core.database import get_supabase_client
+from openai import OpenAI
+from fuzzywuzzy import fuzz, process
+from dotenv import load_dotenv
 import argparse
 import os
 import sys
@@ -40,12 +44,8 @@ from tqdm import tqdm
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-from fuzzywuzzy import fuzz, process
-from openai import OpenAI
 
 # Import centralized Supabase client
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -156,7 +156,8 @@ class VendorResearcher:
         """
         try:
             # Note: WebSearch would be called here via Claude Code's WebSearch tool
-            # For now, we'll use a placeholder that you can replace with actual web search
+            # For now, we'll use a placeholder that you can replace with actual web
+            # search
             print(f"    🔍 Searching web for: {vendor_name}")
 
             # TODO: Implement actual web search
@@ -183,28 +184,28 @@ class VendorResearcher:
                     f"{i}. {result.get('title', '')}\n{result.get('snippet', '')}\n\n"
                 )
 
-        prompt = f"""Analyze this company and provide structured metadata for REFUND ANALYSIS purposes.
+        prompt = """Analyze this company and provide structured metadata for REFUND ANALYSIS purposes.  # noqa: E501
 
 Company Name: {vendor_name}
 {search_context}
 
-CRITICAL CONTEXT: This vendor has PREVIOUSLY QUALIFIED FOR SALES TAX REFUNDS. Your analysis should focus on identifying WHY refunds occur, not just whether items are taxable.
+CRITICAL CONTEXT: This vendor has PREVIOUSLY QUALIFIED FOR SALES TAX REFUNDS. Your analysis should focus on identifying WHY refunds occur, not just whether items are taxable.  # noqa: E501
 
-Based on the company name{' and search results' if search_results else ''}, provide your best analysis of this vendor.
+Based on the company name{' and search results' if search_results else ''}, provide your best analysis of this vendor.  # noqa: E501
 
 Return JSON with these fields:
 {{
   "vendor_name": "{vendor_name}",
-  "industry": "Primary industry (e.g., Technology, Professional Services, Manufacturing, Telecommunications, etc.)",
-  "business_model": "Business model (e.g., B2B SaaS, B2C Retail, Manufacturing, Consulting, Telecom Services, etc.)",
+  "industry": "Primary industry (e.g., Technology, Professional Services, Manufacturing, Telecommunications, etc.)",  # noqa: E501
+  "business_model": "Business model (e.g., B2B SaaS, B2C Retail, Manufacturing, Consulting, Telecom Services, etc.)",  # noqa: E501
   "vendor_category": "manufacturer | distributor | service_provider | retailer",
   "primary_products": ["Main products or services - be specific"],
-  "typical_delivery": "Cloud-based | On-premise | Hybrid | In-person | Physical goods | Digital services",
-  "tax_notes": "REFUND-FOCUSED analysis identifying common refund scenarios for this vendor type. Examples:
-    - SaaS/Cloud: 'Common refund bases: MPU exemption (multi-state usage <10% WA), Out-of-state server location, Improper commercial activity sourcing'
-    - Hardware: 'Common refund bases: Out-of-state delivery, Manufacturing equipment exemption, Resale certificate, Interstate/international commerce'
-    - Professional Services: 'Common refund bases: Separately stated consulting (exempt), Wrong tax rate, Out-of-state services performed'
-    - Telecom Equipment: 'Common refund bases: Equipment for production use (manufacturing exemption), Interstate/international use, Out-of-state installation'",
+  "typical_delivery": "Cloud-based | On-premise | Hybrid | In-person | Physical goods | Digital services",  # noqa: E501
+  "tax_notes": "REFUND-FOCUSED analysis identifying common refund scenarios for this vendor type. Examples:  # noqa: E501
+    - SaaS/Cloud: 'Common refund bases: MPU exemption (multi-state usage <10% WA), Out-of-state server location, Improper commercial activity sourcing'  # noqa: E501
+    - Hardware: 'Common refund bases: Out-of-state delivery, Manufacturing equipment exemption, Resale certificate, Interstate/international commerce'  # noqa: E501
+    - Professional Services: 'Common refund bases: Separately stated consulting (exempt), Wrong tax rate, Out-of-state services performed'  # noqa: E501
+    - Telecom Equipment: 'Common refund bases: Equipment for production use (manufacturing exemption), Interstate/international use, Out-of-state installation'",  # noqa: E501
   "confidence_score": 0-100 (how confident you are in this analysis),
   "data_source": "web_research | name_inference",
   "notes": "Any additional relevant information"
@@ -214,7 +215,7 @@ IMPORTANT - REFUND FOCUS:
 - This vendor HAS qualified for refunds in the past
 - Identify COMMON REFUND SCENARIOS for this type of vendor
 - Don't just say "taxable" - explain REFUND OPPORTUNITIES
-- Consider: Out-of-state delivery, MPU exemption, Manufacturing exemption, Resale, Interstate commerce, Wrong rate, Improper sourcing
+- Consider: Out-of-state delivery, MPU exemption, Manufacturing exemption, Resale, Interstate commerce, Wrong rate, Improper sourcing  # noqa: E501
 - For SaaS: Focus on MPU multi-state usage and server location
 - For hardware: Focus on out-of-state delivery and manufacturing exemptions
 - For services: Focus on separately stated services and out-of-state performance
@@ -227,14 +228,14 @@ IMPORTANT - REFUND FOCUS:
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert business analyst specializing in vendor classification and tax treatment analysis for Washington State.",
+                        "content": "You are an expert business analyst specializing in vendor classification and tax treatment analysis for Washington State.",  # noqa: E501
                     },
                     {"role": "user", "content": prompt},
                 ],
                 response_format={"type": "json_object"},
             )
 
-            import json
+            import json  # noqa: E402
 
             metadata = json.loads(response.choices[0].message.content)
             return metadata
@@ -258,21 +259,21 @@ IMPORTANT - REFUND FOCUS:
         """
         Complete research workflow for a single vendor
         """
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"Researching: {vendor_name}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         # Step 1: Web search
         search_results = self.web_search_vendor(vendor_name)
 
         # Step 2: AI analysis
-        print(f"    🤖 Analyzing with AI...")
+        print("    🤖 Analyzing with AI...")
         metadata = self.research_vendor_with_ai(vendor_name, search_results)
 
         # Add timestamp
         metadata["researched_at"] = datetime.now().isoformat()
 
-        print(f"    ✅ Research complete")
+        print("    ✅ Research complete")
         print(f"       Industry: {metadata.get('industry', 'Unknown')}")
         print(f"       Business Model: {metadata.get('business_model', 'Unknown')}")
         print(f"       Confidence: {metadata.get('confidence_score', 0)}%")
@@ -386,7 +387,7 @@ IMPORTANT - REFUND FOCUS:
                     try:
                         if len(str(cell.value)) > max_length:
                             max_length = len(str(cell.value))
-                    except:
+                    except BaseException:
                         pass
                 adjusted_width = min(max_length + 2, 60)
                 worksheet.column_dimensions[column_letter].width = adjusted_width

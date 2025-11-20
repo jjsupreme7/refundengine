@@ -8,6 +8,9 @@ to populate metadata (industry, business model, products, tax notes).
 This will take ~30-60 minutes to complete due to rate limiting.
 """
 
+from core.database import get_supabase_client
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
 import sys
 import time
@@ -20,10 +23,6 @@ from tqdm import tqdm
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-from openai import OpenAI
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -47,7 +46,7 @@ class VendorAIResearcher:
         """
         Use AI to research vendor and extract metadata
         """
-        prompt = f"""Analyze this vendor and provide structured metadata for tax refund analysis.
+        prompt = """Analyze this vendor and provide structured metadata for tax refund analysis.
 
 Vendor Name: {vendor_name}
 
@@ -95,7 +94,7 @@ Guidelines:
                 temperature=0.3,
             )
 
-            import json
+            import json  # noqa: E402
 
             metadata = json.loads(response.choices[0].message.content)
             return metadata
@@ -128,7 +127,7 @@ Guidelines:
             )
 
             return len(result.data) > 0
-        except:
+        except BaseException:
             return False
 
     def ingest_vendor(self, vendor_name: str, transaction_count: int = None):
@@ -223,7 +222,8 @@ Guidelines:
             # Rate limiting: pause every batch_size vendors
             if (idx + 1) % batch_size == 0:
                 print(
-                    f"\n  ⏸️  Processed {idx + 1} vendors, pausing 5 seconds for rate limiting..."
+                    f"\n  ⏸️  Processed {
+                        idx + 1} vendors, pausing 5 seconds for rate limiting..."
                 )
                 time.sleep(5)
             else:
@@ -254,7 +254,7 @@ Guidelines:
 
 def main():
     """Main entry point"""
-    import argparse
+    import argparse  # noqa: E402
 
     parser = argparse.ArgumentParser(description="Ingest vendors with AI research")
     parser.add_argument(

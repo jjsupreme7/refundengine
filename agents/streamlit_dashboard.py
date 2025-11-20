@@ -7,19 +7,17 @@ Run with: streamlit run agents/streamlit_dashboard.py
 Access at: http://localhost:8501
 """
 
+from agents.core.usage_tracker import UsageTracker
+from agents.core.approval_queue import ApprovalQueue, Proposal
+import streamlit as st
+from datetime import datetime
+import json
 import sys
 from pathlib import Path
 
 # Add project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import json
-from datetime import datetime
-
-import streamlit as st
-
-from agents.core.approval_queue import ApprovalQueue, Proposal
-from agents.core.usage_tracker import UsageTracker
 
 # Page configuration
 st.set_page_config(
@@ -70,7 +68,7 @@ def main():
             st.warning("⚠️ Below weekly target")
 
         st.markdown("---")
-        st.caption(f"Week resets Tuesday")
+        st.caption("Week resets Tuesday")
         st.caption(f"Days remaining: {weekly['days_remaining']}")
 
     # Main content tabs
@@ -201,7 +199,7 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
         with col1:
             if st.button("✅ Approve", key=f"approve_{proposal.id}"):
                 notes = st.text_input(
-                    f"Approval notes (optional)", key=f"notes_{proposal.id}"
+                    "Approval notes (optional)", key=f"notes_{proposal.id}"
                 )
                 if queue.approve(proposal.id, notes):
                     st.success("Proposal approved!")
@@ -210,7 +208,7 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
         with col2:
             if st.button("❌ Reject", key=f"reject_{proposal.id}"):
                 reason = st.text_area(
-                    f"Rejection reason (required)",
+                    "Rejection reason (required)",
                     key=f"reason_{proposal.id}",
                     placeholder="Explain why this proposal is rejected...",
                 )
@@ -223,7 +221,7 @@ def show_proposal_card(proposal: Proposal, queue: ApprovalQueue):
         with col3:
             if st.button("⏸️ Defer", key=f"defer_{proposal.id}"):
                 defer_notes = st.text_input(
-                    f"Defer notes (optional)", key=f"defer_{proposal.id}"
+                    "Defer notes (optional)", key=f"defer_{proposal.id}"
                 )
                 if queue.defer(proposal.id, defer_notes):
                     st.success("Proposal deferred")
@@ -400,7 +398,7 @@ def show_analytics(queue: ApprovalQueue, tracker: UsageTracker):
 
     if not pace["on_pace"]:
         st.warning(
-            f"""
+            """
 **Usage Below Target**
 
 You're at {pace['pace_percent']:.1f}% of today's target. Consider:

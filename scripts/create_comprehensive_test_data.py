@@ -105,7 +105,7 @@ def create_test_transactions():
     # SCENARIO 1: Microsoft PO - Multiple invoices with itemized line items
     # ========================================================================
     po_num = "PO-2024-001"
-    po_files = "PO_2024_001_Microsoft.pdf"
+    po_files = "PO_2024_001_Microsoft.pd"
     vendor_id = "V-10001"
     vendor_name = "Microsoft Corporation"
 
@@ -126,7 +126,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file,
-            "Invoice_File_Name_2": f"{inv_num}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num}_internal.pd",
             "Line_Item_Description": "Custom API Integration Development - 200 hours @ $125/hr",
         }
     )
@@ -144,7 +144,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file,
-            "Invoice_File_Name_2": f"{inv_num}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num}_internal.pd",
             "Line_Item_Description": "Microsoft 365 Enterprise Licenses (50 users)",
         }
     )
@@ -162,7 +162,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file,
-            "Invoice_File_Name_2": f"{inv_num}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num}_internal.pd",
             "Line_Item_Description": "Premier Support Services - Annual Contract",
         }
     )
@@ -184,7 +184,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file2,
-            "Invoice_File_Name_2": f"{inv_num2}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num2}_internal.pd",
             "Line_Item_Description": "Azure Cloud Hosting Services - Q1 2024",
         }
     )
@@ -202,7 +202,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file2,
-            "Invoice_File_Name_2": f"{inv_num2}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num2}_internal.pd",
             "Line_Item_Description": "Professional Consulting Services - System Architecture",
         }
     )
@@ -220,7 +220,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file2,
-            "Invoice_File_Name_2": f"{inv_num2}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num2}_internal.pd",
             "Line_Item_Description": "Surface Pro Tablets (3 units)",
         }
     )
@@ -238,7 +238,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file2,
-            "Invoice_File_Name_2": f"{inv_num2}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num2}_internal.pd",
             "Line_Item_Description": "Custom Software Configuration for ERP Integration",
         }
     )
@@ -256,7 +256,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file2,
-            "Invoice_File_Name_2": f"{inv_num2}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num2}_internal.pd",
             "Line_Item_Description": "Software Maintenance Agreement - Renewal",
         }
     )
@@ -278,7 +278,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file3,
-            "Invoice_File_Name_2": f"{inv_num3}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num3}_internal.pd",
             "Line_Item_Description": "Server Hardware - Dell PowerEdge R750",
         }
     )
@@ -296,7 +296,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file3,
-            "Invoice_File_Name_2": f"{inv_num3}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num3}_internal.pd",
             "Line_Item_Description": "Installation and Setup Services",
         }
     )
@@ -305,7 +305,7 @@ def create_test_transactions():
     # SCENARIO 2: Construction PO - Retainage Issue
     # ========================================================================
     po_num2 = "PO-2024-002"
-    po_files2 = "PO_2024_002_BuildRight_Construction.pdf"
+    po_files2 = "PO_2024_002_BuildRight_Construction.pd"
     vendor_id2 = "V-20045"
     vendor_name2 = "BuildRight Construction LLC"
 
@@ -326,7 +326,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file4,
-            "Invoice_File_Name_2": f"{inv_num4}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num4}_internal.pd",
             "Line_Item_Description": "Progress Payment #1 - Foundation and Framing (80% complete, 20% retainage)",
         }
     )
@@ -348,7 +348,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file5,
-            "Invoice_File_Name_2": f"{inv_num5}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num5}_internal.pd",
             "Line_Item_Description": "Progress Payment #2 - Electrical and Plumbing",
         }
     )
@@ -370,7 +370,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file6,
-            "Invoice_File_Name_2": f"{inv_num6}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num6}_internal.pd",
             "Line_Item_Description": "Final Payment - Retainage Release (20% held back)",
         }
     )
@@ -379,7 +379,7 @@ def create_test_transactions():
     # SCENARIO 3: Out-of-State Vendor - Use Tax
     # ========================================================================
     po_num3 = "PO-2024-003"
-    po_files3 = "PO_2024_003_Salesforce_Email.pdf"  # Email format
+    po_files3 = "PO_2024_003_Salesforce_Email.pd"  # Email format
     vendor_id3 = "V-30012"
     vendor_name3 = "Salesforce Inc"
 
@@ -400,7 +400,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Use Tax",  # USE TAX!
             "Invoice_File_Name_1": inv_file7,
-            "Invoice_File_Name_2": f"{inv_num7}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num7}_internal.pd",
             "Line_Item_Description": "Salesforce CRM Implementation Services - Remote",
         }
     )
@@ -418,7 +418,7 @@ def create_test_transactions():
             "Tax_Type": "Use Tax",
             "Tax_Rate_Charged": "10.5%",
             "Invoice_File_Name_1": inv_file7,
-            "Invoice_File_Name_2": f"{inv_num7}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num7}_internal.pd",
             "Line_Item_Description": "Custom Workflow Automation Development",
         }
     )
@@ -440,7 +440,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Use Tax",
             "Invoice_File_Name_1": inv_file8,
-            "Invoice_File_Name_2": f"{inv_num8}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num8}_internal.pd",
             "Line_Item_Description": "Training Services - Delivered remotely from CA",
         }
     )
@@ -458,7 +458,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Use Tax",
             "Invoice_File_Name_1": inv_file8,
-            "Invoice_File_Name_2": f"{inv_num8}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num8}_internal.pd",
             "Line_Item_Description": "Hardware shipped from CA to WA",
         }
     )
@@ -467,7 +467,7 @@ def create_test_transactions():
     # SCENARIO 4: Professional Services - Hidden Tax (Odd Dollar Amount)
     # ========================================================================
     po_num4 = "PO-2024-004"
-    po_files4 = "PO_2024_004_Deloitte.pdf"
+    po_files4 = "PO_2024_004_Deloitte.pd"
     vendor_id4 = "V-40089"
     vendor_name4 = "Deloitte Consulting LLP"
 
@@ -488,7 +488,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file9,
-            "Invoice_File_Name_2": f"{inv_num9}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num9}_internal.pd",
             "Line_Item_Description": "Management Consulting Services - Strategic Planning",
         }
     )
@@ -506,7 +506,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file9,
-            "Invoice_File_Name_2": f"{inv_num9}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num9}_internal.pd",
             "Line_Item_Description": "Tax Advisory Services",
         }
     )
@@ -528,7 +528,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file10,
-            "Invoice_File_Name_2": f"{inv_num10}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num10}_internal.pd",
             "Line_Item_Description": "Leadership Training - Executive Team Workshop",
         }
     )
@@ -537,7 +537,7 @@ def create_test_transactions():
     # SCENARIO 5: Mixed Vendor - Bundled Services (7+ line items)
     # ========================================================================
     po_num5 = "PO-2024-005"
-    po_files5 = "PO_2024_005_Oracle_Master.pdf, PO_2024_005_Oracle_Amendment_1.pdf"  # Multiple POs!
+    po_files5 = "PO_2024_005_Oracle_Master.pdf, PO_2024_005_Oracle_Amendment_1.pd"  # Multiple POs!
     vendor_id5 = "V-50023"
     vendor_name5 = "Oracle Corporation"
 
@@ -558,7 +558,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Oracle Database Custom Development and Integration",
         }
     )
@@ -576,7 +576,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Oracle Database Enterprise Edition Licenses (10 cores)",
         }
     )
@@ -594,7 +594,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Cloud Hosting and Infrastructure Services",
         }
     )
@@ -612,7 +612,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Server Hardware - Oracle Exadata Storage",
         }
     )
@@ -630,7 +630,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Installation Services - Hardware Setup",
         }
     )
@@ -648,7 +648,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Professional Services - Database Migration and Optimization",
         }
     )
@@ -666,7 +666,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file11,
-            "Invoice_File_Name_2": f"{inv_num11}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num11}_internal.pd",
             "Line_Item_Description": "Annual Maintenance and Support Agreement",
         }
     )
@@ -688,7 +688,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file12,
-            "Invoice_File_Name_2": f"{inv_num12}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num12}_internal.pd",
             "Line_Item_Description": "Software Development - Custom Reporting Module",
         }
     )
@@ -706,7 +706,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file12,
-            "Invoice_File_Name_2": f"{inv_num12}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num12}_internal.pd",
             "Line_Item_Description": "Testing and Quality Assurance Services",
         }
     )
@@ -724,7 +724,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "0%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file12,
-            "Invoice_File_Name_2": f"{inv_num12}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num12}_internal.pd",
             "Line_Item_Description": "Training Services - Administrator Training (8 hours)",
         }
     )
@@ -742,7 +742,7 @@ def create_test_transactions():
             "Tax_Rate_Charged": "10.5%",
             "Tax_Type": "Sales Tax",
             "Invoice_File_Name_1": inv_file12,
-            "Invoice_File_Name_2": f"{inv_num12}_internal.pdf",
+            "Invoice_File_Name_2": f"{inv_num12}_internal.pd",
             "Line_Item_Description": "Documentation and User Manuals (printed materials)",
         }
     )
@@ -810,7 +810,10 @@ def create_master_excel():
     for po in df["Purchase_Order_Number"].unique():
         po_data = df[df["Purchase_Order_Number"] == po]
         print(
-            f"   {po}: {len(po_data)} rows, {po_data['Invoice_Number'].nunique()} invoices, Vendor: {po_data.iloc[0]['Vendor_Name']}"
+            f"   {po}: {
+                len(po_data)} rows, {
+                po_data['Invoice_Number'].nunique()} invoices, Vendor: {
+                po_data.iloc[0]['Vendor_Name']}"
         )
 
     return df

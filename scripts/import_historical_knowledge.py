@@ -17,6 +17,7 @@ What it imports:
 3. Refund basis citations → refund_citations table
 """
 
+from core.database import get_supabase_client
 import argparse
 import logging
 import os
@@ -30,7 +31,6 @@ import pandas as pd
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from core.database import get_supabase_client
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -131,7 +131,9 @@ class HistoricalKnowledgeImporter:
         self.stats["analyzed_rows"] = len(analyzed_df)
 
         logger.info(
-            f"Filtered to {len(analyzed_df)} analyzed records (ignoring {len(df) - len(analyzed_df)} unanalyzed)"
+            f"Filtered to {
+                len(analyzed_df)} analyzed records (ignoring {
+                len(df) - len(analyzed_df)} unanalyzed)"
         )
 
         if len(analyzed_df) == 0:
@@ -330,7 +332,7 @@ class HistoricalKnowledgeImporter:
             "or",
             "but",
             "for",
-            "of",
+            "o",
             "to",
             "in",
             "on",
@@ -367,7 +369,8 @@ class HistoricalKnowledgeImporter:
         tax_amount_col = column_map.get("tax_amount")
         description_col = column_map.get("description")
 
-        # Get product type column (prefer vertex_category, fallback to tax_category or material_group)
+        # Get product type column (prefer vertex_category, fallback to
+        # tax_category or material_group)
         product_col = (
             column_map.get("vertex_category")
             or column_map.get("tax_category")
@@ -419,7 +422,7 @@ class HistoricalKnowledgeImporter:
                         self.vendor_patterns[vendor]["sample_tax_amounts"].append(
                             tax_amount
                         )
-                except:
+                except BaseException:
                     pass
 
         self.stats["vendor_patterns_extracted"] = len(self.vendor_patterns)
@@ -836,7 +839,8 @@ class HistoricalKnowledgeImporter:
             most_common_product = data["product_types"].most_common(1)
             product = most_common_product[0][0] if most_common_product else "Unknown"
             print(
-                f"  {vendor[:40]:40} {success_rate:5.0%} ({data['refund_count']}/{total}) - {product}"
+                f"  {vendor[:40]:40} {
+                    success_rate:5.0%} ({data['refund_count']}/{total}) - {product}"
             )
 
         print(f"\nCategory Patterns ({len(self.category_patterns)}):")
@@ -849,7 +853,8 @@ class HistoricalKnowledgeImporter:
             success_rate = data["refund_count"] / total if total > 0 else 0
             category_type, category_value = pattern_key.split("::", 1)
             print(
-                f"  {category_value[:40]:40} {success_rate:5.0%} ({data['refund_count']}/{total}) [{category_type}]"
+                f"  {category_value[:40]:40} {
+                    success_rate:5.0%} ({data['refund_count']}/{total}) [{category_type}]"
             )
 
         print(f"\nCitation Patterns ({len(self.citation_patterns)}):")
@@ -870,7 +875,9 @@ class HistoricalKnowledgeImporter:
             success_rate = data["refund_count"] / total if total > 0 else 0
             keywords_str = ", ".join(list(keyword_sig)[:3])  # Show first 3 keywords
             print(
-                f"  [{keywords_str}] {success_rate:5.0%} ({data['refund_count']}/{total})"
+                f"  [{keywords_str}] {
+                    success_rate:5.0%} ({
+                    data['refund_count']}/{total})"
             )
 
     def _print_summary(self):
@@ -880,14 +887,14 @@ class HistoricalKnowledgeImporter:
         print("=" * 70)
         print(f"Total rows in Excel: {self.stats['total_rows']}")
         print(f"Analyzed rows (with Final Decision): {self.stats['analyzed_rows']}")
-        print(f"\nPatterns Extracted:")
+        print("\nPatterns Extracted:")
         print(f"  Vendor patterns: {self.stats['vendor_patterns_extracted']}")
         print(f"  Category patterns: {self.stats['category_patterns_extracted']}")
         print(f"  Citation patterns: {self.stats['citations_extracted']}")
         print(f"  Keyword patterns: {self.stats['keyword_patterns_extracted']}")
 
         if not self.dry_run:
-            print(f"\nPatterns Imported to Database:")
+            print("\nPatterns Imported to Database:")
             print(f"  Vendor patterns: {self.stats['vendor_patterns_imported']}")
             print(f"  Category patterns: {self.stats['category_patterns_imported']}")
             print(f"  Citation patterns: {self.stats['citations_imported']}")

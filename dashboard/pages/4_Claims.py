@@ -4,6 +4,8 @@ Claims Page - Draft and finalize refund claims
 Create, review, and submit tax refund claims.
 """
 
+from core.auth import require_authentication
+from dashboard.utils.data_loader import get_projects_from_db, load_analyzed_transactions
 import sys
 from pathlib import Path
 
@@ -13,13 +15,11 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from dashboard.utils.data_loader import get_projects_from_db, load_analyzed_transactions
 
 # Page configuration
 st.set_page_config(page_title="Claims - TaxDesk", page_icon="📋", layout="wide")
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -134,7 +134,7 @@ else:
         }.get(claim["status"], "neutral")
 
         st.markdown(
-            f"""
+            """
         <div class="section-card">
             <div style="display: flex; justify-content: space-between; align-items: start;">
                 <div>

@@ -128,7 +128,7 @@ def safe_stat_card(label: str, value: str, card_class: str = "") -> str:
     escaped_label = escape_html(label)
     escaped_value = escape_html(value)
 
-    return f"""
+    return """
     <div class="stat-card {card_class}">
         <div class="stat-label">{escaped_label}</div>
         <div class="stat-value">{escaped_value}</div>

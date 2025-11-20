@@ -16,19 +16,16 @@ Usage:
     # Check progress
     python scripts/async_analyzer.py --check-progress <batch_id>
 """
+from tasks import analyze_batch, analyze_single_invoice, get_batch_progress  # noqa: F401
+from celery.result import AsyncResult  # noqa: F401
 import argparse
-import json
 import os
 import sys
 import time
 from pathlib import Path
-from typing import List
+from typing import List  # noqa: F401
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from celery.result import AsyncResult
-
-from tasks import analyze_batch, analyze_single_invoice, get_batch_progress
 
 
 def queue_batch(excel_path: str, start_row: int = 0, num_rows: int = None):
@@ -40,9 +37,9 @@ def queue_batch(excel_path: str, start_row: int = 0, num_rows: int = None):
     # Queue the batch
     result = analyze_batch.delay(excel_path, start_row, num_rows)
 
-    print(f"\n✅ Batch queued successfully!")
+    print("\n✅ Batch queued successfully!")
     print(f"   Batch ID: {result.id}")
-    print(f"\nTo check progress, run:")
+    print("\nTo check progress, run:")
     print(f"   python scripts/async_analyzer.py --check-progress {result.id}")
 
     return result.id
@@ -50,7 +47,7 @@ def queue_batch(excel_path: str, start_row: int = 0, num_rows: int = None):
 
 def check_progress(batch_id: str, watch: bool = False):
     """Check progress of a batch"""
-    from celery.result import AsyncResult
+    from celery.result import AsyncResult  # noqa: F811
 
     result = AsyncResult(batch_id)
 
@@ -84,7 +81,7 @@ def check_progress(batch_id: str, watch: bool = False):
                     print(f"Pending: {pending}    ", end="", flush=True)
 
                     if pending == 0:
-                        print(f"\n\n✅ Batch processing complete!")
+                        print("\n\n✅ Batch processing complete!")
                         print(f"   Total processed: {completed}")
                         print(f"   Failed: {failed}")
                         break
@@ -104,7 +101,7 @@ def check_progress(batch_id: str, watch: bool = False):
 
 def list_active_workers():
     """List active Celery workers"""
-    from celery import Celery
+    from celery import Celery  # noqa: E402
 
     app = Celery(
         "refund_engine", broker=os.getenv("REDIS_URL", "redis://localhost:6379/0")

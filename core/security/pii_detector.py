@@ -117,7 +117,7 @@ class PIIDetector:
         findings = []
         for result in results:
             # Extract the actual text value
-            value = text[result.start : result.end]
+            value = text[result.start: result.end]
 
             # Filter out false positives
             if self._is_valid_finding(result.entity_type, value):

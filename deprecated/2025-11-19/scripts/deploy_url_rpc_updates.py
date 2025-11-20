@@ -9,6 +9,7 @@ Usage:
     python scripts/deploy_url_rpc_updates.py
 """
 
+from core.database import get_supabase_client
 import os
 import sys
 from pathlib import Path
@@ -17,7 +18,6 @@ from dotenv import load_dotenv
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.database import get_supabase_client
 
 # Load environment variables
 load_dotenv()
@@ -147,11 +147,11 @@ def main():
         print("   Required: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY")
         return 1
 
-    print(f"📡 Connecting to Supabase...")
+    print("📡 Connecting to Supabase...")
 
     try:
         # Initialize Supabase client
-        supabase = get_supabase_client()
+        supabase = get_supabase_client()  # noqa: F841
 
         print("🚀 Deploying updated RPC functions...\n")
 
@@ -161,7 +161,7 @@ def main():
 
         # For now, let's provide instructions for manual deployment
         print(
-            "⚠️  Note: The Supabase Python client does not support direct SQL execution."
+            "⚠️  Note: The Supabase Python client does not support direct SQL execution."  # noqa: E501
         )
         print("   You have two options to deploy these changes:\n")
 

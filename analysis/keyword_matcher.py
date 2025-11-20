@@ -74,7 +74,7 @@ class KeywordMatcher:
             "or",
             "but",
             "for",
-            "of",
+            "o",
             "to",
             "in",
             "on",

@@ -17,7 +17,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
-    from core.database import get_supabase_client
+    from core.database import get_supabase_client  # noqa: E402
 
     SUPABASE_AVAILABLE = True
 except ImportError:

@@ -4,6 +4,12 @@ Agent Scheduler
 Schedules autonomous agent teams to run during configured hours (1am-8am).
 """
 
+from agents.teams.pattern_learning_council import run_pattern_learning
+from agents.teams.knowledge_curation_team import run_knowledge_curation
+from agents.teams.code_quality_council import run_code_quality_council
+from agents.core.usage_tracker import UsageTracker
+from agents.core.daily_digest import send_daily_digest
+from agents.core.communication import post_to_discord
 import os
 import sys
 from datetime import datetime
@@ -16,13 +22,6 @@ from apscheduler.triggers.cron import CronTrigger
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from agents.core.communication import post_to_discord
-from agents.core.daily_digest import send_daily_digest
-from agents.core.usage_tracker import UsageTracker
-from agents.teams.code_quality_council import run_code_quality_council
-from agents.teams.knowledge_curation_team import run_knowledge_curation
-from agents.teams.pattern_learning_council import run_pattern_learning
 
 
 class AgentScheduler:
@@ -155,13 +154,15 @@ class AgentScheduler:
         print("=" * 60)
         print(f"Time: {datetime.now(self.timezone).strftime('%Y-%m-%d %H:%M:%S %Z')}")
         print(
-            f"Hours: {self.config['schedule']['start_hour']}:00 - {self.config['schedule']['end_hour']}:00"
+            f"Hours: {self.config['schedule']['start_hour']
+                      }:00 - {self.config['schedule']['end_hour']}:00"
         )
         print("\nPress Ctrl+C to stop\n" + "=" * 60 + "\n")
 
         post_to_discord(
             "digest",
-            f"🤖 **Agent Scheduler Started**\n\n**Time**: {datetime.now(self.timezone).strftime('%I:%M %p')}\n**Schedule**: 1am-8am Pacific",
+            f"🤖 **Agent Scheduler Started**\n\n**Time**: {datetime.now(
+                self.timezone).strftime('%I:%M %p')}\n**Schedule**: 1am-8am Pacific",
             "Scheduler",
         )
 

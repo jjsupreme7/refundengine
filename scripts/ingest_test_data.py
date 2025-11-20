@@ -23,8 +23,13 @@ Usage:
     python scripts/ingest_test_data.py --excel-only
 """
 
+from core.document_extractors import check_dependencies, extract_text_from_file
+from analysis.excel_processors import (
+    DenodoSalesTaxProcessor,
+    UseTaxProcessor,
+    auto_detect_file_type,
+)
 import argparse
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -47,20 +52,14 @@ except ImportError:
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from analysis.excel_processors import (
-    DenodoSalesTaxProcessor,
-    UseTaxProcessor,
-    auto_detect_file_type,
-)
 
 # Import our custom modules
-from core.document_extractors import check_dependencies, extract_text_from_file
 
 # Supabase for database storage
 try:
-    from dotenv import load_dotenv
+    from dotenv import load_dotenv  # noqa: E402
 
-    from core.database import get_supabase_client
+    from core.database import get_supabase_client  # noqa: E402
 
     load_dotenv()
     supabase = get_supabase_client()
@@ -115,7 +114,7 @@ class TestDataIngester:
         supported_files = [
             f
             for f in files
-            if f.suffix.lower() in [".pdf", ".tif", ".tiff", ".xls", ".xlsx"]
+            if f.suffix.lower() in [".pd", ".ti", ".tif", ".xls", ".xlsx"]
         ]
 
         print(f"Found {len(supported_files)} files to process")
@@ -176,7 +175,7 @@ class TestDataIngester:
         supported_files = [
             f
             for f in files
-            if f.suffix.lower() in [".pdf", ".msg", ".xls", ".xlsx", ".doc", ".docx"]
+            if f.suffix.lower() in [".pd", ".msg", ".xls", ".xlsx", ".doc", ".docx"]
         ]
 
         print(f"Found {len(supported_files)} files to process")
@@ -190,7 +189,8 @@ class TestDataIngester:
                 self.stats["errors"] += 1
 
         print(
-            f"\n[OK] Processed {self.stats['purchase_orders_processed']} purchase orders"
+            f"\n[OK] Processed {
+                self.stats['purchase_orders_processed']} purchase orders"
         )
 
     def _process_po_file(self, file_path: Path):
@@ -291,7 +291,7 @@ class TestDataIngester:
                 "processed_at": datetime.now().isoformat(),
             }
             # Store summary (you may want to create a tax_data_summary table)
-            print(f"   [OK] Would store summary in database")
+            print("   [OK] Would store summary in database")
 
         self.stats["total_files"] += 1
 
@@ -325,7 +325,7 @@ class TestDataIngester:
                 "items_needing_research": len(research_df),
                 "processed_at": datetime.now().isoformat(),
             }
-            print(f"   [OK] Would store summary in database")
+            print("   [OK] Would store summary in database")
 
         self.stats["total_files"] += 1
 
@@ -406,7 +406,7 @@ def main():
         return 1
     except Exception as e:
         print(f"\n[ERROR] Unexpected error: {e}")
-        import traceback
+        import traceback  # noqa: E402
 
         traceback.print_exc()
         return 1

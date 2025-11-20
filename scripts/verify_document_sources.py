@@ -3,6 +3,8 @@
 Verify Document Sources - Check all documents have accessible sources
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -10,9 +12,6 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -102,15 +101,18 @@ print("=" * 80)
 print("SUMMARY")
 print("=" * 80)
 print(
-    f"✅ Documents with online URL: {docs_with_online_url} ({docs_with_online_url/total_docs*100:.1f}%)"
+    f"✅ Documents with online URL: {docs_with_online_url} ({
+        docs_with_online_url / total_docs * 100:.1f}%)"
 )
 print(
-    f"📄 Documents with local file path: {docs_with_local_file} ({docs_with_local_file/total_docs*100:.1f}%)"
+    f"📄 Documents with local file path: {docs_with_local_file} ({
+        docs_with_local_file / total_docs * 100:.1f}%)"
 )
 print(f"✓  Local files verified to exist: {docs_with_verified_local_file}")
 print(f"❌ Local files missing: {docs_with_missing_local_file}")
 print(
-    f"⚠️  Documents with NO source: {docs_with_no_source} ({docs_with_no_source/total_docs*100:.1f}%)"
+    f"⚠️  Documents with NO source: {docs_with_no_source} ({
+        docs_with_no_source / total_docs * 100:.1f}%)"
 )
 print()
 
@@ -151,10 +153,11 @@ accessible_percentage = (accessible_docs / total_docs * 100) if total_docs > 0 e
 
 if docs_with_no_source == 0 and docs_with_missing_local_file == 0:
     print("✅ ALL DOCUMENTS HAVE ACCESSIBLE SOURCES!")
-    print(f"   100% of documents can be sourced")
+    print("   100% of documents can be sourced")
 elif docs_with_no_source == 0:
     print(
-        f"⚠️  ALL DOCUMENTS HAVE SOURCE PATHS, but {docs_with_missing_local_file} local files are missing"
+        f"⚠️  ALL DOCUMENTS HAVE SOURCE PATHS, but {
+            docs_with_missing_local_file} local files are missing"
     )
     print(
         f"   {accessible_percentage:.1f}% of documents have verified accessible sources"
@@ -162,7 +165,8 @@ elif docs_with_no_source == 0:
 else:
     print(f"❌ {docs_with_no_source} documents have NO SOURCE AT ALL")
     print(
-        f"   Only {accessible_percentage:.1f}% of documents have verified accessible sources"
+        f"   Only {
+            accessible_percentage:.1f}% of documents have verified accessible sources"
     )
     print()
     print("   Action required:")

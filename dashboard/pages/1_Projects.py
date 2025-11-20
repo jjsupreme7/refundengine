@@ -4,6 +4,8 @@ Projects Page - Manage tax refund projects
 View all projects, create new projects, and track progress.
 """
 
+from core.auth import require_authentication
+from dashboard.utils.data_loader import get_projects_from_db
 import sys
 from pathlib import Path
 
@@ -12,13 +14,11 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from dashboard.utils.data_loader import get_projects_from_db
 
 # Page configuration
 st.set_page_config(page_title="Projects - TaxDesk", page_icon="📁", layout="wide")
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -96,7 +96,7 @@ else:
     for project in projects:
         with st.container():
             st.markdown(
-                f"""
+                """
             <div class="section-card">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                     <div>
@@ -164,7 +164,7 @@ if st.session_state.get("show_project_detail", False):
 
         with col1:
             st.markdown(
-                f"""
+                """
             <div class="section-card">
                 <h3>{current_project['name']}</h3>
                 <p><strong>Period:</strong> {current_project['period']}</p>

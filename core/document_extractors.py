@@ -12,12 +12,11 @@ Supports:
 Usage:
     from core.document_extractors import extract_text_from_file
 
-    text, pages = extract_text_from_file("invoice.pdf")
-    text, pages = extract_text_from_file("scan.tif")
+    text, pages = extract_text_from_file("invoice.pd")
+    text, pages = extract_text_from_file("scan.ti")
     text, pages = extract_text_from_file("email.msg")
 """
 
-import os
 import sys
 import warnings
 from pathlib import Path
@@ -221,7 +220,7 @@ def extract_text_from_msg(msg_path: str) -> Tuple[str, Dict]:
         }
 
         # Combine body and metadata into readable text
-        text = f"""
+        text = """
 EMAIL MESSAGE
 =============
 Subject: {metadata['subject']}
@@ -306,10 +305,10 @@ def extract_text_from_file(
         FileNotFoundError: If file doesn't exist
 
     Example:
-        >>> text, pages = extract_text_from_file("invoice.pdf")
-        >>> text, pages = extract_text_from_file("scan.tif")
+        >>> text, pages = extract_text_from_file("invoice.pd")
+        >>> text, pages = extract_text_from_file("scan.ti")
         >>> text, pages = extract_text_from_file("email.msg")
-        >>> text, pages = extract_text_from_file("invoice.pdf", base_dir="client_docs")
+        >>> text, pages = extract_text_from_file("invoice.pd", base_dir="client_docs")
     """
     path = Path(file_path).resolve()
 
@@ -329,10 +328,10 @@ def extract_text_from_file(
 
     suffix = path.suffix.lower()
 
-    if suffix == ".pdf":
+    if suffix == ".pd":
         return extract_text_from_pdf(file_path, max_pages)
 
-    elif suffix in [".tif", ".tiff"]:
+    elif suffix in [".ti", ".tif"]:
         return extract_text_from_tif(file_path)
 
     elif suffix == ".msg":
@@ -345,7 +344,7 @@ def extract_text_from_file(
     else:
         raise ValueError(
             f"Unsupported file type: {suffix}\n"
-            f"Supported formats: .pdf, .tif, .tiff, .msg, .xls, .xlsx"
+            "Supported formats: .pdf, .tif, .tiff, .msg, .xls, .xlsx"
         )
 
 
@@ -369,7 +368,7 @@ def check_dependencies() -> Dict[str, bool]:
         try:
             pytesseract.get_tesseract_version()
             status["tesseract_binary"] = True
-        except:
+        except BaseException:
             status["tesseract_binary"] = False
     else:
         status["tesseract_binary"] = False

@@ -119,7 +119,7 @@ class LawVersionHandler:
                 )
                 if effective_date >= self.ESSB_5814_EFFECTIVE_DATE:
                     return True
-            except:
+            except BaseException:
                 pass
 
         # Default to old law if not clearly new law
@@ -180,7 +180,8 @@ class LawVersionHandler:
             # Check if mentioned in new law chunks
             if any(service in c.get("chunk_text", "").lower() for c in new_law_chunks):
                 changes.append(
-                    f"🔄 {service.title()} is now subject to retail sales tax (effective Oct 1, 2025)"
+                    f"🔄 {
+                        service.title()} is now subject to retail sales tax (effective Oct 1, 2025)"
                 )
 
         if not changes:
@@ -206,8 +207,9 @@ class LawVersionHandler:
         for service in self.ESSB_5814_AFFECTED_SERVICES:
             if service in query_lower:
                 return (
-                    f"⚠️ REFUND POTENTIAL: {service.title()} was NOT subject to sales tax before October 1, 2025. "
-                    f"If sales tax was charged before this date, a refund may be due."
+                    f"⚠️ REFUND POTENTIAL: {
+                        service.title()} was NOT subject to sales tax before October 1, 2025. "
+                    "If sales tax was charged before this date, a refund may be due."
                 )
 
         return "Check if sales tax was charged before October 1, 2025 for services that became taxable under ESSB 5814."

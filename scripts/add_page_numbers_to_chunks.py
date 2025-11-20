@@ -6,7 +6,12 @@ Updates existing tax_law_chunks with page number information
 without re-ingesting or regenerating embeddings.
 """
 
-import os
+from core.database import get_supabase_client
+from core.chunking_with_pages import (
+    extract_text_with_page_mapping,
+    find_chunk_page_numbers,
+    format_section_with_page,
+)
 import sys
 from pathlib import Path
 
@@ -14,16 +19,10 @@ from dotenv import load_dotenv
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.chunking_with_pages import (
-    extract_text_with_page_mapping,
-    find_chunk_page_numbers,
-    format_section_with_page,
-)
 
 load_dotenv()
 
 # Import centralized Supabase client
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 
@@ -49,10 +48,10 @@ def add_page_numbers():
         title = doc["title"]
         source_file = doc["source_file"]
 
-        print(f"\n{'='*70}")
+        print(f"\n{'=' * 70}")
         print(f"Processing: {title}")
         print(f"File: {source_file}")
-        print(f"{'='*70}")
+        print(f"{'=' * 70}")
 
         # Check if file exists
         if not Path(source_file).exists():
@@ -160,7 +159,7 @@ def verify_page_numbers():
 
 
 if __name__ == "__main__":
-    import argparse
+    import argparse  # noqa: E402
 
     parser = argparse.ArgumentParser(description="Add page numbers to existing chunks")
     parser.add_argument(

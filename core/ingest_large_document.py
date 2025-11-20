@@ -5,13 +5,16 @@ For documents too large for AI metadata extraction
 
 Usage:
     python core/ingest_large_document.py \
-      --file "knowledge_base/states/washington/legal_documents/20_Retail_Sales_and_Use_Tax.pdf" \
+      --file "knowledge_base/states/washington/legal_documents/20_Retail_Sales_and_Use_Tax.pd" \
       --type tax_law \
       --title "Retail Sales and Use Tax" \
       --citation "Chapter 20" \
       --category "general"
 """
 
+from core.database import get_supabase_client
+from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
+from core.chunking import chunk_legal_document, get_chunking_stats
 import argparse
 import os
 import sys
@@ -25,8 +28,6 @@ from tqdm import tqdm
 
 # Import canonical chunking
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.chunking import chunk_legal_document, get_chunking_stats
-from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
 
 # Load environment
 load_dotenv()
@@ -35,7 +36,6 @@ load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Import centralized Supabase client
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 
@@ -94,7 +94,7 @@ def ingest_large_document(
     """
 
     print("=" * 80)
-    print(f"LARGE DOCUMENT INGESTION")
+    print("LARGE DOCUMENT INGESTION")
     print("=" * 80)
     print(f"File: {pdf_path}")
     print(f"Type: {document_type}")
@@ -149,7 +149,8 @@ def ingest_large_document(
     stats = get_chunking_stats(chunks)
     print(f"✅ Created {len(chunks)} chunks from {total_pages_processed} pages")
     print(
-        f"   Average: {stats['avg_words']:.0f} words, Range: {stats['min_words']}-{stats['max_words']} words"
+        f"   Average: {stats['avg_words']:.0f} words, Range: {
+            stats['min_words']}-{stats['max_words']} words"
     )
 
     # Update total_chunks

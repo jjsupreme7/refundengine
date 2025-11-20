@@ -4,6 +4,10 @@ Enhanced Refund Analysis Script with Improved RAG
 Integrates Corrective RAG, Reranking, Query Expansion, and Hybrid Search
 """
 
+from core.enhanced_rag import EnhancedRAG
+from core.database import get_supabase_client
+from openai import OpenAI
+import PyPDF2
 import argparse
 import json
 import os
@@ -17,14 +21,10 @@ import pandas as pd
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import PyPDF2
-from openai import OpenAI
 
 # Import centralized database client
-from core.database import get_supabase_client
 
 # Import enhanced RAG
-from core.enhanced_rag import EnhancedRAG
 
 # Initialize clients
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -60,13 +60,16 @@ class EnhancedRefundAnalyzer:
         if enable_dynamic_models:
             print("   - Dynamic Model Selection: ON")
             print(
-                f"     • High stakes (>${self.rag.stakes_threshold_high:,}): Claude Sonnet 4.5"
+                f"     • High stakes (>${
+                    self.rag.stakes_threshold_high:,                }): Claude Sonnet 4.5"
             )
             print(
-                f"     • Medium stakes (${self.rag.stakes_threshold_medium:,}-${self.rag.stakes_threshold_high:,}): GPT-4o"
+                f"     • Medium stakes (${
+                    self.rag.stakes_threshold_medium:,}-${self.rag.stakes_threshold_high:,}): GPT-4o"
             )
             print(
-                f"     • Low stakes (<${self.rag.stakes_threshold_medium:,}): gpt-4o-mini"
+                f"     • Low stakes (<${
+                    self.rag.stakes_threshold_medium:,}): gpt-4o-mini"
             )
         else:
             print("   - Dynamic Model Selection: OFF")
@@ -91,7 +94,7 @@ class EnhancedRefundAnalyzer:
         self, invoice_text: str, amount: float, tax: float
     ) -> Dict:
         """Use AI to find the specific line item in invoice text"""
-        prompt = f"""You are analyzing an invoice to find a specific line item.
+        prompt = """You are analyzing an invoice to find a specific line item.
 
 Invoice Text:
 {invoice_text[:4000]}
@@ -182,7 +185,8 @@ Return JSON:
         tax: float,
         invoice_text: str = "",
         po_text: str = "",
-        rag_method: str = "agentic",  # agentic (RECOMMENDED), enhanced, basic, corrective, reranking, expansion, hybrid
+        rag_method: str = "agentic",
+        # agentic (RECOMMENDED), enhanced, basic, corrective, reranking, expansion, hybrid
     ) -> Dict:
         """
         Main analysis: Determine if tax refund is eligible
@@ -199,12 +203,12 @@ Return JSON:
                 - "hybrid": Vector + keyword search
         """
 
-        print(f"\n{'='*80}")
-        print(f"Analyzing Refund Eligibility")
+        print(f"\n{'=' * 80}")
+        print("Analyzing Refund Eligibility")
         print(f"Vendor: {vendor}")
         print(f"Product: {product_desc[:100]}")
         print(f"RAG Method: {rag_method.upper()}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
 
         # Check if we've learned about this vendor/product
         learned_info = self.check_vendor_learning(vendor, product_desc)
@@ -213,7 +217,7 @@ Return JSON:
             print(f"💡 Found prior learning for {vendor}")
 
         # Build query for legal knowledge base
-        query = f"""
+        query = """
 Vendor: {vendor}
 Product: {product_desc}
 Product Type: {product_type}
@@ -241,7 +245,7 @@ IMPORTANT - Check for common errors:
         # This will automatically decide whether to use cached results, structured rules,
         # or perform actual retrieval based on context and confidence
         if rag_method == "agentic":
-            print(f"\n🤖 Using Agentic RAG (intelligent decision-making)...\n")
+            print("\n🤖 Using Agentic RAG (intelligent decision-making)...\n")
 
             # Assess query complexity for dynamic model selection
             complexity = self.rag._assess_query_complexity(query, {})
@@ -300,7 +304,7 @@ IMPORTANT - Check for common errors:
         # Build context from vendor learning
         learning_context = ""
         if learned_info:
-            learning_context = f"""
+            learning_context = """
 PRIOR LEARNING:
 This vendor/product has been analyzed before:
 - Product Type: {learned_info.get('product_type', 'N/A')}
@@ -319,7 +323,7 @@ This vendor/product has been analyzed before:
                     if vb.get("primary_products")
                     else "N/A"
                 )
-                vendor_background_context = f"""
+                vendor_background_context = """
 VENDOR BACKGROUND:
 Understanding the vendor's business helps interpret ambiguous descriptions:
 - Company: {vb.get('vendor_name', vendor)}
@@ -334,7 +338,7 @@ patterns (e.g., custom development vs. licenses, professional services vs. tangi
 """
 
         # Build comprehensive analysis prompt
-        analysis_prompt = f"""You are a Washington State tax law expert analyzing use tax refund eligibility.
+        analysis_prompt = """You are a Washington State tax law expert analyzing use tax refund eligibility.
 
 TRANSACTION DETAILS:
 - Vendor: {vendor}
@@ -489,11 +493,11 @@ Return JSON:
                 for chunk in legal_chunks
             ]
 
-            print(f"✅ Analysis complete!")
+            print("✅ Analysis complete!")
             print(f"   Refund Eligible: {analysis_result.get('refund_eligible')}")
             print(f"   Refund Basis: {analysis_result.get('refund_basis')}")
             print(f"   Confidence: {analysis_result.get('confidence')}%")
-            print(f"{'='*80}\n")
+            print(f"{'=' * 80}\n")
 
             return analysis_result
 
@@ -512,7 +516,7 @@ Return JSON:
             text = chunk.get("chunk_text", "")
             relevance = chunk.get("relevance_score", "N/A")
 
-            context += f"\n[Source {i+1}] {citation}"
+            context += f"\n[Source {i + 1}] {citation}"
             if relevance != "N/A":
                 context += f" (Relevance: {relevance:.2f})"
             context += f"\n{text[:800]}\n"
@@ -534,7 +538,7 @@ Return JSON:
         Useful for testing which method works best
         """
 
-        query = f"""
+        query = """
 Vendor: {vendor}
 Product: {product_desc}
 Product Type: {product_type}
@@ -544,11 +548,11 @@ Tax Paid: ${tax:,.2f}
 Determine if Washington State use tax refund is eligible.
 """
 
-        print(f"\n{'='*80}")
-        print(f"📊 COMPARING ALL RAG METHODS")
+        print(f"\n{'=' * 80}")
+        print("📊 COMPARING ALL RAG METHODS")
         print(f"Vendor: {vendor}")
         print(f"Product: {product_desc[:100]}")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
 
         # Use the RAG comparison method
         rag_results = self.rag.compare_methods(query, top_k=5)

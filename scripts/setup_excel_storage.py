@@ -64,7 +64,7 @@ def setup_storage_buckets():
             "file_size_limit": 52428800,  # 50MB
             "allowed_mime_types": [
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/pdf",
+                "application/pd",
                 "application/json",
             ],
         },
@@ -163,7 +163,7 @@ USING (
     print("    └── {file_id}/v{version_number}/file_v{version}.xlsx")
     print()
     print("  excel-exports/")
-    print("    ├── {user_id}/audit_reports/{filename}.pdf")
+    print("    ├── {user_id}/audit_reports/{filename}.pd")
     print("    ├── {user_id}/change_history/{filename}.xlsx")
     print("    └── {user_id}/exports/{filename}.json")
     print()

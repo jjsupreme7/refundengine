@@ -5,16 +5,14 @@ Deploy Excel Versioning Schema using Python
 Alternative to bash script - uses Python Supabase client instead of psql
 """
 
-import os
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment
 load_dotenv()
@@ -88,7 +86,7 @@ for i, statement in enumerate(statements, 1):
         # We'll need to use psycopg2 for full support
 
         # For now, just show that we would execute it
-        print(f"    ⚠️  Skipping (requires direct database access)")
+        print("    ⚠️  Skipping (requires direct database access)")
 
     except Exception as e:
         print(f"    ❌ Error: {e}")
@@ -112,6 +110,6 @@ print("   pip install psycopg2-binary")
 print("   python scripts/deploy_excel_schema_direct.py")
 print()
 print("3. Manually run SQL in Supabase SQL Editor:")
-print(f"   - Open: https://supabase.com/dashboard/project/YOUR_PROJECT/sql")
+print("   - Open: https://supabase.com/dashboard/project/YOUR_PROJECT/sql")
 print(f"   - Copy/paste: {sql_file}")
 print()

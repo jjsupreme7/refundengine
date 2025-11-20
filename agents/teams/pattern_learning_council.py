@@ -77,7 +77,8 @@ class PatternLearningCouncil:
 
         post_to_discord(
             "patterns",
-            f"🧠 **Pattern Learning Council** - Starting pattern discovery at {start_time.strftime('%I:%M %p')}",
+            f"🧠 **Pattern Learning Council** - Starting pattern discovery at {
+                start_time.strftime('%I:%M %p')}",
             username="Pattern Learning Council",
         )
 
@@ -115,7 +116,9 @@ class PatternLearningCouncil:
 
         post_to_discord(
             "patterns",
-            f"✅ **Learning Complete** - Generated {len(proposals)} pattern proposals in {duration:.1f}s",
+            f"✅ **Learning Complete** - Generated {
+                len(proposals)} pattern proposals in {
+                duration:.1f}s",
             username="Pattern Learning Council",
         )
 
@@ -235,7 +238,7 @@ Focus on discovering 3-5 high-value patterns.
         validated = []
 
         for pattern in patterns:
-            prompt = f"""Validate this pattern against historical refund data:
+            prompt = """Validate this pattern against historical refund data:
 
 Pattern: {pattern['title']}
 Rule: {pattern['rule']}
@@ -285,7 +288,8 @@ Return validation results in JSON format:
             except Exception as e:
                 post_to_discord(
                     "patterns",
-                    f"⚠️ **[Validator]** Error validating pattern '{pattern['title']}': {str(e)}",
+                    f"⚠️ **[Validator]** Error validating pattern '{
+                        pattern['title']}': {str(e)}",
                     username="Validator Agent",
                 )
 
@@ -324,7 +328,7 @@ Return validation results in JSON format:
         all_edge_cases = []
 
         for pattern in patterns:
-            prompt = f"""Identify edge cases and boundary conditions for this pattern:
+            prompt = """Identify edge cases and boundary conditions for this pattern:
 
 Pattern: {pattern['title']}
 Rule: {pattern['rule']}
@@ -387,7 +391,8 @@ Focus on edge cases that are common or high-severity.
             except Exception as e:
                 post_to_discord(
                     "patterns",
-                    f"⚠️ **[Edge Case]** Error analyzing '{pattern['title']}': {str(e)}",
+                    f"⚠️ **[Edge Case]** Error analyzing '{
+                        pattern['title']}': {str(e)}",
                     username="Edge Case Agent",
                 )
 
@@ -423,7 +428,7 @@ Focus on edge cases that are common or high-severity.
             "edge_cases": edge_cases,
         }
 
-        discussion_prompt = f"""You are participating in a Pattern Learning Council discussion.
+        discussion_prompt = """You are participating in a Pattern Learning Council discussion.
 
 Findings from team members:
 
@@ -489,7 +494,7 @@ Only propose patterns that are truly ready. Quality over quantity.
             # Post to Discord
             post_to_discord(
                 "patterns",
-                f"💬 **Team Discussion** - Reviewing patterns...",
+                "💬 **Team Discussion** - Reviewing patterns...",
                 username="Pattern Learning Council",
             )
 
@@ -540,7 +545,7 @@ Only propose patterns that are truly ready. Quality over quantity.
             )
 
             # Format pattern details for Discord
-            pattern_summary = f"""
+            pattern_summary = """
 **Accuracy**: {accuracy * 100:.1f}%
 **Sample Size**: {sample_size} cases
 **Edge Cases**: {len(pattern_data.get('edge_cases', []))} identified
@@ -548,7 +553,7 @@ Only propose patterns that are truly ready. Quality over quantity.
 
             post_to_discord(
                 "approvals",
-                f"""🧠 **New Pattern Proposal**
+                """🧠 **New Pattern Proposal**
 
 **Title**: {proposal_data['title']}
 **Priority**: {priority.upper()}

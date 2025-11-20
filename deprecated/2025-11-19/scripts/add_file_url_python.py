@@ -3,6 +3,8 @@
 Add file_url column to knowledge_documents table using Python
 """
 
+import psycopg2
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -11,12 +13,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
-from dotenv import load_dotenv
 
 load_dotenv()
 
 # Use psycopg2 for direct SQL execution
-import psycopg2
 
 
 def add_file_url_column():
@@ -35,7 +35,7 @@ def add_file_url_column():
 
     # Connection parameters
     conn_params = {
-        "host": f"aws-0-us-west-1.pooler.supabase.com",
+        "host": "aws-0-us-west-1.pooler.supabase.com",
         "port": 6543,
         "database": "postgres",
         "user": f"postgres.{project_id}",

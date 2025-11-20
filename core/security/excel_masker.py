@@ -21,7 +21,8 @@ class ExcelMasker:
 
     def __init__(self):
         """Initialize Excel masker"""
-        # Encryption service is optional for masking (only used for mask_value static method)
+        # Encryption service is optional for masking (only used for mask_value
+        # static method)
         pass
 
     def mask_dataframe(

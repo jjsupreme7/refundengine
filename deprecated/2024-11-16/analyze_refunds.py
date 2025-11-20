@@ -19,7 +19,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import OpenAI for embeddings and analysis
 try:
-    from openai import OpenAI
+    from openai import OpenAI  # noqa: E402
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 except ImportError:
@@ -28,7 +28,7 @@ except ImportError:
 
 # Import centralized Supabase client
 try:
-    from core.database import get_supabase_client
+    from core.database import get_supabase_client  # noqa: E402
 
     supabase = get_supabase_client()
 except ImportError:
@@ -37,7 +37,7 @@ except ImportError:
 
 # PDF parsing
 try:
-    import PyPDF2
+    import PyPDF2  # noqa: E402
 except ImportError:
     print("Error: PyPDF2 not installed. Run: pip install PyPDF2")
     sys.exit(1)
@@ -53,8 +53,8 @@ class RefundAnalyzer:
 
         # Initialize historical pattern matchers
         try:
-            from analysis.keyword_matcher import KeywordMatcher
-            from analysis.vendor_matcher import VendorMatcher
+            from analysis.keyword_matcher import KeywordMatcher  # noqa: E402
+            from analysis.vendor_matcher import VendorMatcher  # noqa: E402
 
             self.vendor_matcher = VendorMatcher()
             self.keyword_matcher = KeywordMatcher()
@@ -102,7 +102,7 @@ class RefundAnalyzer:
         Use AI to find the specific line item in invoice text that matches the amount
         Returns: {product_desc, product_details, line_item_text}
         """
-        prompt = f"""You are analyzing an invoice to find a specific line item.
+        prompt = """You are analyzing an invoice to find a specific line item.
 
 Invoice Text:
 {invoice_text[:4000]}  # Truncate if too long
@@ -238,7 +238,7 @@ Return JSON:
         learned_info = self.check_vendor_learning(vendor, product_desc)
 
         # Build query for legal knowledge base
-        query = f"""
+        query = """
 Vendor: {vendor}
 Product: {product_desc}
 Product Type: {product_type}
@@ -268,7 +268,7 @@ Consider: exemptions for manufacturing, resale, agricultural equipment, etc.
             pattern_context = learned_info.get("pattern_context", "")
 
         # Build prompt for AI analysis
-        prompt = f"""You are a Washington State tax law expert analyzing use tax refund eligibility.
+        prompt = """You are a Washington State tax law expert analyzing use tax refund eligibility.
 
 TRANSACTION DETAILS:
 - Vendor: {vendor}
@@ -310,7 +310,7 @@ Return JSON:
     "estimated_refund": dollar amount,
     "confidence": 0-100,
     "explanation": "detailed reasoning",
-    "key_factors": ["list", "of", "key", "decision", "factors"]
+    "key_factors": ["list", "o", "key", "decision", "factors"]
 }}
 """
 
@@ -428,14 +428,14 @@ Return JSON:
         # Extract text from invoice
         for inv_file in invoice_files:
             inv_path = self.validate_path(inv_file)
-            if inv_path and inv_path.exists() and inv_path.suffix.lower() == ".pdf":
+            if inv_path and inv_path.exists() and inv_path.suffix.lower() == ".pd":
                 print(f"  Reading invoice: {inv_file}")
                 invoice_text += self.extract_text_from_pdf(inv_path) + "\n"
 
         # Extract text from PO
         for po_file in po_files:
             po_path = self.validate_path(po_file)
-            if po_path and po_path.exists() and po_path.suffix.lower() == ".pdf":
+            if po_path and po_path.exists() and po_path.suffix.lower() == ".pd":
                 print(f"  Reading PO: {po_file}")
                 po_text += self.extract_text_from_pdf(po_path) + "\n"
 
@@ -449,7 +449,7 @@ Return JSON:
         print(f"  Product type: {line_item.get('product_type', 'Unknown')}")
 
         # Check for historical learning data
-        print(f"  Checking historical precedent...")
+        print("  Checking historical precedent...")
         learned_info = self.check_vendor_learning(
             vendor=row["Vendor"], product_desc=line_item.get("product_desc", "Unknown")
         )
@@ -458,7 +458,7 @@ Return JSON:
         historical_fields = self._format_historical_summary(learned_info)
 
         # Analyze refund eligibility
-        print(f"  Analyzing refund eligibility...")
+        print("  Analyzing refund eligibility...")
         analysis = self.analyze_refund_eligibility(
             vendor=row["Vendor"],
             product_desc=line_item.get("product_desc", "Unknown"),
@@ -553,7 +553,7 @@ def main():
         )
 
     print(f"\n{'='*80}")
-    print(f"REFUND ANALYSIS PIPELINE")
+    print("REFUND ANALYSIS PIPELINE")
     print(f"{'='*80}")
     print(f"Input:  {args.input_excel}")
     print(f"Output: {output_path}")
@@ -624,18 +624,18 @@ def main():
     print(f"\n{'='*80}")
     print(f"Saving results to: {output_path}")
     df.to_excel(output_path, index=False)
-    print(f"✓ Analysis complete!")
+    print("✓ Analysis complete!")
     print(f"{'='*80}\n")
 
     # Summary
     total_refund = df["AI_Estimated_Refund"].sum()
     eligible_count = df["AI_Refund_Eligible"].sum()
-    print(f"SUMMARY:")
+    print("SUMMARY:")
     print(f"  Total rows analyzed: {len(df)}")
     print(f"  Refund eligible: {eligible_count}")
     print(f"  Total estimated refund: ${total_refund:,.2f}")
     print(
-        f"\nNext step: Review the Excel file and fill in correction columns if needed."
+        "\nNext step: Review the Excel file and fill in correction columns if needed."
     )
 
 

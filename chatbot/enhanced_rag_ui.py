@@ -12,6 +12,9 @@ Usage:
     streamlit run chatbot/enhanced_rag_ui.py
 """
 
+from core.enhanced_rag import EnhancedRAG
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -23,15 +26,12 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
-from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 # OpenAI for answer generation
-from openai import OpenAI
 
 # Import Enhanced RAG
-from core.enhanced_rag import EnhancedRAG
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -106,10 +106,11 @@ def generate_answer(question: str, search_result: Dict) -> str:
     results = search_result.get("results", [])
 
     if search_result["action"] == "USE_CACHED":
-        context = f"Using cached data:\n{results[0].get('data', {}) if results else 'No data'}"
+        context = f"Using cached data:\n{
+            results[0].get('data', {}) if results else 'No data'}"
     elif search_result["action"] == "USE_RULES":
         rule_data = results[0].get("data", {}) if results else {}
-        context = f"""Structured Tax Rule:
+        context = """Structured Tax Rule:
 Product Type: {rule_data.get('product_type', 'N/A')}
 Taxable: {rule_data.get('taxable', 'N/A')}
 Classification: {rule_data.get('tax_classification', 'N/A')}
@@ -149,7 +150,7 @@ RESPONSE FORMAT:
         {"role": "system", "content": system_prompt},
         {
             "role": "user",
-            "content": f"""Context from Washington tax law:
+            "content": """Context from Washington tax law:
 {context}
 
 Question: {question}
@@ -201,7 +202,7 @@ def render_decision_info(search_result: Dict):
         conf_class = "confidence-low"
         conf_emoji = "🔴"
 
-    decision_html = f"""
+    decision_html = """
     <div class="decision-box">
         <strong>{action_icons.get(action, '🤖')} Decision: {action.replace('_', ' ').title()}</strong><br/>
         <strong>💭 Reasoning:</strong> {reasoning}<br/>
@@ -216,7 +217,7 @@ def render_decision_info(search_result: Dict):
 def get_file_url_for_document(document_id: str) -> str:
     """Fetch file_url from knowledge_documents table"""
     try:
-        from core.database import get_supabase_client
+        from core.database import get_supabase_client  # noqa: E402
 
         supabase = get_supabase_client()
 
@@ -249,7 +250,9 @@ def render_source(doc: Dict, index: int):
 
     # Make citation clickable if URL exists
     if file_url:
-        citation_display = f'<a href="{file_url}" target="_blank" style="color: #1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 🔗'
+        citation_display = f'<a href="{
+            # 1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 🔗'
+            file_url}" target="_blank" style="color:
     else:
         citation_display = (
             f'<span style="color: #000; font-weight: bold;">{citation}</span>'
@@ -265,7 +268,7 @@ def render_source(doc: Dict, index: int):
     elif section:
         page_info = f'<span style="color: #666;"> - {section}</span>'
 
-    source_html = f"""
+    source_html = """
     <div class="source-box">
         [{index}] {citation_display}{page_info}
         <br/>

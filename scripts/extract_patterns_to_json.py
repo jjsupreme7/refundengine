@@ -68,7 +68,7 @@ def extract_keywords_from_description(description: str) -> List[str]:
         "or",
         "but",
         "for",
-        "of",
+        "o",
         "to",
         "in",
         "on",
@@ -147,9 +147,9 @@ def main():
     # Create output directory
     os.makedirs(args.output_dir, exist_ok=True)
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Reading Excel file: {args.file}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # Read Excel file
     df = pd.read_excel(args.file)
@@ -157,7 +157,7 @@ def main():
 
     # Auto-detect columns
     column_map = auto_detect_columns(df.columns.tolist())
-    print(f"\nDetected columns:")
+    print("\nDetected columns:")
     for key, col in column_map.items():
         print(f"  {key}: {col}")
 
@@ -383,20 +383,21 @@ def main():
         json.dump(citation_data, f, indent=2)
     print(f"[SUCCESS] Saved {len(citation_data)} citation patterns to: {citation_file}")
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("SUMMARY")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     print(f"Total vendors: {len(vendor_data)}")
     print(f"Total keyword patterns: {len(keyword_data)}")
     print(f"Total citation patterns: {len(citation_data)}")
-    print(f"\nTop 10 vendors by success rate:")
+    print("\nTop 10 vendors by success rate:")
     for vendor in sorted(
         vendor_data,
         key=lambda x: (x["historical_success_rate"], x["historical_sample_count"]),
         reverse=True,
     )[:10]:
         print(
-            f"  {vendor['vendor_name'][:50]:50} {vendor['historical_success_rate']:.0%} ({vendor['historical_sample_count']} cases)"
+            f"  {vendor['vendor_name'][:50]:50} {
+                vendor['historical_success_rate']:.0%} ({vendor['historical_sample_count']} cases)"
         )
 
     print(f"\n\nPattern files saved to: {args.output_dir}/")

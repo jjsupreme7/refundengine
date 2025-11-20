@@ -79,7 +79,7 @@ class WACTitleScraper:
 
         # Find all chapter links (format: cite=458-XX)
         for link in soup.find_all("a", href=re.compile(r"cite=458-\d+")):
-            href = link.get("href")
+            href = link.get("hre")
             cite_match = re.search(r"cite=(458-\d+)", href)
 
             if cite_match:
@@ -124,7 +124,7 @@ class WACTitleScraper:
         pattern = re.compile(rf"cite={re.escape(chapter_cite)}-\d+")
 
         for link in soup.find_all("a", href=pattern):
-            href = link.get("href")
+            href = link.get("hre")
             cite_match = re.search(r"cite=(458-\d+-\d+)", href)
 
             if cite_match:
@@ -149,7 +149,7 @@ class WACTitleScraper:
 
         Args:
             section: Section dict with cite, title, url
-            format: 'html', 'pdf', or 'both'
+            format: 'html', 'pd', or 'both'
             chapter_dir: Directory to save the section
 
         Returns:
@@ -177,8 +177,8 @@ class WACTitleScraper:
                     success = False
 
         # Download PDF (may require authentication/session)
-        if format in ["pdf", "both"]:
-            pdf_path = chapter_dir / f"{base_filename}.pdf"
+        if format in ["pd", "both"]:
+            pdf_path = chapter_dir / f"{base_filename}.pd"
 
             if not pdf_path.exists():
                 pdf_url = f"{BASE_URL}/default.aspx?cite={cite}&pdf=true"
@@ -190,7 +190,8 @@ class WACTitleScraper:
                         pdf_path.write_bytes(pdf_content.content)
                     else:
                         print(
-                            f"  ⚠️  PDF authentication required for {cite}, skipping PDF"
+                            f"  ⚠️  PDF authentication required for {
+                                cite}, skipping PDF"
                         )
                         # Still consider success if HTML worked
                         success = success and (format == "both")
@@ -237,7 +238,7 @@ class WACTitleScraper:
 
         Args:
             chapter_cite: Chapter citation (e.g., "458-20")
-            format: 'html', 'pdf', or 'both'
+            format: 'html', 'pd', or 'both'
             limit: Optional limit for testing
 
         Returns:
@@ -269,12 +270,12 @@ class WACTitleScraper:
             # Check if already exists
             safe_cite = section["cite"].replace("-", "_")
             html_exists = any(chapter_dir.glob(f"{safe_cite}_*.html"))
-            pdf_exists = any(chapter_dir.glob(f"{safe_cite}_*.pdf"))
+            pdf_exists = any(chapter_dir.glob(f"{safe_cite}_*.pd"))
 
             skip = False
             if format == "html" and html_exists:
                 skip = True
-            elif format == "pdf" and pdf_exists:
+            elif format == "pd" and pdf_exists:
                 skip = True
             elif format == "both" and html_exists and pdf_exists:
                 skip = True
@@ -306,7 +307,7 @@ class WACTitleScraper:
 
         Args:
             chapter_filter: List of chapter cites to download (e.g., ['458-20']). None = all
-            format: 'html', 'pdf', or 'both'
+            format: 'html', 'pd', or 'both'
             limit: Limit sections per chapter (for testing)
         """
         # Get all chapters
@@ -354,7 +355,8 @@ def main():
     )
     parser.add_argument(
         "--chapters",
-        help=f"Comma-separated chapters to download (e.g., '458-20,458-29'). Default: {','.join(PRIORITY_CHAPTERS)}",
+        help=f"Comma-separated chapters to download (e.g., '458-20,458-29'). Default: {
+            ','.join(PRIORITY_CHAPTERS)}",
     )
     parser.add_argument(
         "--all-chapters",
@@ -363,7 +365,7 @@ def main():
     )
     parser.add_argument(
         "--format",
-        choices=["html", "pdf", "both"],
+        choices=["html", "pd", "both"],
         default="both",
         help="Download format (default: both)",
     )

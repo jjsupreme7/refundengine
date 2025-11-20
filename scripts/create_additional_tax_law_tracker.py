@@ -42,7 +42,7 @@ def classify_document(filename: str) -> dict:
 
     # ETA Detection (4-digit numbers)
     if re.match(r"^\d{4}\.pdf$", filename):
-        eta_num = filename.replace(".pdf", "")
+        eta_num = filename.replace(".pd", "")
         classification.update(
             {
                 "document_type": "ETA",
@@ -89,7 +89,7 @@ def classify_document(filename: str) -> dict:
 
     # Tax Type Guides (numbered guides)
     elif re.match(r"^\d{2}_.*\.pdf$", filename):
-        guide_name = filename.replace(".pdf", "").split("_", 1)[1].replace("_", " ")
+        guide_name = filename.replace(".pd", "").split("_", 1)[1].replace("_", " ")
         classification.update(
             {
                 "document_type": "Tax Type Guide",
@@ -113,7 +113,7 @@ def classify_document(filename: str) -> dict:
     # Industry Guides
     elif "_tax_guide" in filename_lower or "tax_guide" in filename_lower:
         industry = (
-            filename.replace("_tax_guide.pdf", "").replace(".pdf", "").replace("_", " ")
+            filename.replace("_tax_guide.pd", "").replace(".pd", "").replace("_", " ")
         )
         classification.update(
             {
@@ -181,7 +181,7 @@ def main():
     # 1. Process ESSB 5814 documents (already in knowledge base + new ones)
     print("Step 1: Processing ESSB 5814 documents...")
     if os.path.exists(essb_kb_path):
-        essb_files = [f for f in os.listdir(essb_kb_path) if f.endswith(".pdf")]
+        essb_files = [f for f in os.listdir(essb_kb_path) if f.endswith(".pd")]
         print(f"  Found {len(essb_files)} ESSB 5814 PDFs")
 
         for filename in sorted(essb_files):
@@ -201,7 +201,7 @@ def main():
     print("\nStep 2: Processing Additional Tax Law folder...")
     if os.path.exists(additional_tax_law_path):
         additional_files = [
-            f for f in os.listdir(additional_tax_law_path) if f.endswith(".pdf")
+            f for f in os.listdir(additional_tax_law_path) if f.endswith(".pd")
         ]
         print(f"  Found {len(additional_files)} documents")
 
@@ -295,8 +295,10 @@ def main():
                 len(df),
             ],
             "Status": [
-                f"{len(essb_df[essb_df['status'].str.contains('Ingested', na=False)])} ingested",
-                f"{len(eta_df[eta_df['status'].str.contains('Ingested', na=False)])} ingested",
+                f"{len(essb_df[essb_df['status'].str.contains(
+                    'Ingested', na=False)])} ingested",
+                f"{len(eta_df[eta_df['status'].str.contains(
+                    'Ingested', na=False)])} ingested",
                 "Not ingested",
                 "Not ingested",
                 "Not ingested",

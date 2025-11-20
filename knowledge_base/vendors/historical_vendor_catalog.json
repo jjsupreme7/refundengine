@@ -1,0 +1,462 @@
+{
+  "_metadata": {
+    "generated": "2025-11-18",
+    "source": "Historical pattern analysis + web research",
+    "description": "Product/service information for top vendors from historical refund data",
+    "vendor_count": 15,
+    "note": "This catalog supplements vendor_database.json with historical vendor patterns"
+  },
+
+  "vendors": {
+    "FIREEYE INC": {
+      "industry": "Cybersecurity",
+      "business_model": "B2B SaaS + Services",
+      "primary_products": {
+        "Network Security": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Network, email, and endpoint security products"
+        },
+        "Helix Security Platform": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Cloud-hosted security operations platform"
+        },
+        "Threat Intelligence": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Dynamic Threat Intelligence Cloud service"
+        },
+        "Incident Response": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Consulting and incident response services"
+        }
+      },
+      "typical_delivery": "Cloud SaaS + Professional Services",
+      "tax_notes": "Mix of digital automated services (SaaS) and professional services",
+      "historical_performance": {
+        "sample_count": 10,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "very_high"
+      },
+      "company_status": "Acquired by STG in 2021, now operates as Trellix"
+    },
+
+    "ACCERTIFY INC": {
+      "industry": "Fraud Prevention & Risk Management",
+      "business_model": "B2B SaaS",
+      "primary_products": {
+        "Fraud Detection Platform": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Machine learning fraud detection and management"
+        },
+        "Account Protection": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Device technology and behavior analytics for account security"
+        },
+        "Chargeback Management": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Automated chargeback dispute management"
+        },
+        "Payment Gateway": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Payment processing solutions"
+        }
+      },
+      "typical_delivery": "Cloud-based SaaS platform",
+      "tax_notes": "Digital automated services, MPU applicable for multi-location usage",
+      "historical_performance": {
+        "sample_count": 6,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      },
+      "company_notes": "Protected 7.6B+ transactions, prevented $9B+ in fraud annually"
+    },
+
+    "KRONOS INCORPORATED": {
+      "industry": "Workforce Management & HCM",
+      "business_model": "B2B SaaS",
+      "primary_products": {
+        "Workforce Central": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Enterprise workforce management and HR suite"
+        },
+        "Workforce Ready": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "SMB workforce management solution"
+        },
+        "Workforce Dimensions": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Advanced workforce management platform"
+        }
+      },
+      "typical_delivery": "Cloud-based HCM platform",
+      "tax_notes": "Digital automated services, user location determines MPU allocation",
+      "historical_performance": {
+        "sample_count": 8,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      },
+      "company_status": "Merged with Ultimate Software in 2020 to form UKG (Ultimate Kronos Group)"
+    },
+
+    "PAGERDUTY INC": {
+      "industry": "Incident Management & Operations",
+      "business_model": "B2B SaaS",
+      "primary_products": {
+        "Incident Management": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "AI-powered incident response and management"
+        },
+        "Operations Cloud": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "AIOps, automation, and customer service operations"
+        },
+        "Alert Management": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Automated alert aggregation and noise reduction"
+        }
+      },
+      "typical_delivery": "Cloud-based operations platform",
+      "tax_notes": "Digital automated service, used by distributed teams (MPU applicable)",
+      "historical_performance": {
+        "sample_count": 6,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      },
+      "company_notes": "Used by 50%+ of Fortune 500, nearly 70% of Fortune 100"
+    },
+
+    "DEMANDBASE INC": {
+      "industry": "B2B Marketing & Sales Intelligence",
+      "business_model": "B2B SaaS",
+      "primary_products": {
+        "Demandbase One Platform": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "AI-powered account-based marketing (ABM) platform"
+        },
+        "B2B Advertising Cloud": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "B2B-specific demand-side platform (DSP) for advertising"
+        },
+        "Sales Intelligence": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Account intelligence and sales engagement tools"
+        }
+      },
+      "typical_delivery": "Cloud-based marketing platform",
+      "tax_notes": "Digital automated services, multi-location sales teams use MPU",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      }
+    },
+
+    "SAILPOINT TECHNOLOGIES INC": {
+      "industry": "Identity Security & Governance",
+      "business_model": "B2B SaaS + Software",
+      "primary_products": {
+        "Identity Security Cloud": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "SaaS-based identity governance and administration"
+        },
+        "IdentityIQ": {
+          "type": "software_license",
+          "delivery": "on_premise_or_cloud",
+          "description": "On-premise identity governance software"
+        },
+        "Machine Identity Security": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Non-human identity management"
+        }
+      },
+      "typical_delivery": "Cloud SaaS or on-premise software",
+      "tax_notes": "Mix of SaaS and software licenses, MPU or primarily human effort may apply",
+      "historical_performance": {
+        "sample_count": 7,
+        "success_rate": 0.86,
+        "typical_refund_basis": "Non-taxable",
+        "confidence": "high"
+      },
+      "company_notes": "Gartner Peer Insights Customers' Choice for IGA 2024"
+    },
+
+    "AC NIELSEN CORPORATION": {
+      "industry": "Market Research & Consumer Intelligence",
+      "business_model": "B2B Data Services",
+      "primary_products": {
+        "Retail Measurement": {
+          "type": "data_processing",
+          "delivery": "cloud_digital",
+          "description": "Retail sales tracking and market share analysis"
+        },
+        "Consumer Intelligence": {
+          "type": "data_processing",
+          "delivery": "cloud_digital",
+          "description": "Consumer shopping trends and behavior analytics"
+        },
+        "Homescan Program": {
+          "type": "data_processing",
+          "delivery": "cloud_digital",
+          "description": "Household purchasing pattern tracking"
+        }
+      },
+      "typical_delivery": "Data analytics and reporting services",
+      "tax_notes": "Data processing services, may qualify for MPU or primarily human effort exemption",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      },
+      "company_status": "Now operates as NielsenIQ (NIQ) after 2021 sale to Advent International"
+    },
+
+    "COMPETITIVE MEDIA REPORTING LLC": {
+      "industry": "Advertising Intelligence",
+      "business_model": "B2B Data Services",
+      "primary_products": {
+        "Advertising Tracking": {
+          "type": "data_processing",
+          "delivery": "cloud_digital",
+          "description": "Ad spend monitoring across 14+ media segments"
+        },
+        "Creative Assessment": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Advertising messaging analysis"
+        },
+        "Media Planning": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Competitive intelligence for media planning"
+        }
+      },
+      "typical_delivery": "Data services + analytics platform",
+      "tax_notes": "Mix of data processing and professional services, may be non-taxable",
+      "historical_performance": {
+        "sample_count": 12,
+        "success_rate": 1.0,
+        "typical_refund_basis": "Non-taxable",
+        "confidence": "high"
+      },
+      "company_status": "Operates as Kantar Media Intelligence / Vivvix"
+    },
+
+    "ALLNET LABS LLC": {
+      "industry": "Telecommunications Consulting",
+      "business_model": "B2B Professional Services",
+      "primary_products": {
+        "Telecommunications Consulting": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Network testing and telecommunications consulting"
+        }
+      },
+      "typical_delivery": "Human-delivered professional services",
+      "tax_notes": "Primarily human effort - likely exempt from sales tax",
+      "historical_performance": {
+        "sample_count": 12,
+        "success_rate": 1.0,
+        "typical_refund_basis": "Non-taxable",
+        "confidence": "high"
+      },
+      "company_notes": "Small consulting firm based in Bellevue, WA"
+    },
+
+    "SEQUOYAH ELECTRIC LLC": {
+      "industry": "Electrical & Network Construction",
+      "business_model": "B2B Construction Services",
+      "primary_products": {
+        "Electrical Construction": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Commercial electrical design-build and construction"
+        },
+        "Low Voltage Systems": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Data center, security, structured cabling installations"
+        },
+        "24/7 Service": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Emergency electrical and network services"
+        },
+        "Engineering & Preconstruction": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Electrical engineering and project planning"
+        }
+      },
+      "typical_delivery": "On-site construction and installation services",
+      "tax_notes": "Construction services - may qualify for partial out-of-state services exemption",
+      "historical_performance": {
+        "sample_count": 154,
+        "success_rate": 0.93,
+        "typical_refund_basis": "Partial OOS services",
+        "confidence": "very_high"
+      },
+      "company_notes": "Redmond, WA based; licensed in WA, OR, CA, NY, TX"
+    },
+
+    "DUN & BRADSTREET INC": {
+      "industry": "Business Intelligence & Credit",
+      "business_model": "B2B Data Services",
+      "primary_products": {
+        "Business Credit Reports": {
+          "type": "data_processing",
+          "delivery": "cloud_digital",
+          "description": "Commercial credit reporting and risk assessment"
+        },
+        "Sales & Marketing Intelligence": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "B2B sales intelligence and lead generation"
+        },
+        "Data Cloud": {
+          "type": "data_processing",
+          "delivery": "cloud_digital",
+          "description": "Business data and analytics platform"
+        }
+      },
+      "typical_delivery": "Cloud-based data services",
+      "tax_notes": "Data processing services, MPU applicable for multi-location usage",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      }
+    },
+
+    "FM SYSTEMS GROUP LLC": {
+      "industry": "Facility Management Software",
+      "business_model": "B2B SaaS",
+      "primary_products": {
+        "IWMS Platform": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Integrated workplace management system"
+        },
+        "Space Management": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Workplace planning and space optimization"
+        },
+        "Maintenance Management": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Facility maintenance and asset tracking"
+        }
+      },
+      "typical_delivery": "Cloud-based SaaS platform",
+      "tax_notes": "Digital automated services, MPU for multi-location facilities",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      },
+      "company_status": "Acquired by Accruent (now part of Fortive)"
+    },
+
+    "HELP/SYSTEMS LLC": {
+      "industry": "IT Management Software",
+      "business_model": "B2B Software + SaaS",
+      "primary_products": {
+        "IT Automation": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Business process automation and job scheduling"
+        },
+        "Security Software": {
+          "type": "software_license",
+          "delivery": "on_premise_or_cloud",
+          "description": "Cybersecurity and data protection tools"
+        },
+        "Managed File Transfer": {
+          "type": "saas_subscription",
+          "delivery": "cloud_digital",
+          "description": "Secure file transfer solutions"
+        }
+      },
+      "typical_delivery": "Mix of cloud SaaS and on-premise software",
+      "tax_notes": "Digital automated services, MPU applicable",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "MPU",
+        "confidence": "high"
+      },
+      "company_status": "Now operates as Fortra after 2022 rebrand"
+    },
+
+    "INDECT USA CORPORATION": {
+      "industry": "Electronics Manufacturing",
+      "business_model": "B2B Manufacturing",
+      "primary_products": {
+        "Electronic Components": {
+          "type": "tangible_personal_property",
+          "delivery": "physical",
+          "description": "Industrial electronic components and assemblies"
+        },
+        "Contract Manufacturing": {
+          "type": "professional_services",
+          "delivery": "human_delivered",
+          "description": "Electronics contract manufacturing services"
+        }
+      },
+      "typical_delivery": "Physical goods or manufacturing services",
+      "tax_notes": "Mix of tangible property and services, may qualify for manufacturing exemptions",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "Non-taxable",
+        "confidence": "medium"
+      }
+    },
+
+    "KC WHOLESALE CONSTRUCTION PRODUCTS": {
+      "industry": "Construction Materials Wholesale",
+      "business_model": "B2B Wholesale Distribution",
+      "primary_products": {
+        "Construction Materials": {
+          "type": "tangible_personal_property",
+          "delivery": "physical",
+          "description": "Wholesale construction products and materials"
+        }
+      },
+      "typical_delivery": "Physical goods distribution",
+      "tax_notes": "Wholesale tangible property, may qualify for resale or out-of-state delivery exemptions",
+      "historical_performance": {
+        "sample_count": 5,
+        "success_rate": 1.0,
+        "typical_refund_basis": "Non-taxable",
+        "confidence": "medium"
+      }
+    }
+  }
+}

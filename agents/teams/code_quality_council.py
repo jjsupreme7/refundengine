@@ -69,7 +69,8 @@ class CodeQualityCouncil:
 
         post_to_discord(
             "code_quality",
-            f"🏛️ **Code Quality Council** - Starting review cycle at {start_time.strftime('%I:%M %p')}",
+            f"🏛️ **Code Quality Council** - Starting review cycle at {
+                start_time.strftime('%I:%M %p')}",
             username="Code Quality Council",
         )
 
@@ -103,7 +104,9 @@ class CodeQualityCouncil:
 
         post_to_discord(
             "code_quality",
-            f"✅ **Review Complete** - Generated {len(proposals)} proposals in {duration:.1f}s",
+            f"✅ **Review Complete** - Generated {
+                len(proposals)} proposals in {
+                duration:.1f}s",
             username="Code Quality Council",
         )
 
@@ -144,7 +147,7 @@ class CodeQualityCouncil:
         findings = []
 
         for area in areas:
-            prompt = f"""Review {area['name']} for architectural improvements.
+            prompt = """Review {area['name']} for architectural improvements.
 
 Focus on: {area['focus']}
 
@@ -242,7 +245,7 @@ Return findings in JSON format:
         findings = []
 
         for check in checks:
-            prompt = f"""Security Check: {check['name']}
+            prompt = """Security Check: {check['name']}
 
 Search codebase for pattern: {check['pattern']}
 Focus: {check['focus']}
@@ -337,7 +340,7 @@ Return findings in JSON format:
         findings = []
 
         for area in areas:
-            prompt = f"""Performance Review: {area['name']}
+            prompt = """Performance Review: {area['name']}
 
 Search for pattern: {area['pattern']}
 Focus: {area['focus']}
@@ -384,7 +387,8 @@ Return findings in JSON format:
 
         post_to_discord(
             "code_quality",
-            f"**[Performance]** Analysis complete - {len(findings)} optimizations identified",
+            f"**[Performance]** Analysis complete - {
+                len(findings)} optimizations identified",
             username="Performance Agent",
         )
 
@@ -415,7 +419,7 @@ Return findings in JSON format:
             "performance": performance_findings,
         }
 
-        discussion_prompt = f"""You are participating in a Code Quality Council discussion.
+        discussion_prompt = """You are participating in a Code Quality Council discussion.
 
 Findings from team members:
 
@@ -503,7 +507,7 @@ Limit to top 5 proposals. If no critical issues, return: {{"proposals": [], "dis
 
             post_to_discord(
                 "approvals",
-                f"""🔔 **New Proposal from Code Quality Council**
+                """🔔 **New Proposal from Code Quality Council**
 
 **Title**: {proposal_data['title']}
 **Priority**: {proposal_data['priority'].upper()}

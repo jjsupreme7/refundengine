@@ -4,6 +4,8 @@ Simple RAG Chatbot with Clean UI
 Ask questions about Washington State tax law and get AI-powered answers
 """
 
+from core.database import get_supabase_client
+from openai import OpenAI
 import os
 import sys
 from datetime import datetime
@@ -15,19 +17,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
 try:
-    from dotenv import load_dotenv
+    from dotenv import load_dotenv  # noqa: E402
 
     load_dotenv(Path(__file__).parent.parent / ".env")
-except:
+except BaseException:
     pass
 
 # OpenAI
-from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Supabase - using centralized client
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 
@@ -173,7 +173,7 @@ RESPONSE FORMAT:
             {"role": "system", "content": system_prompt},
             {
                 "role": "user",
-                "content": f"""Context from Washington tax law:
+                "content": """Context from Washington tax law:
 {context}
 
 Question: {question}
@@ -202,7 +202,7 @@ Please answer based on the context above.""",
 
             # Format response
             result = f"\n  💬 ANSWER:\n\n{self._indent(answer)}\n"
-            result += f"\n  📚 SOURCES:\n"
+            result += "\n  📚 SOURCES:\n"
 
             for i, doc in enumerate(relevant_docs, 1):
                 tags = []
@@ -303,14 +303,19 @@ Please answer based on the context above.""",
             print("=" * 80)
             print(f"\n  Documents: {len(docs.data)}")
             print(
-                f"  Total Chunks: {chunks.count if hasattr(chunks, 'count') else len(chunks.data)}"
+                f"  Total Chunks: {
+                    chunks.count if hasattr(
+                        chunks,
+                        'count') else len(
+                        chunks.data)}"
             )
 
             print("\n  Available Documents:")
             for doc in docs.data:
                 print(f"     • {doc.get('citation', 'N/A')}: {doc.get('title', 'N/A')}")
                 print(
-                    f"       Category: {doc.get('law_category', 'N/A')}, Chunks: {doc.get('total_chunks', 'N/A')}"
+                    f"       Category: {
+                        doc.get('law_category', 'N/A')}, Chunks: {doc.get('total_chunks', 'N/A')}"
                 )
 
             print("=" * 80)

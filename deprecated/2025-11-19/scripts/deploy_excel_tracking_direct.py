@@ -4,16 +4,15 @@ Deploy Excel File Tracking Schema Directly via Supabase RPC
 Executes SQL statements one by one
 """
 
-import os
+from core.database import get_supabase_client
+from dotenv import load_dotenv
+import os  # noqa: F401
 import sys
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 # Load environment variables
 load_dotenv()
@@ -26,7 +25,7 @@ def execute_sql_statement(sql: str) -> bool:
     """Execute a single SQL statement via RPC"""
     try:
         # Use Supabase RPC to execute SQL
-        result = supabase.rpc("exec_sql", {"query": sql}).execute()
+        result = supabase.rpc("exec_sql", {"query": sql}).execute()  # noqa: F841
         return True
     except Exception as e:
         # Try direct table creation via postgrest if RPC fails
@@ -103,7 +102,7 @@ def apply_migration():
         print("  Creating excel_file_tracking table...")
         supabase.table("excel_file_tracking").select("id").limit(1).execute()
         print("    ✅ Table already exists")
-    except:
+    except BaseException:
         print("    ⚠️  Table doesn't exist, needs SQL execution")
         print("    Note: Table creation requires direct database access")
 
@@ -112,7 +111,7 @@ def apply_migration():
         print("  Creating excel_row_tracking table...")
         supabase.table("excel_row_tracking").select("id").limit(1).execute()
         print("    ✅ Table already exists")
-    except:
+    except BaseException:
         print("    ⚠️  Table doesn't exist, needs SQL execution")
         print("    Note: Table creation requires direct database access")
 

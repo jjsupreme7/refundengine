@@ -27,6 +27,10 @@ Options:
     --limit: Number of documents to process (default: all)
 """
 
+from core.database import get_supabase_client
+from core.document_urls import generate_document_url
+from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
+from core.chunking import chunk_legal_document, get_chunking_stats
 import argparse
 import json
 import os
@@ -45,13 +49,10 @@ from tqdm import tqdm
 
 # Import canonical chunking and cost tracker
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from core.chunking import chunk_legal_document, get_chunking_stats
-from core.chunking_with_pages import chunk_document_with_pages, format_section_with_page
-from core.document_urls import generate_document_url
 
 # Try to import cost tracker, create simple fallback if not available
 try:
-    from cost_tracker import CostTracker
+    from cost_tracker import CostTracker  # noqa: E402
 except ImportError:
     # Simple fallback cost tracker
     class CostTracker:
@@ -78,7 +79,6 @@ load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Import centralized Supabase client
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 
@@ -156,7 +156,7 @@ def extract_text_from_file(
     """
     file_path_obj = Path(file_path)
 
-    if file_path_obj.suffix.lower() == ".pdf":
+    if file_path_obj.suffix.lower() == ".pd":
         max_pages = max_pages_or_chars if max_pages_or_chars else 3
         return extract_text_from_pdf(file_path, max_pages=max_pages)
     elif file_path_obj.suffix.lower() in [".html", ".htm"]:
@@ -242,7 +242,7 @@ def suggest_metadata_with_ai(
     filename = Path(pdf_path).name
 
     if document_type == "tax_law":
-        prompt = f"""Analyze this Washington State tax law document and extract metadata.
+        prompt = """Analyze this Washington State tax law document and extract metadata.
 
 Filename: {filename}
 
@@ -266,7 +266,7 @@ Return JSON with these fields:
 Be specific and accurate. Extract actual information from the text."""
 
     else:  # vendor
-        prompt = f"""Analyze this vendor/product document and extract metadata.
+        prompt = """Analyze this vendor/product document and extract metadata.
 
 Filename: {filename}
 
@@ -369,7 +369,8 @@ def export_metadata_to_excel(
             # Auto-detect large files (100+ pages) and use simple metadata
             if total_pages >= 100:
                 print(
-                    f"\n  📄 Large file detected ({total_pages} pages) - using filename-based metadata"
+                    f"\n  📄 Large file detected ({
+                        total_pages} pages) - using filename-based metadata"
                 )
                 suggested_metadata = suggest_metadata_simple(
                     str(pdf_path), total_pages, document_type
@@ -526,32 +527,32 @@ def export_metadata_to_excel(
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except:
+                except BaseException:
                     pass
             adjusted_width = min(max_length + 2, 50)  # Cap at 50
             worksheet.column_dimensions[column_letter].width = adjusted_width
 
-    print(f"\n{'='*70}")
-    print(f"✅ Metadata exported to Excel!")
-    print(f"{'='*70}")
+    print(f"\n{'=' * 70}")
+    print("✅ Metadata exported to Excel!")
+    print(f"{'=' * 70}")
     print(f"📁 File: {output_path}")
     print(f"📊 Exported {len(df)} documents")
 
     # Show cost summary
     cost_tracker.print_summary()
 
-    print(f"\n📋 Next steps:")
+    print("\n📋 Next steps:")
     print(f"  1. Open {output_path}")
-    print(f"  2. Review AI suggestions in each row")
-    print(f"  3. Edit any fields you want to change")
-    print(f"  4. Update 'Status' column:")
-    print(f"     - 'Approved' = Ready to ingest")
-    print(f"     - 'Skip' = Don't ingest this document")
-    print(f"  5. Save the Excel file")
+    print("  2. Review AI suggestions in each row")
+    print("  3. Edit any fields you want to change")
+    print("  4. Update 'Status' column:")
+    print("     - 'Approved' = Ready to ingest")
+    print("     - 'Skip' = Don't ingest this document")
+    print("  5. Save the Excel file")
     print(
         f"  6. Run: python scripts/ingest_documents.py --import-metadata {output_path}"
     )
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
 
 def import_metadata_from_excel(
@@ -577,12 +578,12 @@ def import_metadata_from_excel(
 
     if force:
         # FORCE MODE: Ingest all documents except those marked "Skip"
-        print(f"⚠️  FORCE MODE ENABLED: Ignoring Status column (except 'Skip')")
+        print("⚠️  FORCE MODE ENABLED: Ignoring Status column (except 'Skip')")
         approved_df = df[df["Status"] != "Skip"]
         skipped_df = df[df["Status"] == "Skip"]
         review_df = pd.DataFrame()  # Empty since we're forcing all non-skipped
 
-        print(f"📊 Document status:")
+        print("📊 Document status:")
         print(f"  🚀 Force ingesting: {len(approved_df)} (all except Skip)")
         print(f"  ⏭️  Skip: {len(skipped_df)}")
     else:
@@ -591,7 +592,7 @@ def import_metadata_from_excel(
         skipped_df = df[df["Status"] == "Skip"]
         review_df = df[df["Status"].isin(["Review"])]
 
-        print(f"📊 Document status:")
+        print("📊 Document status:")
         print(f"  ✅ Approved (will ingest): {len(approved_df)}")
         print(f"  ⏭️  Skip: {len(skipped_df)}")
         print(f"  ⚠️  Still in Review: {len(review_df)}")
@@ -601,7 +602,7 @@ def import_metadata_from_excel(
             print(
                 "These will NOT be ingested. Change status to 'Approved' to ingest them."
             )
-            print(f"   OR use --force flag to ingest ALL documents.\n")
+            print("   OR use --force flag to ingest ALL documents.\n")
 
         if len(approved_df) == 0:
             print("\n❌ No documents marked as 'Approved'. Nothing to ingest.")
@@ -609,14 +610,14 @@ def import_metadata_from_excel(
                 "Please edit the Excel file and set Status='Approved' for documents you want to ingest."
             )
             print(
-                f"   OR use --force flag to ingest ALL documents regardless of Status."
+                "   OR use --force flag to ingest ALL documents regardless of Status."
             )
             return
 
     # Confirm before ingesting
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"Ready to ingest {len(approved_df)} documents to Supabase")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
     if not auto_confirm:
         response = input("Continue? [y/N]: ").strip().lower()
@@ -678,10 +679,10 @@ def import_metadata_from_excel(
                     skipped_duplicates += 1
                     continue
 
-                print(f"\n{'='*70}")
+                print(f"\n{'=' * 70}")
                 print(f"Processing (Manual Entry): {vendor_name}")
                 print(f"Type: {document_type}")
-                print(f"{'='*70}")
+                print(f"{'=' * 70}")
 
                 # For manual entries, use the document summary as the "text"
                 full_text = row.get("document_summary", "")
@@ -702,10 +703,10 @@ def import_metadata_from_excel(
                     skipped_duplicates += 1
                     continue
 
-                print(f"\n{'='*70}")
+                print(f"\n{'=' * 70}")
                 print(f"Processing: {row['File_Name']}")
                 print(f"Type: {document_type}")
-                print(f"{'='*70}")
+                print(f"{'=' * 70}")
 
                 # Extract full text
                 print("📄 Extracting full document text...")
@@ -832,7 +833,8 @@ def import_metadata_from_excel(
             stats = get_chunking_stats(chunks)
             print(f"✅ Created {len(chunks)} chunks from {total_pages_processed} pages")
             print(
-                f"   Average: {stats['avg_words']:.0f} words, Range: {stats['min_words']}-{stats['max_words']} words"
+                f"   Average: {stats['avg_words']:.0f} words, Range: {
+                    stats['min_words']}-{stats['max_words']} words"
             )
 
             # Update total_chunks
@@ -923,7 +925,7 @@ def import_metadata_from_excel(
                 {"processing_status": "completed"}
             ).eq("id", document_id).execute()
 
-            print(f"✅ Document ingestion complete!\n")
+            print("✅ Document ingestion complete!\n")
 
             successful += 1
 
@@ -933,15 +935,15 @@ def import_metadata_from_excel(
             continue
 
     # Summary
-    print(f"\n{'='*70}")
-    print(f"📊 INGESTION SUMMARY")
-    print(f"{'='*70}")
+    print(f"\n{'=' * 70}")
+    print("📊 INGESTION SUMMARY")
+    print(f"{'=' * 70}")
     print(f"✅ Successfully ingested: {successful}")
     print(f"❌ Failed: {failed}")
     print(f"⏭️  Skipped duplicates (already in DB): {skipped_duplicates}")
     print(f"⏭️  Skipped (marked Skip): {len(skipped_df)}")
     print(f"⚠️  Not processed (still in Review): {len(review_df)}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
 
 def main():
@@ -971,7 +973,7 @@ def main():
     )
     parser.add_argument(
         "--force",
-        "-f",
+        "-",
         action="store_true",
         help="Ingest ALL documents regardless of Status (bypasses 'Approved' check)",
     )
@@ -996,7 +998,7 @@ def main():
             return
 
         # Find all PDFs and HTML files
-        pdf_files = list(folder_path.glob("*.pdf"))
+        pdf_files = list(folder_path.glob("*.pd"))
         html_files = list(folder_path.glob("*.html"))
         all_files = pdf_files + html_files
 
@@ -1005,7 +1007,10 @@ def main():
             return
 
         print(
-            f"\n🔍 Found {len(all_files)} files ({len(pdf_files)} PDFs, {len(html_files)} HTML)"
+            f"\n🔍 Found {
+                len(all_files)} files ({
+                len(pdf_files)} PDFs, {
+                len(html_files)} HTML)"
         )
 
         export_metadata_to_excel(all_files, args.type, args.export_metadata, args.limit)

@@ -6,6 +6,8 @@ This script converts source_file paths to Supabase storage URLs for WTD document
 that are missing their file_url values.
 """
 
+from core.database import get_supabase_client
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -13,9 +15,6 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
-
-from core.database import get_supabase_client
 
 load_dotenv()
 
@@ -63,7 +62,8 @@ def main():
 
         # Convert source_file path to Supabase storage URL
         # Example: knowledge_base/wa_tax_law/tax_decisions/2022/41WTD282.pdf
-        # Becomes: https://PROJECT.supabase.co/storage/v1/object/public/knowledge-base/wa_tax_law/tax_decisions/2022/41WTD282.pdf
+        # Becomes:
+        # https://PROJECT.supabase.co/storage/v1/object/public/knowledge-base/wa_tax_law/tax_decisions/2022/41WTD282.pdf
 
         # Remove leading slashes and 'knowledge_base/' prefix if it doesn't have it
         clean_path = source_file.lstrip("/")
@@ -97,11 +97,11 @@ def main():
             print(f"❌ Error updating {citation}: {e}")
             error_count += 1
 
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"✅ Successfully updated {updated_count} documents")
     if error_count > 0:
         print(f"⚠️  {error_count} documents had errors")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
 
 
 if __name__ == "__main__":

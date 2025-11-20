@@ -10,9 +10,9 @@ from pathlib import Path
 
 
 def print_header(text):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {text}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
 
 def check_command(command, name):

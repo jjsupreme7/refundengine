@@ -252,7 +252,7 @@ class UsageTracker:
             emoji = "🟢"
             severity = "INFO"
 
-        message = f"""{emoji} **Usage Pace Alert** - {severity}
+        message = """{emoji} **Usage Pace Alert** - {severity}
 
 **Today's Progress**:
 - Messages: {pace['messages_today']:,} / {pace['target_today']:,} ({pace['pace_percent']:.1f}%)
@@ -278,7 +278,7 @@ class UsageTracker:
         weekly = self.get_weekly_usage()
         today = self.get_daily_usage()
 
-        summary = f"""**Claude Max Usage Report**
+        summary = """**Claude Max Usage Report**
 
 **This Week** (Resets Tuesday):
 - {weekly['total_messages']:,} / {weekly['weekly_limit']:,} messages ({weekly['usage_percent']:.1f}%)

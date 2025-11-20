@@ -91,7 +91,7 @@ def main():
 
         try:
             # Use RPC to execute raw SQL
-            result = supabase.rpc("exec_sql", {"sql": stmt}).execute()
+            result = supabase.rpc("exec_sql", {"sql": stmt}).execute()  # noqa: F841
             success_count += 1
             print(f"✓ Statement {i}/{len(statements)}: {stmt_preview}")
         except Exception as e:
@@ -99,22 +99,21 @@ def main():
             try:
                 # For now, skip since Supabase client doesn't support raw DDL directly
                 # We'll use a different approach
-                print(
-                    f"⊙ Statement {i}/{len(statements)}: {stmt_preview} (skipped - needs direct DB access)"
-                )
-            except Exception as e2:
+                print(f"⊙ Statement {i}/{len(statements)
+                                         }: {stmt_preview} (skipped - needs direct DB access)")  # noqa: E501
+            except Exception as e2:  # noqa: F841
                 print(f"✗ Statement {i}/{len(statements)}: {stmt_preview}")
                 print(f"  Error: {str(e)[:100]}")
 
     print()
     print("=" * 50)
-    print(f"✅ Migration execution completed")
+    print("✅ Migration execution completed")
     print(f"   {success_count}/{len(statements)} statements executed")
     print("=" * 50)
     print()
     print("Note: Some DDL statements may require direct database access.")
     print(
-        "If indexes weren't created, run the migration SQL directly in Supabase SQL Editor:"
+        "If indexes weren't created, run the migration SQL directly in Supabase SQL Editor:"  # noqa: E501
     )
     print(f"  {migration_path}")
 

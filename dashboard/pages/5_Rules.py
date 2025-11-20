@@ -4,6 +4,8 @@ Rules Page - Tax rules and guidance
 Browse tax rules, regulations, and guidance documents.
 """
 
+from core.auth import require_authentication
+from dashboard.utils.data_loader import get_tax_rules
 import sys
 from pathlib import Path
 
@@ -12,7 +14,6 @@ import streamlit as st
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from dashboard.utils.data_loader import get_tax_rules
 
 # Page configuration
 st.set_page_config(
@@ -20,7 +21,6 @@ st.set_page_config(
 )
 
 # AUTHENTICATION
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -75,7 +75,7 @@ for category, category_rules in sorted(categories.items()):
     with st.expander(f"📂 {category} ({len(category_rules)})", expanded=True):
         for rule in category_rules:
             st.markdown(
-                f"""
+                """
             <div class="section-card">
                 <h4 style="margin: 0; color: #1a202c;">📄 {rule['title']}</h4>
                 <p style="margin-top: 0.5rem; color: #4a5568; font-size: 0.875rem;">

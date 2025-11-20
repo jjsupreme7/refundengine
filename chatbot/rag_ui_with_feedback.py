@@ -15,6 +15,12 @@ Usage:
     streamlit run chatbot/rag_ui_with_feedback.py --server.port 8503
 """
 
+from core.auth import require_authentication
+from core.law_version_handler import LawVersionHandler
+from core.feedback_system import FeedbackSystem
+from core.enhanced_rag import EnhancedRAG
+from openai import OpenAI
+from dotenv import load_dotenv
 import os
 import sys
 import uuid
@@ -27,17 +33,12 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
-from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 # OpenAI for answer generation
-from openai import OpenAI
 
 # Import Enhanced RAG, Feedback System, and Law Version Handler
-from core.enhanced_rag import EnhancedRAG
-from core.feedback_system import FeedbackSystem
-from core.law_version_handler import LawVersionHandler
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -51,7 +52,6 @@ st.set_page_config(
 )
 
 # AUTHENTICATION - Require login
-from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
@@ -127,7 +127,7 @@ if "feedback_system" not in st.session_state:
     st.session_state.feedback_system = FeedbackSystem()
 
 if "law_version_handler" not in st.session_state:
-    from core.database import get_supabase_client
+    from core.database import get_supabase_client  # noqa: E402
 
     st.session_state.law_version_handler = LawVersionHandler(get_supabase_client())
 
@@ -148,10 +148,11 @@ def generate_answer(
     results = search_result.get("results", [])
 
     if search_result["action"] == "USE_CACHED":
-        context = f"Using cached data:\n{results[0].get('data', {}) if results else 'No data'}"
+        context = f"Using cached data:\n{
+            results[0].get('data', {}) if results else 'No data'}"
     elif search_result["action"] == "USE_RULES":
         rule_data = results[0].get("data", {}) if results else {}
-        context = f"""Structured Tax Rule:
+        context = """Structured Tax Rule:
 Product Type: {rule_data.get('product_type', 'N/A')}
 Taxable: {rule_data.get('taxable', 'N/A')}
 Classification: {rule_data.get('tax_classification', 'N/A')}
@@ -236,7 +237,7 @@ RESPONSE FORMAT:
     messages.append(
         {
             "role": "user",
-            "content": f"""Context from Washington tax law:
+            "content": """Context from Washington tax law:
 {context}
 
 Question: {question}
@@ -507,7 +508,7 @@ def render_decision_info(search_result: Dict):
         conf_class = "confidence-low"
         conf_emoji = "🔴"
 
-    decision_html = f"""
+    decision_html = """
     <div class="decision-box">
         <strong>{action_icons.get(action, '🤖')} Decision: {action.replace('_', ' ').title()}</strong><br/>
         <strong>💭 Reasoning:</strong> {reasoning}<br/>
@@ -522,7 +523,7 @@ def render_decision_info(search_result: Dict):
 def get_file_url_for_document(document_id: str) -> tuple:
     """Fetch file_url and source_file from knowledge_documents table"""
     try:
-        from core.database import get_supabase_client
+        from core.database import get_supabase_client  # noqa: E402
 
         supabase = get_supabase_client()
 
@@ -562,13 +563,17 @@ def render_source(doc: Dict, index: int):
 
     # Prioritize file_url (online URL), fall back to source_file (local path)
     if file_url:
-        citation_display = f'<a href="{file_url}" target="_blank" style="color: #1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 🔗'
+        citation_display = f'<a href="{
+            # 1f77b4; text-decoration: none; font-weight: bold;">{citation}</a> 🔗'
+            file_url}" target="_blank" style="color:
     elif source_file:
-        # For local files, just show the citation and path (file:// URLs don't work reliably)
-        import os
+        # For local files, just show the citation and path (file:// URLs don't
+        # work reliably)
+        import os  # noqa: E402
 
         filename = os.path.basename(source_file)
-        citation_display = f'<span style="color: #1f77b4; font-weight: bold;">{citation}</span> 📄 <span style="color: #666; font-size: 0.85rem;">({filename})</span>'
+        citation_display = f'<span style="color: #1f77b4; font-weight: bold;">{
+            citation}</span> 📄 <span style="color: #666; font-size: 0.85rem;">({filename})</span>'
     else:
         citation_display = (
             f'<span style="color: #000; font-weight: bold;">{citation}</span>'
@@ -582,7 +587,7 @@ def render_source(doc: Dict, index: int):
     elif section:
         page_info = f'<span style="color: #666;"> - {section}</span>'
 
-    source_html = f"""
+    source_html = """
     <div class="source-box">
         [{index}] {citation_display}{page_info}
         <br/>
@@ -809,7 +814,7 @@ def main():
                             for i, doc in enumerate(old_law_sources, 1):
                                 if "citation" in doc:
                                     st.markdown(
-                                        f"<div style='border-left: 4px solid #dc3545; padding-left: 10px; margin-bottom: 10px;'>",
+                                        "<div style='border-left: 4px solid #dc3545; padding-left: 10px; margin-bottom: 10px;'>",
                                         unsafe_allow_html=True,
                                     )
                                     render_source(doc, i)
@@ -825,7 +830,7 @@ def main():
                             for i, doc in enumerate(new_law_sources, 1):
                                 if "citation" in doc:
                                     st.markdown(
-                                        f"<div style='border-left: 4px solid #28a745; padding-left: 10px; margin-bottom: 10px;'>",
+                                        "<div style='border-left: 4px solid #28a745; padding-left: 10px; margin-bottom: 10px;'>",
                                         unsafe_allow_html=True,
                                     )
                                     render_source(doc, i)
@@ -860,7 +865,8 @@ def main():
                         "industries": industries if industries else None,
                     }
 
-                # For compare mode, retrieve MORE results to ensure we get both old and new law
+                # For compare mode, retrieve MORE results to ensure we get both old and
+                # new law
                 search_top_k = top_k * 3 if law_version == "compare" else top_k
 
                 # Use enhanced RAG with decision-making and filters
@@ -985,7 +991,7 @@ def main():
                             if "citation" in doc:
                                 # Add visual indicator that this is old law
                                 st.markdown(
-                                    f"<div style='border-left: 4px solid #dc3545; padding-left: 10px; margin-bottom: 10px;'>",
+                                    "<div style='border-left: 4px solid #dc3545; padding-left: 10px; margin-bottom: 10px;'>",
                                     unsafe_allow_html=True,
                                 )
                                 render_source(doc, i)
@@ -1002,7 +1008,7 @@ def main():
                             if "citation" in doc:
                                 # Add visual indicator that this is new law
                                 st.markdown(
-                                    f"<div style='border-left: 4px solid #28a745; padding-left: 10px; margin-bottom: 10px;'>",
+                                    "<div style='border-left: 4px solid #28a745; padding-left: 10px; margin-bottom: 10px;'>",
                                     unsafe_allow_html=True,
                                 )
                                 render_source(doc, i)
@@ -1023,7 +1029,8 @@ def main():
 
                     if comparison["refund_implications"]:
                         st.warning(
-                            f"**Refund Implications:** {comparison['refund_implications']}"
+                            f"**Refund Implications:** {
+                                comparison['refund_implications']}"
                         )
 
         elif search_result.get("results"):

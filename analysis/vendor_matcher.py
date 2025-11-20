@@ -154,7 +154,8 @@ class VendorMatcher:
                 .execute()
             )
 
-            # Manual filtering and scoring (Supabase client may not support array overlap directly)
+            # Manual filtering and scoring (Supabase client may not support array
+            # overlap directly)
             matches = []
             for vendor in result.data:
                 if not vendor.get("vendor_keywords"):

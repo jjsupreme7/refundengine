@@ -4,7 +4,7 @@ Clean Database Script
 Clears old data from Supabase to start fresh
 """
 
-import os
+from core.database import get_supabase_client
 import sys
 from pathlib import Path
 
@@ -19,7 +19,6 @@ except ImportError:
 
 # Import centralized Supabase client
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 

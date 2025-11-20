@@ -214,7 +214,7 @@ class TestDocumentGenerator:
         total = subtotal + tax_amount
 
         # Generate PDF
-        invoice_filename = f"{invoice_number:04d}.pdf"
+        invoice_filename = f"{invoice_number:04d}.pd"
         invoice_path = self.invoices_dir / invoice_filename
 
         doc = SimpleDocTemplate(str(invoice_path), pagesize=letter)
@@ -223,14 +223,15 @@ class TestDocumentGenerator:
 
         # Company header
         header = Paragraph(
-            f"<b>{scenario['vendor']}</b><br/>123 Business Way<br/>Business City, ST 12345<br/>Phone: (555) 123-4567",
+            f"<b>{
+                scenario['vendor']}</b><br/>123 Business Way<br/>Business City, ST 12345<br/>Phone: (555) 123-4567",
             styles["Normal"],
         )
         story.append(header)
         story.append(Spacer(1, 0.3 * inch))
 
         # Invoice title
-        title = Paragraph(f"<b>INVOICE</b>", styles["Title"])
+        title = Paragraph("<b>INVOICE</b>", styles["Title"])
         story.append(title)
         story.append(Spacer(1, 0.2 * inch))
 
@@ -291,7 +292,7 @@ class TestDocumentGenerator:
         # Totals
         totals = [
             ["", "", "", "Subtotal:", f"${subtotal:,.2f}"],
-            ["", "", "", f"Sales Tax ({tax_rate*100:.2f}%):", f"${tax_amount:,.2f}"],
+            ["", "", "", f"Sales Tax ({tax_rate * 100:.2f}%):", f"${tax_amount:,.2f}"],
             ["", "", "", "Total Due:", f"${total:,.2f}"],
         ]
 
@@ -339,7 +340,7 @@ class TestDocumentGenerator:
         vendor_short = (
             scenario["vendor"].split()[0].upper().replace(",", "").replace(".", "")
         )
-        po_filename = f"PO_{po_number:05d}_{vendor_short}.pdf"
+        po_filename = f"PO_{po_number:05d}_{vendor_short}.pd"
         po_path = self.pos_dir / po_filename
 
         doc = SimpleDocTemplate(str(po_path), pagesize=letter)
@@ -355,7 +356,7 @@ class TestDocumentGenerator:
         story.append(Spacer(1, 0.3 * inch))
 
         # PO title
-        title = Paragraph(f"<b>PURCHASE ORDER</b>", styles["Title"])
+        title = Paragraph("<b>PURCHASE ORDER</b>", styles["Title"])
         story.append(title)
         story.append(Spacer(1, 0.2 * inch))
 
@@ -380,7 +381,8 @@ class TestDocumentGenerator:
 
         # Vendor info
         vendor_info = Paragraph(
-            f"<b>Vendor:</b><br/>{scenario['vendor']}<br/>123 Business Way<br/>Business City, ST 12345",
+            f"<b>Vendor:</b><br/>{scenario['vendor']
+                                  }<br/>123 Business Way<br/>Business City, ST 12345",
             styles["Normal"],
         )
         story.append(vendor_info)
@@ -493,7 +495,7 @@ class TestDocumentGenerator:
                     try:
                         if len(str(cell.value)) > max_length:
                             max_length = len(str(cell.value))
-                    except:
+                    except BaseException:
                         pass
                 adjusted_width = min(max_length + 2, 50)
                 worksheet.column_dimensions[column_letter].width = adjusted_width
@@ -535,7 +537,7 @@ class TestDocumentGenerator:
                     ),
                     "Line_Item_Number": 1,
                     "Tax_Remitted": tax_amount,
-                    "Tax_Percentage_Charged": f"{scenario['tax_rate']*100:.1f}%",
+                    "Tax_Percentage_Charged": f"{scenario['tax_rate'] * 100:.1f}%",
                     "Line_Item_Amount": scenario["amount"],
                     "Total_Amount": total,
                     "Invoice_Files": invoice_file,
@@ -562,10 +564,12 @@ class TestDocumentGenerator:
         print()
         print(f"📁 Output directory: {self.output_dir}")
         print(
-            f"📄 Invoices: {len([s for s in self.test_scenarios])} files in {self.invoices_dir}"
+            f"📄 Invoices: {len([s for s in self.test_scenarios])
+                           } files in {self.invoices_dir}"
         )
         print(
-            f"📄 Purchase Orders: {len([s for s in self.test_scenarios if s.get('has_po')])} files in {self.pos_dir}"
+            f"📄 Purchase Orders: {len([s for s in self.test_scenarios if s.get('has_po')])} files in {
+                self.pos_dir}"
         )
         print(f"📊 Claim Sheet: {self.output_dir / 'Refund_Claim_Sheet_Test.xlsx'}")
         print()

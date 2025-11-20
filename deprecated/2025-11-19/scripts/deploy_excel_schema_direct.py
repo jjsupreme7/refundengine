@@ -5,6 +5,7 @@ Deploy Excel Versioning Schema using psycopg2
 Executes SQL migrations directly against PostgreSQL database
 """
 
+from dotenv import load_dotenv
 import os
 import sys
 from pathlib import Path
@@ -12,7 +13,6 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dotenv import load_dotenv
 
 # Load environment
 load_dotenv()
@@ -23,7 +23,7 @@ print()
 
 # Check for psycopg2
 try:
-    import psycopg2
+    import psycopg2  # noqa: E402
 
     print("✅ psycopg2 found")
 except ImportError:
@@ -49,12 +49,12 @@ project_id = supabase_url.replace("https://", "").split(".")[0]
 
 # Build connection string
 # Supabase uses pooler: aws-0-us-west-1.pooler.supabase.com
-db_host = f"aws-0-us-west-1.pooler.supabase.com"
+db_host = "aws-0-us-west-1.pooler.supabase.com"
 db_name = "postgres"
 db_user = f"postgres.{project_id}"
 db_port = "5432"
 
-print(f"📡 Connecting to database...")
+print("📡 Connecting to database...")
 print(f"   Host: {db_host}")
 print(f"   Database: {db_name}")
 print(f"   User: {db_user}")
@@ -130,7 +130,7 @@ functions_to_check = ["acquire_file_lock", "release_file_lock", "create_file_ver
 for func in functions_to_check:
     try:
         cursor.execute(
-            f"""
+            """
             SELECT COUNT(*) FROM pg_proc
             WHERE proname = '{func}'
         """

@@ -78,11 +78,13 @@ class Agent:
         """
         focus_text = ""
         if focus_areas:
-            focus_text = f"\n\nFocus on these areas:\n" + "\n".join(
+            focus_text = "\n\nFocus on these areas:\n" + "\n".join(
                 f"- {area}" for area in focus_areas
             )
 
-        default_system = f"You are {self.name}, an AI agent on the {self.team}. Provide thorough, technical analysis."
+        default_system = f"You are {
+            self.name}, an AI agent on the {
+            self.team}. Provide thorough, technical analysis."
 
         message = self.client.messages.create(
             model="claude-sonnet-4-20250514",
@@ -108,7 +110,7 @@ class Agent:
         Returns:
             Agent's response
         """
-        prompt = f"""Context: {context}
+        prompt = """Context: {context}
 
 Another agent said:
 {other_agent_input}
@@ -118,7 +120,8 @@ Another agent said:
         response = self.client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=2000,
-            system=f"You are {self.name} discussing with your team. Be concise but thorough.",
+            system=f"You are {
+                self.name} discussing with your team. Be concise but thorough.",
             messages=[{"role": "user", "content": prompt}],
         )
 

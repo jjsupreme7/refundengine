@@ -105,7 +105,7 @@ def post_approval_needed(
     """
     priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(priority, "⚪")
 
-    message = f"""{priority_emoji} **New Proposal Needs Review**
+    message = """{priority_emoji} **New Proposal Needs Review**
 
 **Title**: {title}
 **ID**: `{proposal_id}`
@@ -128,7 +128,7 @@ def post_daily_digest_summary(stats: dict) -> bool:
     Returns:
         True if successful
     """
-    message = f"""📊 **Daily Agent Summary** - {datetime.now().strftime('%b %d, %Y')}
+    message = """📊 **Daily Agent Summary** - {datetime.now().strftime('%b %d, %Y')}
 
 🕒 **Agent Hours**: {stats.get('agent_hours', 0)} hours
 💬 **Messages Exchanged**: {stats.get('messages_exchanged', 0)}
@@ -155,5 +155,6 @@ def test_webhook(channel: str) -> bool:
     Returns:
         True if webhook works
     """
-    test_message = f"✅ Webhook test successful for channel '{channel}' at {datetime.now().strftime('%I:%M %p')}"
+    test_message = f"✅ Webhook test successful for channel '{
+        channel}' at {datetime.now().strftime('%I:%M %p')}"
     return post_to_discord(channel, test_message, username="Webhook Tester")

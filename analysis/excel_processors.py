@@ -154,7 +154,7 @@ class DenodoSalesTaxProcessor:
 
         if len(missing) == len(key_columns_to_check):
             warnings.warn(
-                f"This doesn't look like a Denodo sales tax file. "
+                "This doesn't look like a Denodo sales tax file. "
                 f"Missing expected columns: {missing}\n"
                 f"Available columns: {list(df.columns[:10])}..."
             )
@@ -237,7 +237,9 @@ class DenodoSalesTaxProcessor:
             filtered = filtered[filtered["hwste_tax_amount_lc"] > 0]
 
         print(
-            f"Filtered to {len(filtered)} potential refund opportunities (from {len(df)} total)"
+            f"Filtered to {
+                len(filtered)} potential refund opportunities (from {
+                len(df)} total)"
         )
         return filtered
 
@@ -348,7 +350,7 @@ class UseTaxProcessor:
 
         if len(missing) == len(key_columns_to_check):
             warnings.warn(
-                f"This doesn't look like a Use Tax file. "
+                "This doesn't look like a Use Tax file. "
                 f"Missing expected columns: {missing}\n"
                 f"Available columns: {list(df.columns[:10])}..."
             )

@@ -73,7 +73,8 @@ class KnowledgeCurationTeam:
 
         post_to_discord(
             "knowledge",
-            f"📚 **Knowledge Curation Team** - Starting curation cycle at {start_time.strftime('%I:%M %p')}",
+            f"📚 **Knowledge Curation Team** - Starting curation cycle at {
+                start_time.strftime('%I:%M %p')}",
             username="Knowledge Curation Team",
         )
 
@@ -111,7 +112,9 @@ class KnowledgeCurationTeam:
 
         post_to_discord(
             "knowledge",
-            f"✅ **Curation Complete** - Generated {len(proposals)} proposals in {duration:.1f}s",
+            f"✅ **Curation Complete** - Generated {
+                len(proposals)} proposals in {
+                duration:.1f}s",
             username="Knowledge Curation Team",
         )
 
@@ -430,7 +433,7 @@ Return findings in JSON format:
             "cross_references": cross_refs,
         }
 
-        discussion_prompt = f"""You are participating in a Knowledge Curation Team discussion.
+        discussion_prompt = """You are participating in a Knowledge Curation Team discussion.
 
 Findings from team members:
 
@@ -487,7 +490,7 @@ Focus on high-impact improvements. Limit to top 5 proposals.
             # Post to Discord
             post_to_discord(
                 "knowledge",
-                f"💬 **Team Discussion** - Reviewing findings...",
+                "💬 **Team Discussion** - Reviewing findings...",
                 username="Knowledge Curation Team",
             )
 
@@ -525,7 +528,7 @@ Focus on high-impact improvements. Limit to top 5 proposals.
 
             post_to_discord(
                 "approvals",
-                f"""📚 **New Proposal from Knowledge Curation Team**
+                """📚 **New Proposal from Knowledge Curation Team**
 
 **Title**: {proposal_data['title']}
 **Type**: {proposal_data.get('type', 'unknown')}

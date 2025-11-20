@@ -124,13 +124,25 @@ def split_excel_by_tax_type(
     summary = get_classification_summary(df)
     print("\n📈 Classification Summary:")
     print(
-        f"   Sales Tax:    {summary['sales_tax']:>4} transactions ({summary['sales_tax']/summary['total']*100:.1f}%)"
+        f"   Sales Tax:    {
+            summary['sales_tax']:>4} transactions ({
+            summary['sales_tax'] /
+            summary['total'] *
+            100:.1f}%)"
     )
     print(
-        f"   Use Tax:      {summary['use_tax']:>4} transactions ({summary['use_tax']/summary['total']*100:.1f}%)"
+        f"   Use Tax:      {
+            summary['use_tax']:>4} transactions ({
+            summary['use_tax'] /
+            summary['total'] *
+            100:.1f}%)"
     )
     print(
-        f"   Needs Review: {summary['needs_review']:>4} transactions ({summary['needs_review']/summary['total']*100:.1f}%)"
+        f"   Needs Review: {
+            summary['needs_review']:>4} transactions ({
+            summary['needs_review'] /
+            summary['total'] *
+            100:.1f}%)"
     )
     print(f"   Total:        {summary['total']:>4} transactions\n")
 
@@ -154,13 +166,13 @@ def split_excel_by_tax_type(
         sales_df.to_excel(sales_file, index=False)
         print(f"   ✅ Sales Tax: {len(sales_df)} transactions → {sales_file}")
     else:
-        print(f"   ⚠️  No sales tax transactions found")
+        print("   ⚠️  No sales tax transactions found")
 
     if len(use_df) > 0:
         use_df.to_excel(use_file, index=False)
         print(f"   ✅ Use Tax: {len(use_df)} transactions → {use_file}")
     else:
-        print(f"   ⚠️  No use tax transactions found")
+        print("   ⚠️  No use tax transactions found")
 
     if len(needs_review_df) > 0:
         needs_review_df.to_excel(review_file, index=False)
@@ -168,10 +180,11 @@ def split_excel_by_tax_type(
             f"   ⚠️  Needs Review: {len(needs_review_df)} transactions → {review_file}"
         )
         print(
-            f"\n⚠️  WARNING: {len(needs_review_df)} transactions require manual classification"
+            f"\n⚠️  WARNING: {
+                len(needs_review_df)} transactions require manual classification"
         )
     else:
-        print(f"   ✅ No transactions need manual review")
+        print("   ✅ No transactions need manual review")
 
     print("\n✅ Split complete!")
 

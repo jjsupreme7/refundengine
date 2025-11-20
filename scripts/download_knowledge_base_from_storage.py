@@ -8,7 +8,7 @@ Usage:
     python scripts/download_knowledge_base_from_storage.py
 """
 
-import os
+from core.database import get_supabase_client
 import sys
 from pathlib import Path
 
@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 load_dotenv()
 
 # Import centralized Supabase client
-from core.database import get_supabase_client
 
 supabase = get_supabase_client()
 
@@ -81,7 +80,7 @@ def download_knowledge_base():
                 failed_count += 1
 
         print("\n" + "=" * 80)
-        print(f"\n✅ Download complete!")
+        print("\n✅ Download complete!")
         print(f"   Downloaded: {downloaded_count}")
         print(f"   Failed: {failed_count}")
         print(f"   Total: {len(files)}")
@@ -124,7 +123,7 @@ if __name__ == "__main__":
     print("🚀 Knowledge Base Download from Supabase Storage")
     print("=" * 80)
 
-    import argparse
+    import argparse  # noqa: E402
 
     parser = argparse.ArgumentParser(
         description="Download knowledge base from Supabase Storage"
