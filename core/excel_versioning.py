@@ -13,6 +13,7 @@ Key Features:
 Usage:
     from core.excel_versioning import ExcelVersionManager
 
+    # Uses centralized Supabase client automatically
     manager = ExcelVersionManager()
 
     # Upload new file
@@ -44,26 +45,21 @@ import openpyxl
 import pandas as pd
 from openpyxl import load_workbook
 from storage3.exceptions import StorageApiError
-from supabase import Client, create_client
+from supabase import Client
+
+from core.database import get_supabase_client
 
 
 class ExcelVersionManager:
     """Manages Excel file versioning in Supabase"""
 
-    def __init__(self, supabase_url: str = None, supabase_key: str = None):
+    def __init__(self, supabase_client: Client = None):
         """Initialize the version manager
 
         Args:
-            supabase_url: Supabase project URL (defaults to env var)
-            supabase_key: Supabase service role key (defaults to env var)
+            supabase_client: Optional Supabase client (defaults to centralized singleton)
         """
-        self.supabase_url = supabase_url or os.getenv("SUPABASE_URL")
-        self.supabase_key = supabase_key or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-
-        if not self.supabase_url or not self.supabase_key:
-            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
-
-        self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
+        self.supabase: Client = supabase_client or get_supabase_client()
 
     def calculate_file_hash(self, file_path: str) -> str:
         """Calculate SHA256 hash of file

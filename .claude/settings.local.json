@@ -151,9 +151,11 @@
       "Bash(pmset:*)",
       "Bash(bash scripts/deploy_historical_knowledge_schema.sh:*)",
       "Bash(bash:*)",
-      "Bash(autopep8:*)"
+      "Bash(autopep8:*)",
+      "Bash(sort:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "spinnerTipsEnabled": true
 }

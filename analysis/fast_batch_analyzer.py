@@ -1,15 +1,27 @@
 """
-Fast Batch Refund Analyzer
+Fast Batch Refund Analyzer (Enhanced)
 
-Ultra-fast invoice analysis using:
+High-quality, efficient invoice analysis using:
+- EnhancedRAG: Corrective RAG + reranking + query expansion
+- ExcelFileWatcher: Intelligent row-level change tracking
 - Smart caching (vendor DB, invoice extraction, RAG results)
 - Batch AI analysis (20 items per API call)
-- Async processing where possible
 - State-aware legal research
 
+Key Features:
+- Only analyzes new/changed rows (skips already-analyzed data)
+- Database-backed tracking using file and row hashes
+- Higher quality legal research with AI-powered reranking
+- Maintains fast batch processing for efficiency
+
 Usage:
-    python scripts/5_fast_batch_analyzer.py \\
+    # Analyze only changed rows
+    python analysis/fast_batch_analyzer.py \\
         --excel "Master Refunds.xlsx" --state washington
+
+    # Test mode (force re-analysis of first N rows)
+    python analysis/fast_batch_analyzer.py \\
+        --excel "Master Refunds.xlsx" --state washington --limit 10
 """
 
 import argparse
@@ -30,6 +42,8 @@ from dotenv import load_dotenv  # noqa: E402
 from openai import OpenAI  # noqa: E402
 
 from core.database import get_supabase_client  # noqa: E402
+from core.enhanced_rag import EnhancedRAG  # noqa: E402
+from core.excel_file_watcher import ExcelFileWatcher  # noqa: E402
 from scripts.utils.smart_cache import SmartCache  # noqa: E402
 
 # Load environment
@@ -41,6 +55,9 @@ supabase = get_supabase_client()
 
 # Initialize cache
 cache = SmartCache()
+
+# Initialize EnhancedRAG
+enhanced_rag = EnhancedRAG()
 
 
 def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
@@ -152,7 +169,9 @@ def categorize_product(description: str, vendor_info: Optional[Dict] = None) -> 
 
 def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
     """
-    Search legal documents for category (with caching)
+    Search legal documents for category using EnhancedRAG (with caching)
+
+    Uses corrective RAG + reranking for higher quality results.
     """
     # Check cache
     if cached := cache.get_rag_results(category, state):
@@ -185,27 +204,27 @@ def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
 
         query_text = category_queries.get(category, f"Washington tax law {category}")
 
-        # Get embedding
-        response = openai_client.embeddings.create(
-            model="text-embedding-ada-002", input=query_text
+        # Use Agentic RAG: Intelligently decides whether/how to retrieve
+        # - Checks for cached results (high confidence) → USE_CACHED (10ms, $0)
+        # - Checks for structured rules → USE_RULES (50ms, $0.01)
+        # - Simple queries → RETRIEVE_SIMPLE (1.5s, $0.008)
+        # - Complex queries → RETRIEVE_ENHANCED (8-12s, $0.010)
+        # This saves 60-80% on repeated vendor analysis
+        result = enhanced_rag.search_with_decision(
+            query=query_text,
+            context={
+                "product_type": category,
+            }
         )
-        query_embedding = response.data[0].embedding
 
-        # Search Supabase using new search_tax_law function
-        # NOTE: State filtering not yet implemented in new schema
-        results = supabase.rpc(
-            "search_tax_law",
-            {
-                "query_embedding": query_embedding,
-                "match_threshold": 0.7,
-                "match_count": 10,
-                "law_category_filter": None,
-                "tax_types_filter": None,
-                "industries_filter": None,
-            },
-        ).execute()
+        # Extract results from decision response
+        legal_docs = result.get("results", [])
 
-        legal_docs = results.data or []
+        # Log the decision made by agentic RAG
+        action = result.get("action", "UNKNOWN")
+        cost_saved = result.get("cost_saved", 0)
+        confidence = result.get("confidence", 0)
+        print(f"    🤖 Agentic RAG decision: {action} (confidence: {confidence:.2f}, saved: ${cost_saved:.4f})")
 
         # Cache results
         cache.set_rag_results(category, legal_docs, state)
@@ -336,9 +355,30 @@ def main():
     # Load Excel
     print("\n📂 Loading Excel...")
     df = pd.read_excel(args.excel)
-    if args.limit:
+    original_row_count = len(df)
+
+    # Initialize ExcelFileWatcher for intelligent row tracking
+    print("\n🔍 Checking for changes...")
+    watcher = ExcelFileWatcher()
+
+    # Get changed rows (new or modified rows only)
+    if not args.limit:
+        changed_rows = watcher.get_changed_rows(args.excel, df)
+
+        if changed_rows:
+            changed_indices = [idx for idx, _, _ in changed_rows]
+            df = df.loc[changed_indices]
+            print(f"✓ Found {len(changed_rows)} changed/new rows out of {original_row_count} total")
+            print(f"  Skipping {original_row_count - len(changed_rows)} already-analyzed rows")
+        else:
+            print("✓ No changes detected - all rows already analyzed!")
+            print("\n💡 Tip: Use --limit flag to force re-analysis for testing")
+            sys.exit(0)
+    else:
         df = df.head(args.limit)
-    print(f"✓ Loaded {len(df)} rows")
+        print(f"✓ Test mode: Processing first {args.limit} rows (change tracking disabled)")
+
+    print(f"✓ Analyzing {len(df)} rows")
 
     # Get unique invoices
     invoice_files = df["Inv_1_File"].dropna().unique()
@@ -545,6 +585,21 @@ def main():
         args.output = str(Path(args.excel).parent / f"{base_name} - Analyzed.xlsx")
 
     df.to_excel(args.output, index=False)
+
+    # Update tracking database if not in test mode
+    if not args.limit:
+        print("\n📊 Updating tracking database...")
+        watcher.update_file_tracking(args.excel)
+
+        # Update row tracking for successfully analyzed rows
+        for i, queue_item in enumerate(analysis_queue):
+            if i < matched_count:  # Only update successfully analyzed rows
+                idx = queue_item["excel_row_idx"]
+                if idx in df.index:
+                    row_data = df.loc[idx].to_dict()
+                    watcher.update_row_tracking(args.excel, idx, row_data)
+
+        print("✓ Tracking database updated")
 
     print("\n✅ ANALYSIS COMPLETE!")
     print("=" * 70)

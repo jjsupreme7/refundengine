@@ -1,247 +1,384 @@
-# 💬 Washington Tax Law Chatbot
+# 💬 Washington Tax Law Chatbot with Learning System
 
-Simple, clean chatbot interface for querying Washington State tax law using RAG (Retrieval-Augmented Generation).
+Interactive chatbot for querying Washington State tax law using EnhancedRAG with continuous learning from user feedback.
+
+## 🎯 Current System (Simplified)
+
+The chatbot folder has been streamlined to **3 essential files**:
+
+```
+chatbot/
+├── rag_ui_with_feedback.py    # Main chat interface (START HERE)
+├── feedback_analytics.py       # Analytics dashboard
+└── document_server.py          # Serves PDF/HTML documents
+```
+
+---
 
 ## 🚀 Quick Start
 
-### **Web UI (Recommended)**
+### **Main Chatbot (Recommended)**
 ```bash
-# Start both document server and web UI
-./scripts/start_web_chatbot.sh
+# Start the main chatbot with feedback & learning
+streamlit run chatbot/rag_ui_with_feedback.py --server.port 8503
 
-# Or manually:
+# Then open: http://localhost:8503
+```
+
+### **With Document Links (Full Experience)**
+```bash
 # Terminal 1: Start document server
 python chatbot/document_server.py
 
-# Terminal 2: Start Streamlit UI
-streamlit run chatbot/web_chat.py
+# Terminal 2: Start chatbot
+streamlit run chatbot/rag_ui_with_feedback.py --server.port 8503
 ```
 
-Then open your browser to: **http://localhost:8501**
-
-### **CLI (Terminal-based)**
+### **Analytics Dashboard (Optional)**
 ```bash
-python chatbot/simple_chat.py
+# View feedback trends and learning progress
+streamlit run chatbot/feedback_analytics.py --server.port 8504
+
+# Then open: http://localhost:8504
 ```
 
-## ✨ Features
+---
 
-### **Smart Search**
-- Semantic search using OpenAI embeddings
-- RAG-powered answers citing actual tax law
-- Returns relevant WAC/RCW references with quotes
+## 📁 File Descriptions
 
-### **Clickable Source Links** ✨ NEW
-- Direct links to official WAC/RCW documents on legs.wa.gov
-- Click to view original source documents
-- PDF files served via local document server
-- Easy verification and deeper research
+### `rag_ui_with_feedback.py` ⭐ **Main Chatbot**
+**Purpose**: Interactive chat interface with feedback collection and continuous learning
 
-### **Advanced Filtering**
-Filter search results by:
-- **Law Category** (software, digital_goods, exemption, etc.)
-- **Tax Types** (sales tax, use tax, B&O tax)
-- **Industries** (retail, technology, general)
-- **Citation** (specific WAC/RCW reference)
+**Features**:
+- ✅ **EnhancedRAG**: Corrective RAG + AI reranking + query expansion + hybrid search
+- ✅ **Feedback Collection**: Thumbs up/down, star ratings, detailed suggestions
+- ✅ **Continuous Learning**: System improves from user corrections
+- ✅ **Clickable Source Links**: Direct links to WAC/RCW documents
+- ✅ **Advanced Filtering**: Law category, tax types, industries, citation
+- ✅ **Law Version Comparison**: Compare old law vs new ESSB 5814 (Oct 2025)
+- ✅ **Authentication**: Login required (configured in core/auth.py)
 
-### **Clean UI**
-- Clear, structured output
-- Easy-to-read answers with citations
-- Interactive filter management
-- Conversation history
+**Uses**:
+- `core/enhanced_rag.py` - High-quality RAG system
+- `core/feedback_system.py` - Learning engine
+- `core/law_version_handler.py` - Law version comparison
+- `core/auth.py` - User authentication
 
-## 📖 How to Use
+**Feedback Types**:
+- 👍 **Thumbs Up** - Adds to golden Q&A dataset
+- 👎 **Thumbs Down** - Triggers improvement analysis
+- ⭐ **Star Ratings** (1-5 stars)
+- ✍️ **Detailed Feedback**:
+  - Suggest better answer
+  - Prefer different citations
+  - Request different answer structure
+  - Free-form comments
 
-### **Ask Questions**
+---
 
-Just type naturally:
-```
-💬 You: How are digital products taxed in Washington?
-💬 You: What is the tax treatment of SaaS?
-💬 You: Are cloud services subject to sales tax?
-```
+### `feedback_analytics.py` 📊 **Analytics Dashboard**
+**Purpose**: Visualize feedback trends and learning progress
 
-### **Commands**
+**Shows**:
+- 📈 Feedback over time (charts)
+- ⭐ Rating distributions
+- 📚 Most common questions
+- 🧠 Learned improvements
+- 💎 Golden Q&A pairs
+- 📖 Citation preferences
 
-| Command | Description |
-|---------|-------------|
-| `/filter` | Manage search filters |
-| `/stats` | View knowledge base statistics |
-| `/clear` | Clear conversation history |
-| `/help` | Show help |
-| `/quit` | Exit |
-
-### **Using Filters**
-
-1. Type `/filter`
-2. Choose filter type:
-   - Law category (e.g., "software", "digital_goods")
-   - Tax types (e.g., "sales tax, use tax")
-   - Industries (e.g., "retail, technology")
-   - Citation (e.g., "WAC 458-20-15503")
-3. Enter value(s)
-4. Ask your question - results will be filtered!
-
-**Example workflow:**
-```
-💬 You: /filter
-  → Choose option 2 (tax_types)
-  → Enter: sales tax, use tax
-  → ✅ Filter set
-
-💬 You: How are SaaS products taxed?
-  (Only searches chunks tagged with sales tax or use tax)
+**Usage**:
+```bash
+streamlit run chatbot/feedback_analytics.py --server.port 8504
 ```
 
-## 🎯 Example Questions
+---
 
-**General Questions:**
-- How are digital products taxed in Washington?
-- What is the definition of digital automated services?
-- Are SaaS products subject to sales tax?
+### `document_server.py` 🗄️ **Document Server**
+**Purpose**: Serves PDF and HTML documents for clickable source links
 
-**Specific Questions:**
-- What exemptions exist for software development?
-- How do I determine if a product is taxable?
-- What is the sourcing rule for digital products?
+**Features**:
+- Serves WAC/RCW HTML files from legs.wa.gov
+- Serves local PDF documents
+- Security: Path validation, prevents directory traversal
+- Runs on: `http://localhost:5001`
 
-**With Filters:**
+**Endpoints**:
+- Health check: `http://localhost:5001/health`
+- Documents: `http://localhost:5001/documents/<filename>`
+
+**Usage**:
+```bash
+python chatbot/document_server.py
 ```
-/filter → Set tax_types: "sales tax"
-💬 How is retail sales tax calculated?
+
+---
+
+## 🧠 How the Learning System Works
+
+### The Flow:
+
+```
+User asks question
+    ↓
+rag_ui_with_feedback.py
+    ↓
+EnhancedRAG searches knowledge base
+    ↓
+AI generates answer with citations
+    ↓
+User gives feedback (👍 👎 ⭐ ✍️)
+    ↓
+FeedbackSystem (core/feedback_system.py)
+    ├─ Saves to database
+    ├─ Analyzes patterns
+    ├─ Learns improvements
+    └─ Updates preferences
+    ↓
+Database tables updated:
+- user_feedback
+- learned_improvements
+- golden_qa_pairs
+- citation_preferences
+- answer_templates
+    ↓
+Next question uses learned knowledge:
+    ├─ Better citation selection
+    ├─ Better answer structure
+    └─ References golden examples
 ```
 
-## 📊 Sample Output
+### What Each Feedback Type Does:
 
+**👍 Thumbs Up (4-5 stars)**:
+- Adds Q&A pair to `golden_qa_pairs` table
+- Future answers reference these golden examples
+- "This is the correct way to answer this type of question"
+
+**👎 Thumbs Down / Better Answer**:
+- AI analyzes what's wrong
+- Extracts improvement patterns
+- Stores in `learned_improvements` table
+- Future similar questions use learned approach
+
+**Better Citations**:
+- Tracks which WAC/RCW citations users prefer for topics
+- Updates `citation_preferences` table
+- Future searches prioritize preferred citations
+- Example: Users suggest "WAC 458-20-15502" for SaaS → system learns to prioritize it
+
+**Better Structure**:
+- Learns how users want answers formatted
+- Creates templates in `answer_templates` table
+- Example: For "Is X taxable?" questions → 1) Yes/No, 2) Legal basis, 3) Exceptions
+
+---
+
+## 🎯 Example Usage
+
+### Basic Chat:
 ```
-💬 You: How are digital products taxed in Washington?
+You: How are SaaS products taxed in Washington?
 
 🔍 Searching knowledge base...
 ✅ Found 3 relevant sources
 
 💬 ANSWER:
-
-     Digital products in Washington are generally subject to retail sales
-     tax or use tax. According to WAC 458-20-15503, digital products include
-     "digital goods, digital codes, and digital automated services that are
-     transferred electronically."
-
-     The tax treatment depends on:
-     1. Whether the product is considered a "digital good" vs. "digital
-        automated service"
-     2. The location of the buyer (sourcing rules apply)
-     3. Whether any exemptions apply
-
-     Specific exemptions may exist for certain industries or use cases.
+SaaS (Software as a Service) products are generally subject to
+Washington sales tax as "digital automated services" under
+WAC 458-20-15502. However, multi-point use (MPU) allocation
+may reduce the taxable amount if used across multiple states.
 
 📚 SOURCES:
-     [1] WAC 458-20-15503 (Tax: sales tax, use tax; Industry: general, retail) (relevance: 0.78)
-     [2] WAC 458-20-15503 - Page 3 (Tax: sales tax, use tax) (relevance: 0.75)
-     [3] Retail Sales and Use Tax Guide (Tax: sales tax) (relevance: 0.68)
+[1] WAC 458-20-15502 - Digital Products (relevance: 0.89)
+[2] RCW 82.04.192 - Definitions (relevance: 0.76)
+
+[Thumbs Up] [Thumbs Down] [⭐⭐⭐⭐⭐]
 ```
 
-## 🔧 Technical Details
+### With Feedback:
+```
+You: [Clicks 👍]
 
-**Models Used:**
-- Embeddings: `text-embedding-3-small` (OpenAI)
-- Chat: `gpt-4o` (OpenAI)
-
-**Search Parameters:**
-- Similarity threshold: 0.3
-- Top results: 3
-- Vector search via Supabase pgvector
-
-**Metadata Filtering:**
-- Client-side: `citation`
-- Server-side (RPC): `law_category`, `tax_types`, `industries`
-
-## 🎨 UI Features
-
-- **Auto-clear screen** between questions
-- **Conversation history** (last 2 exchanges)
-- **Active filter display** in header
-- **Formatted sources** with metadata tags
-- **Press Enter to continue** prompts
-
-## 📝 Notes
-
-- Answers are based **only** on ingested documents
-- The chatbot will cite specific WAC/RCW references
-- Filters help narrow search for more targeted results
-- Conversation history provides context for follow-up questions
-
-## 🆚 Interface Comparison
-
-| Feature | `chat_rag.py` | `simple_chat.py` | `web_chat.py` ✨ |
-|---------|---------------|------------------|------------------|
-| UI | Basic terminal | Clean terminal | Modern web UI |
-| Clickable Links | ❌ No | ❌ No | ✅ Yes |
-| Filters | Basic | Advanced | Advanced + UI |
-| Screen clearing | No | Yes | N/A (web) |
-| Filter UI | Command-line | Interactive menu | Sidebar widgets |
-| Metadata display | Limited | Full | Full + formatted |
-| Help system | Basic | Comprehensive | Inline help |
-| Multi-user | No | No | Yes (web-based) |
-| Mobile friendly | No | No | ✅ Yes |
-
-## 🔧 Setup & Deployment
-
-### **First-Time Setup**
-
-1. **Deploy Database Updates** (required for clickable links)
-```bash
-# Option 1: Use Supabase Dashboard
-# Go to SQL Editor and run: database/migrations/add_file_url_to_rpc.sql
-
-# Option 2: Use psql (if installed)
-./scripts/deploy_url_rpc_updates.sh
+✅ Thanks! Added to golden examples.
+   Future "SaaS taxation" questions will reference this answer.
 ```
 
-2. **Populate Document URLs**
-```bash
-# Backfill file_url for existing documents
-python scripts/populate_file_urls.py
+Or:
 ```
+You: [Clicks 👎] → [Provide detailed feedback]
 
-3. **Install Dependencies**
-```bash
-# If using web UI
-pip install streamlit flask
+Feedback Type: Better citations
+Suggested Citations: WAC 458-20-15503
+Comment: Should include WAC 458-20-15503 for cloud services
 
-# Already have: openai, supabase, python-dotenv
+✅ Feedback saved! Citation preference updated.
+   Future searches will prioritize WAC 458-20-15503 for cloud questions.
 ```
-
-### **Starting the Web Chatbot**
-
-```bash
-# Easy way - start both servers at once
-./scripts/start_web_chatbot.sh
-
-# Stop servers
-./scripts/stop_web_chatbot.sh
-
-# Or press Ctrl+C in the terminal
-```
-
-### **Document Server Details**
-
-The document server runs on `http://localhost:5001` and serves:
-- **WAC/RCW HTML files** - Scraped from legs.wa.gov
-- **PDF documents** - Local tax law documents
-- **Security features** - Path validation, directory traversal prevention
-
-Endpoints:
-- Health check: `http://localhost:5001/health`
-- Documents: `http://localhost:5001/documents/<filename>`
-
-## 🚀 Next Steps
-
-1. **Deploy database updates** - Enable clickable source links
-2. **Test with real questions** - Try various tax law queries
-3. **Experiment with filters** - See how filtering affects results
-4. **Review citations** - Click links to verify sources
-5. **Add more documents** - Ingest additional WAC/RCW documents for broader coverage
 
 ---
 
-**Pro Tip:** Use the web UI (`web_chat.py`) for the best experience with clickable source links! Click on any WAC/RCW citation to view the original document.
+## 🔧 Dependencies
+
+The chatbot uses these core modules (in `core/` folder):
+
+| Module | Purpose |
+|--------|---------|
+| `enhanced_rag.py` | High-quality RAG (corrective + reranking + query expansion) |
+| `feedback_system.py` | Learning engine (analyzes feedback, creates improvements) |
+| `law_version_handler.py` | Compare old vs new tax law versions |
+| `auth.py` | User authentication |
+| `database.py` | Supabase database connection |
+
+**All of these are REQUIRED** - don't delete them!
+
+---
+
+## 📊 Database Tables
+
+The chatbot system uses these tables:
+
+### Primary Tables:
+- `knowledge_chunks` - Tax law document chunks (searched by RAG)
+- `knowledge_documents` - Document metadata (citations, titles, URLs)
+
+### Feedback & Learning Tables:
+- `user_feedback` - All feedback submissions (thumbs up/down, ratings, comments)
+- `learned_improvements` - Extracted improvement patterns from feedback
+- `golden_qa_pairs` - High-quality Q&A examples (4-5 star ratings)
+- `citation_preferences` - Which citations users prefer for which topics
+- `answer_templates` - Preferred answer structures by question type
+
+---
+
+## 🔐 Authentication
+
+`rag_ui_with_feedback.py` requires authentication (line 56):
+```python
+if not require_authentication():
+    st.stop()
+```
+
+Configure auth in `.env`:
+```bash
+# Authentication (for chatbot)
+AUTH_USERNAME=your-username
+AUTH_PASSWORD=your-password
+```
+
+Or configure in `core/auth.py` for more advanced auth methods.
+
+---
+
+## 🎨 UI Features
+
+### Sidebar:
+- ⚙️ **Settings**: Enable learning, force retrieval, top-k results
+- 📅 **Law Version**: Current law, old law, or comparison mode
+- 🔍 **Filters**: Law category, tax types, industries, citation
+- 📊 **Session Stats**: Questions asked, cost saved
+- ❓ **Help**: Usage instructions
+- 🗑️ **Clear Chat**: Reset conversation
+
+### Main Chat:
+- 💬 Chat input with conversation history
+- 🤖 Decision analysis (shows RAG decision reasoning)
+- 📚 Source citations with clickable links
+- 👍👎 Feedback buttons on every answer
+- ⭐ Star ratings (1-5 stars)
+- ✍️ Detailed feedback forms (expandable)
+
+### Law Version Comparison:
+- 📕 Old Law (Pre-Oct 2025)
+- 📘 New Law (ESSB 5814, Oct 2025+)
+- 🔄 Key Changes (side-by-side comparison)
+
+---
+
+## 📈 Performance
+
+Same EnhancedRAG as `fast_batch_analyzer.py` in the analysis folder:
+- **Quality**: Corrective RAG + reranking + query expansion + hybrid search
+- **Speed**: ~2-3 seconds per question
+- **Cost**: ~$0.01-0.02 per question (GPT-4o + embeddings)
+- **Accuracy**: Improves over time with user feedback
+
+---
+
+## 🧹 Recent Cleanup (2025-11-20)
+
+**Consolidated from 8 files → 3 files**:
+
+### ❌ **Deleted** (redundant/inferior):
+- `web_chat.py` - Basic web UI (no feedback)
+- `simple_chat.py` - Terminal UI with basic RAG
+- `chat_rag.py` - Terminal UI with EnhancedRAG
+- `enhanced_rag_ui.py` - Web UI showing decision reasoning
+
+### ✅ **Kept** (essential):
+- `rag_ui_with_feedback.py` - Main chat UI (has everything)
+- `feedback_analytics.py` - Analytics dashboard
+- `document_server.py` - Document server
+
+**Result**: 62.5% reduction in files, cleaner codebase, same functionality!
+
+---
+
+## 🔗 Integration with Analysis System
+
+The chatbot uses the **same EnhancedRAG** as the batch analysis system:
+
+| Component | Chatbot | Analysis |
+|-----------|---------|----------|
+| RAG System | EnhancedRAG | EnhancedRAG |
+| Learning | FeedbackSystem | import_corrections.py |
+| Use Case | Interactive Q&A | Batch Excel processing |
+| User | Humans asking questions | Excel automation |
+
+Both systems share:
+- Same knowledge base (knowledge_chunks table)
+- Same legal documents
+- Same RAG quality (corrective + reranking)
+- Same database
+
+---
+
+## 🆘 Troubleshooting
+
+### "Authentication failed"
+- Check `.env` has AUTH_USERNAME and AUTH_PASSWORD
+- Or configure in core/auth.py
+
+### "No sources found"
+- Knowledge base may be empty
+- Run ingestion scripts to populate knowledge_chunks table
+- Check filters - try clearing all filters
+
+### "Document server not running" (source links don't work)
+- Start document server: `python chatbot/document_server.py`
+- Check it's running on port 5001: `curl http://localhost:5001/health`
+
+### "Error connecting to database"
+- Check `.env` has correct SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
+- Verify network connectivity
+- Check that feedback tables exist (run database/migrations if needed)
+
+### "FeedbackSystem import error"
+- Ensure `core/feedback_system.py` exists
+- Don't delete core/ folder files - they're required!
+
+---
+
+## 🚀 Next Steps
+
+1. **Start the chatbot**: `streamlit run chatbot/rag_ui_with_feedback.py --server.port 8503`
+2. **Ask questions**: Try tax law queries
+3. **Give feedback**: Use thumbs up/down to improve the system
+4. **View analytics**: `streamlit run chatbot/feedback_analytics.py --server.port 8504`
+5. **Watch it learn**: Check learned_improvements table in database
+
+---
+
+**Pro Tip**: The more feedback you give, the smarter the system gets! Every thumbs up/down helps improve future answers.
+
+**Last Updated**: 2025-11-20

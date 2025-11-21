@@ -34,6 +34,7 @@ dist/
 build/
 .pytest_cache/
 .coverage
+htmlcov/
 
 # Client data (contains sensitive information)
 /client_documents/*
