@@ -1,16 +1,30 @@
 # Historical Pattern Data
 
-This folder contains extracted historical patterns from **484,479 analyzed tax records** across multiple data sources.
+This folder contains extracted historical patterns from **517,306 analyzed tax records** across multiple data sources.
+
+⚠️ **Important**: This folder contains **SALES TAX patterns**. For use tax patterns, see [use_tax/](use_tax/) folder.
 
 ## Current Statistics
 
 **Last Updated**: November 22, 2025
 
-- **Total Records Processed**: 484,479 transactions
+### Sales Tax Patterns (this folder)
+- **Total Records Processed**: 484,479 sales tax transactions
 - **Vendors**: 1,033 unique vendors
 - **Keyword Categories**: 8 taxonomies
 - **Refund Basis Patterns**: 44 distinct patterns
 - **Date Range**: 2014-07-14 to 2024-10-18 (10+ years of historical data)
+
+### Use Tax Patterns ([use_tax/](use_tax/) folder)
+- **Total Records Processed**: 32,827 use tax transactions
+- **Vendors**: 524 unique vendors
+- **Keyword Categories**: 4 taxonomies
+- **Refund Basis Patterns**: 10 distinct patterns
+- **Date Range**: 2021 use tax data
+
+### Combined Total
+- **517,306 total tax records** analyzed (sales + use tax)
+- **1,263 unique vendors** across both tax types (147 vendors appear in both)
 
 ## Data Sources
 
@@ -140,18 +154,36 @@ Once imported, the refund analysis AI will:
 
 ## Vendor Coverage
 
-- **1,033 unique vendors** tracked
+- **1,033 unique sales tax vendors** tracked in this folder
+- **524 unique use tax vendors** tracked in [use_tax/](use_tax/) folder
+- **147 vendors** appear in BOTH sales and use tax data
 - Top vendors include: MOREDIRECT INC, ZONES INC, OFFICE DEPOT INC, DELTA ELECTRONICS USA INC, COMSEARCH
-- Vendors mapped to 44 distinct refund basis patterns
-- 776 total vendor-to-refund-basis mappings
+- Vendors mapped to 44 distinct sales tax refund basis patterns
+- 776 total vendor-to-refund-basis mappings (sales tax)
+
+## Sales Tax vs Use Tax
+
+**Important Distinction**: This folder contains SALES TAX patterns only. Use tax has significantly different refund patterns:
+
+| Key Difference | Sales Tax | Use Tax |
+|---------------|-----------|---------|
+| **Top Refund Basis** | MPU (34.5%) | Non-taxable - SIRC RISK (20.2%) |
+| **MPU Usage** | 8,405 occurrences | 394 occurrences (21.3x less!) |
+| **Dominant Patterns** | MPU, Non-taxable | Non-taxable - SIRC RISK, OOS services |
+| **Pattern Count** | 44 patterns | 10 patterns |
+
+**See [SALES_VS_USE_TAX_COMPARISON.md](SALES_VS_USE_TAX_COMPARISON.md) for detailed analysis.**
+
+**Critical for AI Analysis**: The system should identify transaction tax type (sales vs use) and query the appropriate pattern set. Using sales tax patterns for use tax transactions (or vice versa) will reduce accuracy.
 
 ## Next Steps
 
 After importing this data, consider:
-1. Extract patterns from other completed Excel files as they become available
-2. Regular updates as new analyst decisions are made
-3. Monitor pattern quality and adjust filters as needed
+1. Extract patterns from additional use tax files (2016-2020, 2023-2024)
+2. Enhance system to distinguish sales vs use tax transactions
+3. Regular updates as new analyst decisions are made
+4. Monitor pattern quality and adjust filters as needed
 
 ---
 
-**Total Coverage**: 484,479 tax records | 1,033 vendors | 44 refund basis patterns | 10+ years of historical data
+**Total Coverage**: 517,306 tax records (484,479 sales + 32,827 use) | 1,263 unique vendors | 54 total refund basis patterns | 10+ years of historical data
