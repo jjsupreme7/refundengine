@@ -1,33 +1,37 @@
-# User Feedback & Continuous Learning System
+# Chatbot Feedback System Guide
+
+> **Note:** This guide covers the RAG chatbot feedback system. For Excel invoice/PO analysis feedback, see [EXCEL_FEEDBACK_GUIDE.md](EXCEL_FEEDBACK_GUIDE.md).
 
 ## Overview
 
 This system enables your RAG chatbot to continuously learn and improve from user feedback. Users can provide feedback in various forms, and the system automatically learns patterns and updates itself to provide better responses over time.
 
+The chatbot feedback system is separate from the Excel analysis feedback system. It focuses on improving the quality of conversational responses, citation preferences, and answer formatting.
+
 ## Architecture
 
 ### Components
 
-1. **Database Schema** (`database/feedback_schema.sql`)
+1. **Database Schema** ([database/feedback_schema.sql](../database/feedback_schema.sql))
    - `user_feedback`: Stores all user feedback
    - `learned_improvements`: Actionable improvement rules extracted from feedback
    - `golden_qa_pairs`: High-quality Q&A examples for few-shot learning
    - `citation_preferences`: Tracks which citations users prefer
    - `answer_templates`: Learned answer structure templates
 
-2. **Feedback System** (`core/feedback_system.py`)
+2. **Feedback System** ([core/feedback_system.py](../core/feedback_system.py))
    - Collects and stores feedback
    - Analyzes feedback patterns
    - Extracts learnings automatically
    - Applies learnings to improve future responses
 
-3. **Enhanced UI** (`chatbot/rag_ui_with_feedback.py`)
+3. **Enhanced UI** ([chatbot/rag_ui_with_feedback.py](../chatbot/rag_ui_with_feedback.py))
    - Chat interface with integrated feedback widgets
    - Multiple feedback types (thumbs up/down, ratings, detailed suggestions)
    - Real-time learning insights
    - Session tracking
 
-4. **Analytics Dashboard** (`chatbot/feedback_analytics.py`)
+4. **Analytics Dashboard** ([chatbot/feedback_analytics.py](../chatbot/feedback_analytics.py))
    - Visualize feedback trends
    - Track learning progress
    - Monitor system improvements
@@ -109,6 +113,74 @@ When processing new queries, the system:
    ```python
    examples = feedback_system.get_golden_examples(query, limit=2)
    ```
+
+## Database Schema
+
+### user_feedback Table
+```sql
+- id: UUID (primary key)
+- created_at: Timestamp
+- session_id: Session identifier
+- query: User's question
+- response_text: AI's answer
+- feedback_type: Type of feedback
+- rating: 1-5 star rating
+- suggested_answer: User's suggested better answer
+- suggested_structure: Preferred format
+- suggested_citations: Preferred sources
+- feedback_comment: Additional notes
+- decision_action: RAG decision used
+- retrieved_chunks: Sources used
+- confidence_score: RAG confidence
+```
+
+### learned_improvements Table
+```sql
+- id: UUID (primary key)
+- improvement_type: Type of improvement
+- pattern_match: When to apply (JSON)
+- action: What to do (JSON)
+- confidence: Confidence in this rule
+- times_applied: Usage count
+- times_validated: Success count
+- validation_rate: Success percentage (auto-calculated)
+- is_active: Whether rule is active
+```
+
+### golden_qa_pairs Table
+```sql
+- id: UUID (primary key)
+- question: The question
+- golden_answer: High-quality answer
+- golden_citations: Sources used
+- query_category: Topic category
+- difficulty: simple/medium/complex
+- is_verified: Manual verification status
+- times_referenced: Usage in few-shot learning
+```
+
+### citation_preferences Table
+```sql
+- id: UUID (primary key)
+- citation: Citation string (e.g., "WAC 458-20-15503")
+- times_suggested_by_user: User suggestions
+- times_chosen_in_feedback: Selected in feedback
+- times_retrieved_and_liked: Retrieved + thumbs up
+- times_retrieved_and_disliked: Retrieved + thumbs down
+- preference_score: Calculated score (auto-updated via trigger)
+- preferred_for_topics: Relevant topics
+```
+
+### answer_templates Table
+```sql
+- id: UUID (primary key)
+- template_name: Template identifier
+- template_structure: Format/structure
+- applies_to_query_types: When to use
+- times_used: Usage count
+- avg_rating: Average user rating
+- is_active: Whether template is active
+```
 
 ## Setup Instructions
 
@@ -200,77 +272,106 @@ streamlit run chatbot/feedback_analytics.py --server.port 8504
      WHERE validation_rate < 0.3 AND times_applied > 10;
      ```
 
-## Database Schema Details
+## Analytics & Monitoring
 
-### user_feedback Table
-```sql
-- id: UUID (primary key)
-- created_at: Timestamp
-- session_id: Session identifier
-- query: User's question
-- response_text: AI's answer
-- feedback_type: Type of feedback
-- rating: 1-5 star rating
-- suggested_answer: User's suggested better answer
-- suggested_structure: Preferred format
-- suggested_citations: Preferred sources
-- feedback_comment: Additional notes
-- decision_action: RAG decision used
-- retrieved_chunks: Sources used
-- confidence_score: RAG confidence
+### Key Metrics to Track
+
+The feedback analytics dashboard ([chatbot/feedback_analytics.py](../chatbot/feedback_analytics.py)) provides visualization for:
+
+1. **Feedback Volume**
+   - Total feedback submissions
+   - Feedback by type (thumbs up/down, ratings, detailed)
+   - Feedback trends over time
+
+2. **Rating Distribution**
+   - 1-5 star rating breakdown
+   - Average rating trend
+   - Response quality over time
+
+3. **Learning Progress**
+   - Number of active improvements
+   - Improvement validation rates
+   - Most effective improvement types
+
+4. **Golden Dataset Growth**
+   - Total golden Q&A pairs
+   - Verified vs. unverified pairs
+   - Quality distribution
+
+5. **Citation Preferences**
+   - Most preferred citations
+   - Citation preference scores
+   - Topic-specific citation trends
+
+### Performance Optimization
+
+#### Automatic Cleanup
+
+Consider implementing automatic cleanup of:
+- Low-performing improvements (validation_rate < 0.3)
+- Unused improvements (times_applied = 0 after 30 days)
+- Old unresolved feedback (> 90 days)
+
+#### Caching
+
+The system uses caching for:
+- Embeddings (in-memory cache in EnhancedRAG)
+- Learned improvements (fetched per query)
+
+#### Target Metrics
+
+Monitor these target metrics:
+- Average rating trend (should improve over time)
+- Validation rate of improvements (target: >60%)
+- Golden dataset growth (steady increase)
+- Feedback volume (consistent engagement)
+
+## API Reference
+
+### FeedbackSystem Class
+
+```python
+from core.feedback_system import FeedbackSystem
+
+fs = FeedbackSystem()
+
+# Save feedback
+feedback_id = fs.save_feedback(
+    query="Is SaaS taxable?",
+    response_text="Yes, SaaS is taxable...",
+    feedback_data={
+        "feedback_type": "thumbs_up",
+        "rating": 5
+    },
+    session_id="session-123",
+    rag_metadata=search_result
+)
+
+# Get active improvements
+improvements = fs.get_active_improvements(
+    query="Is SaaS taxable?",
+    context={}
+)
+
+# Get preferred citations
+citations = fs.get_preferred_citations(
+    query="Is SaaS taxable?",
+    top_k=5
+)
+
+# Get answer template
+template = fs.get_answer_template(query="Is SaaS taxable?")
+
+# Get golden examples
+examples = fs.get_golden_examples(
+    query="Is SaaS taxable?",
+    limit=3
+)
 ```
 
-### learned_improvements Table
-```sql
-- id: UUID (primary key)
-- improvement_type: Type of improvement
-- pattern_match: When to apply (JSON)
-- action: What to do (JSON)
-- confidence: Confidence in this rule
-- times_applied: Usage count
-- times_validated: Success count
-- validation_rate: Success percentage (auto-calculated)
-- is_active: Whether rule is active
-```
+### Advanced Features
 
-### golden_qa_pairs Table
-```sql
-- id: UUID (primary key)
-- question: The question
-- golden_answer: High-quality answer
-- golden_citations: Sources used
-- query_category: Topic category
-- difficulty: simple/medium/complex
-- is_verified: Manual verification status
-- times_referenced: Usage in few-shot learning
-```
-
-### citation_preferences Table
-```sql
-- id: UUID (primary key)
-- citation: Citation string (e.g., "WAC 458-20-15503")
-- times_suggested_by_user: User suggestions
-- times_chosen_in_feedback: Selected in feedback
-- times_retrieved_and_liked: Retrieved + thumbs up
-- times_retrieved_and_disliked: Retrieved + thumbs down
-- preference_score: Calculated score (auto-updated via trigger)
-- preferred_for_topics: Relevant topics
-```
-
-### answer_templates Table
-```sql
-- id: UUID (primary key)
-- template_name: Template identifier
-- template_structure: Format/structure
-- applies_to_query_types: When to use
-- times_used: Usage count
-- avg_rating: Average user rating
-- is_active: Whether template is active
-```
-
-## Advanced Features
-
-### Custom Learning Rules
+#### Custom Learning Rules
 
 You can manually add learning rules:
 
@@ -290,7 +391,7 @@ INSERT INTO learned_improvements (
 );
 ```
 
-### Batch Analysis
+#### Batch Analysis
 
 Run batch analysis on feedback:
 
@@ -310,7 +411,7 @@ for fb in feedback.data:
     fs._trigger_learning_from_feedback(fb['id'], fb)
 ```
 
-### Export Learnings
+#### Export Learnings
 
 Export learnings for review or backup:
 
@@ -327,28 +428,27 @@ with open("learned_improvements_backup.json", "w") as f:
     json.dump(improvements.data, f, indent=2, default=str)
 ```
 
-## Performance Optimization
+## Best Practices
 
-### Automatic Cleanup
+1. **Encourage Feedback**
+   - Make feedback widgets prominent
+   - Keep feedback forms simple
+   - Show users how their feedback helps
 
-Consider implementing automatic cleanup of:
-- Low-performing improvements (validation_rate < 0.3)
-- Unused improvements (times_applied = 0 after 30 days)
-- Old unresolved feedback (> 90 days)
+2. **Review Regularly**
+   - Check analytics dashboard weekly
+   - Verify golden Q&A pairs
+   - Deactivate underperforming rules
 
-### Caching
+3. **Iterate**
+   - Start with simple feedback (thumbs up/down)
+   - Add detailed feedback options later
+   - Continuously refine learning algorithms
 
-The system uses caching for:
-- Embeddings (in-memory cache in EnhancedRAG)
-- Learned improvements (fetched per query)
-
-### Monitoring
-
-Monitor these metrics:
-- Average rating trend (should improve over time)
-- Validation rate of improvements (target: >60%)
-- Golden dataset growth
-- Feedback volume
+4. **Quality Control**
+   - Manually verify critical improvements
+   - Monitor for incorrect learnings
+   - Test system regularly
 
 ## Troubleshooting
 
@@ -403,78 +503,13 @@ Potential additions to the system:
    - Voice feedback
    - Screenshot annotations
 
-## API Reference
-
-### FeedbackSystem Class
-
-```python
-from core.feedback_system import FeedbackSystem
-
-fs = FeedbackSystem()
-
-# Save feedback
-feedback_id = fs.save_feedback(
-    query="Is SaaS taxable?",
-    response_text="Yes, SaaS is taxable...",
-    feedback_data={
-        "feedback_type": "thumbs_up",
-        "rating": 5
-    },
-    session_id="session-123",
-    rag_metadata=search_result
-)
-
-# Get active improvements
-improvements = fs.get_active_improvements(
-    query="Is SaaS taxable?",
-    context={}
-)
-
-# Get preferred citations
-citations = fs.get_preferred_citations(
-    query="Is SaaS taxable?",
-    top_k=5
-)
-
-# Get answer template
-template = fs.get_answer_template(query="Is SaaS taxable?")
-
-# Get golden examples
-examples = fs.get_golden_examples(
-    query="Is SaaS taxable?",
-    limit=3
-)
-```
-
-## Best Practices
-
-1. **Encourage Feedback**
-   - Make feedback widgets prominent
-   - Keep feedback forms simple
-   - Show users how their feedback helps
-
-2. **Review Regularly**
-   - Check analytics dashboard weekly
-   - Verify golden Q&A pairs
-   - Deactivate underperforming rules
-
-3. **Iterate**
-   - Start with simple feedback (thumbs up/down)
-   - Add detailed feedback options later
-   - Continuously refine learning algorithms
-
-4. **Quality Control**
-   - Manually verify critical improvements
-   - Monitor for incorrect learnings
-   - Test system regularly
-
 ## Conclusion
 
-This feedback system creates a virtuous cycle:
+This chatbot feedback system creates a virtuous cycle:
 - Users provide feedback
 - System learns patterns
 - Responses improve
 - User satisfaction increases
 - More users provide positive feedback
 
-Over time, your RAG system becomes increasingly accurate and aligned with user preferences, creating a truly intelligent and adaptive assistant.
+Over time, your RAG chatbot becomes increasingly accurate and aligned with user preferences, creating a truly intelligent and adaptive assistant.
