@@ -1,0 +1,160 @@
+[
+  {
+    "citation_type": "WAC",
+    "pattern": "WAC \\d{3}-\\d{2}-\\d{3,4}[A-Z]?",
+    "examples": [
+      "See quote. Omnichannel marketing solution used by marketers to build consumer relationships through marketing\\advertising push notification via text messaging and email.  WAC Rule 15503 provides  an exclusion for all services directly related to the creation, prepare",
+      "Omnichannel marketing solution used by marketers to build consumer relationships through marketing\\advertising push notification via text messaging and email.  WAC Rule 15503 provides  an exclusion for all services directly related to the creation, prepare. Advertising",
+      "Omnichannel marketing solution used by marketers to build consumer relationships through marketing\\advertising push notification via text messaging and email.  WAC Rule 15503 provides  an exclusion for all services directly related to the creation, prepare. Advertising (e.g. email marketing example 17 Rule 15503). Success package fees were not taxed on invoice.",
+      "Knowledge Tags allows a customer add tags to website to optimize website and make content more likely to be discovered in an internet  search engine (i.e. Google). Knowledge Engine is  suite of products that help the customer's website get found more easily and relevant information displayed through internet searches. Duplicate Suppression is a service that limits multiple listing for a location from being displayed on a web search to ensure the listing is correct. Such services are non-taxable under WAC 458-20-15503 as a non-taxable advertising service",
+      "See SOW, charge for hosting client data related to the push notification service.  WAC Rule 15503 provides an exclusion for all services directly related to the creation, preparation, production, or the dissemination of advertisements",
+      "Now know as Selligent, Omnichannel marketing solution used by marketers to build consumer relationships through marketing\\advertising push notification via text messaging and email.  WAC Rule 15503 provides  an exclusion for all services directly related ",
+      "Omnichannel marketing solution used by marketers to build consumer relationships through marketing\\advertising push notification via text messaging and email.  WAC Rule 15503 provides  an exclusion for all services directly related to the creation, prepare",
+      "See SOW Section 3.1 email segmentation services for email marketing.  WAC Rule 15503 provides an exclusion for all services directly related to the creation, preparation, production, or the dissemination of advertisements"
+    ],
+    "description": "Washington Administrative Code tax regulations"
+  },
+  {
+    "citation_type": "RCW",
+    "pattern": "RCW \\d{2}\\.\\d{2}\\.\\d{3,4}",
+    "examples": [],
+    "description": "Revised Code of Washington statutes"
+  },
+  {
+    "citation_type": "GL_Account",
+    "description": "General Ledger account codes",
+    "codes": [
+      {
+        "code": "44330030",
+        "frequency": 309370,
+        "description": "GRIR - COS/Other"
+      },
+      {
+        "code": "40375010",
+        "frequency": 43057,
+        "description": "GRIR - Network"
+      },
+      {
+        "code": "66450010",
+        "frequency": 2839,
+        "description": "Hard & Soft Maintenance Support"
+      },
+      {
+        "code": "44330010",
+        "frequency": 1276,
+        "description": "GRIR - Retail"
+      },
+      {
+        "code": "69980010",
+        "frequency": 1085,
+        "description": "Proj - Equipment"
+      },
+      {
+        "code": "69980021",
+        "frequency": 749
+      },
+      {
+        "code": "69980050",
+        "frequency": 656,
+        "description": "Proj - Licenses"
+      },
+      {
+        "code": "69980022",
+        "frequency": 542,
+        "description": "Proj - Professional Fees"
+      },
+      {
+        "code": "60190070",
+        "frequency": 541,
+        "description": "Subcontract Variance"
+      },
+      {
+        "code": "61510000",
+        "frequency": 499
+      },
+      {
+        "code": "66450011",
+        "frequency": 461
+      },
+      {
+        "code": "0044330030",
+        "frequency": 450,
+        "description": "GRIR - COS/Other"
+      },
+      {
+        "code": "60070010",
+        "frequency": 188,
+        "description": "Computer Hard & Soft 1(Non-Cap)"
+      },
+      {
+        "code": "GRIR - COS/Other",
+        "frequency": 75
+      },
+      {
+        "code": "69170010",
+        "frequency": 75
+      },
+      {
+        "code": "#N/A",
+        "frequency": 65
+      },
+      {
+        "code": "69150010",
+        "frequency": 56
+      },
+      {
+        "code": "66263040",
+        "frequency": 30
+      },
+      {
+        "code": "61330010",
+        "frequency": 28
+      },
+      {
+        "code": "61130070",
+        "frequency": 26
+      },
+      {
+        "code": "67770010",
+        "frequency": 14
+      },
+      {
+        "code": "67370010",
+        "frequency": 13
+      },
+      {
+        "code": "69980020",
+        "frequency": 12,
+        "description": "Proj - Construction Fees"
+      },
+      {
+        "code": "69310010",
+        "frequency": 10
+      },
+      {
+        "code": "Proj - Equipment",
+        "frequency": 9
+      },
+      {
+        "code": "True",
+        "frequency": 2,
+        "description": "True"
+      },
+      {
+        "code": "29",
+        "frequency": 1,
+        "description": "90"
+      },
+      {
+        "code": "66630030",
+        "frequency": 1,
+        "description": "Office Svcs-Repair/Maint"
+      },
+      {
+        "code": "22010100",
+        "frequency": 1,
+        "description": ""
+      }
+    ]
+  }
+]

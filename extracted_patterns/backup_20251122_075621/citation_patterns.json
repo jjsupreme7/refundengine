@@ -1,0 +1,67 @@
+[
+  {
+    "citation_type": "WAC",
+    "pattern": "WAC \\d{3}-\\d{2}-\\d{3,4}[A-Z]?",
+    "examples": [
+      "Knowledge Tags allows a customer add tags to website to optimize website and make content more likely to be discovered in an internet  search engine (i.e. Google). Knowledge Engine is  suite of products that help the customer's website get found more easily and relevant information displayed through internet searches. Duplicate Suppression is a service that limits multiple listing for a location from being displayed on a web search to ensure the listing is correct. Such services are non-taxable under WAC 458-20-15503 as a non-taxable advertising service",
+      "Knowledge Tags allows a customer add tags to website to optimize website and make content more likely to be discovered in an internet  search engine (i.e. Google). Knowledge Engine is  suite of products that help the customer's website get found more easily and relevant information displayed through internet searches. Duplicate Suppression is a service that limits multiple listing for a location from being displayed on a web search to ensure the listing is correct. Such services are non-taxable under WAC 458-20-15503 as a non-taxable advertising service",
+      "Knowledge Tags allows a customer add tags to website to optimize website and make content more likely to be discovered in an internet  search engine (i.e. Google). Knowledge Engine is  suite of products that help the customer's website get found more easily and relevant information displayed through internet searches. Duplicate Suppression is a service that limits multiple listing for a location from being displayed on a web search to ensure the listing is correct. Such services are non-taxable under WAC 458-20-15503 as a non-taxable advertising service",
+      "Knowledge Tags allows a customer add tags to website to optimize website and make content more likely to be discovered in an internet  search engine (i.e. Google). Knowledge Engine is  suite of products that help the customer's website get found more easily and relevant information displayed through internet searches. Duplicate Suppression is a service that limits multiple listing for a location from being displayed on a web search to ensure the listing is correct. Such services are non-taxable under WAC 458-20-15503 as a non-taxable advertising service"
+    ],
+    "description": "Washington Administrative Code tax regulations"
+  },
+  {
+    "citation_type": "GL_Account_Descriptions",
+    "description": "General Ledger account TEXT descriptions (numeric codes excluded per user requirement)",
+    "descriptions": [
+      {
+        "description": "GRIR - COS/Other",
+        "frequency": 75
+      },
+      {
+        "description": "#N/A",
+        "frequency": 65
+      },
+      {
+        "description": "Proj - Equipment",
+        "frequency": 9
+      },
+      {
+        "description": "Proj - Professional Fees",
+        "frequency": 7
+      },
+      {
+        "description": "Corporate Advertising Media - Agency Fees",
+        "frequency": 5
+      },
+      {
+        "description": "Contract & Temporary Personnel",
+        "frequency": 5
+      },
+      {
+        "description": "Content Facilitating-Web",
+        "frequency": 5
+      },
+      {
+        "description": "Services Purchased - Other",
+        "frequency": 4
+      },
+      {
+        "description": "Hard & Soft Maintenance Support",
+        "frequency": 3
+      },
+      {
+        "description": "Social Media",
+        "frequency": 1
+      },
+      {
+        "description": "Market Research",
+        "frequency": 1
+      },
+      {
+        "description": "Repair&Maint",
+        "frequency": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,409 @@
+[
+  {
+    "refund_basis": "MPU",
+    "usage_count": 8405,
+    "percentage": 34.5,
+    "example_vendors": [
+      "FM SYSTEMS GROUP LLC",
+      "TRIPWIRE INC",
+      "PLOTLY US INC",
+      "O9 SOLUTIONS INC",
+      "DOMO INC"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "Non-taxable",
+    "usage_count": 3001,
+    "percentage": 11.7,
+    "example_vendors": [
+      "ERICSSON INC",
+      "MITEL MOBILITY INC",
+      "M SCIENCE LLC",
+      "CLARITAS HOLDINGS IN",
+      "OPERA SOLUTIONS OPCO"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "Wrong rate",
+    "usage_count": 2210,
+    "percentage": 2.8,
+    "example_vendors": [
+      "ERICSSON INC",
+      "MITEL MOBILITY INC",
+      "INTERNATIONAL BUSINESS MACHINES",
+      "ANDERSEN CONSTRUCTION",
+      "PROSYS INFORMATION SYSTEMS"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "N/A - Reversed",
+    "usage_count": 1459,
+    "percentage": 10.8,
+    "example_vendors": [
+      "ERICSSON INC",
+      "MITEL MOBILITY INC",
+      "SOFTWEB SOLUTIONS INC",
+      "GIESECKE & DEVRIENT MOBILE SECURITY",
+      "DUN & BRADSTREET INC"
+    ]
+  },
+  {
+    "refund_basis": "Partial OOS services",
+    "usage_count": 1123,
+    "percentage": 3.6,
+    "example_vendors": [
+      "MOREDIRECT INC",
+      "ERICSSON INC",
+      "MITEL MOBILITY INC",
+      "PROSYS INFORMATION SYSTEMS",
+      "SBA MONARCH TOWERS"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "OOS services",
+    "usage_count": 716,
+    "percentage": 1.2,
+    "example_vendors": [
+      "ERICSSON INC",
+      "ROHDE & SCHWARZ USA INC",
+      "ORACLE AMERICA INC",
+      "MK SYSTEMS USA INC",
+      "WONGDOODY INC"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "Partial OOS shipment",
+    "usage_count": 416,
+    "percentage": 1.1,
+    "example_vendors": [
+      "MOREDIRECT INC",
+      "ERICSSON INC",
+      "MITEL MOBILITY INC",
+      "CONVERGENT MEDIA SYS",
+      "PROSYS INFORMATION SYSTEMS"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "N - Out of State",
+    "usage_count": 346,
+    "percentage": 2.6,
+    "example_vendors": [
+      "MITEL MOBILITY INC",
+      "SAP AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "N/A",
+    "usage_count": 284,
+    "percentage": 2.1,
+    "example_vendors": [
+      "MITEL MOBILITY INC",
+      "XURA INC",
+      "SHI INTERNATIONAL CORP",
+      "ORACLE AMERICA INC",
+      "TELECOMMUNICATION SYSTEMS INC"
+    ]
+  },
+  {
+    "refund_basis": "OOS shipment",
+    "usage_count": 155,
+    "percentage": 0.6,
+    "example_vendors": [
+      "MOREDIRECT INC",
+      "ERICSSON INC",
+      "MITEL MOBILITY INC",
+      "PROSYS INFORMATION SYSTEMS",
+      "FINE PRINT LLC"
+    ],
+    "typical_final_decision": "Add to claim - REFUND SAMPLE"
+  },
+  {
+    "refund_basis": "B&O tax",
+    "usage_count": 154,
+    "percentage": 0.6,
+    "example_vendors": [
+      "BTI SOLUTIONS INC"
+    ],
+    "typical_final_decision": "ADDED TO CLAIM"
+  },
+  {
+    "refund_basis": "N/A-TPP",
+    "usage_count": 114,
+    "percentage": 0.8,
+    "example_vendors": [
+      "PROSYS INFORMATION SYSTEMS"
+    ]
+  },
+  {
+    "refund_basis": "Resale",
+    "usage_count": 44,
+    "percentage": 0.3,
+    "example_vendors": [
+      "GEOTAB INC",
+      "CIRCLE MEDIA LABS INC",
+      "NOKIA SOLUTIONS AND NETWORKS US LLC",
+      "BOSTON MARKET CORPOR",
+      "ALLSTATE MOTOR CLUB"
+    ]
+  },
+  {
+    "refund_basis": "N - Nontaxable",
+    "usage_count": 36,
+    "percentage": 0.3,
+    "example_vendors": [
+      "HEWLETT PACKARD ENTERPRISE COMPANY",
+      "ORACLE AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "N - TPP",
+    "usage_count": 26,
+    "percentage": 0.2,
+    "example_vendors": [
+      "HEWLETT PACKARD ENTERPRISE COMPANY"
+    ]
+  },
+  {
+    "refund_basis": "N-Hardware",
+    "usage_count": 18,
+    "percentage": 0.1,
+    "example_vendors": [
+      "AMDOCS INC"
+    ]
+  },
+  {
+    "refund_basis": "PartialOOS services",
+    "usage_count": 17,
+    "percentage": 0.1,
+    "example_vendors": [
+      "TIBCO SOFTWARE INC",
+      "THALES E-SECURITY"
+    ]
+  },
+  {
+    "refund_basis": "Data Center Exemption?",
+    "usage_count": 9,
+    "percentage": 0.1,
+    "example_vendors": [
+      "TERADATA CORPORATIONS"
+    ]
+  },
+  {
+    "refund_basis": "N - Taxable",
+    "usage_count": 8,
+    "percentage": 0.1,
+    "example_vendors": [
+      "TERADATA CORPORATIONS",
+      "TIBCO SOFTWARE INC"
+    ]
+  },
+  {
+    "refund_basis": "N-Untaxed Nontaxable Services",
+    "usage_count": 6,
+    "percentage": 0.0,
+    "example_vendors": [
+      "AMDOCS SOFTWARE SYSTEM LIMITED",
+      "AMDOCS INC"
+    ]
+  },
+  {
+    "refund_basis": "Support",
+    "usage_count": 6,
+    "percentage": 0.0,
+    "example_vendors": [
+      "ENTIT SOFTWARE LLC"
+    ]
+  },
+  {
+    "refund_basis": "N - Texas Sales Tax",
+    "usage_count": 6,
+    "percentage": 0.0,
+    "example_vendors": [
+      "HEWLETT PACKARD ENTERPRISE COMPANY"
+    ]
+  },
+  {
+    "refund_basis": "N/A - Credit (No Tax)",
+    "usage_count": 6,
+    "percentage": 0.0,
+    "example_vendors": [
+      "SALESFORCE COM INC"
+    ]
+  },
+  {
+    "refund_basis": "N-Install",
+    "usage_count": 5,
+    "percentage": 0.0,
+    "example_vendors": [
+      "PROSYS INFORMATION SYSTEMS"
+    ]
+  },
+  {
+    "refund_basis": "N - Nontaxable Service",
+    "usage_count": 5,
+    "percentage": 0.0,
+    "example_vendors": [
+      "TERADATA CORPORATIONS",
+      "PROSYS INFORMATION SYSTEMS"
+    ]
+  },
+  {
+    "refund_basis": "N/A - Nontaxable Services",
+    "usage_count": 4,
+    "percentage": 0.0,
+    "example_vendors": [
+      "ORACLE AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "NA - Nontaxable",
+    "usage_count": 4,
+    "percentage": 0.0,
+    "example_vendors": [
+      "TERADATA CORPORATIONS"
+    ]
+  },
+  {
+    "refund_basis": "N - Nontaxable Services",
+    "usage_count": 3,
+    "percentage": 0.0,
+    "example_vendors": [
+      "NICE SYSTEMS TECHNOLOGIES INC"
+    ]
+  },
+  {
+    "refund_basis": "N/A - Non WA Tax",
+    "usage_count": 3,
+    "percentage": 0.0,
+    "example_vendors": [
+      "NOKIA SOLUTIONS AND NETWORKS US LLC"
+    ]
+  },
+  {
+    "refund_basis": "N/A - No tax",
+    "usage_count": 3,
+    "percentage": 0.0,
+    "example_vendors": [
+      "NOKIA SOLUTIONS AND NETWORKS US LLC"
+    ]
+  },
+  {
+    "refund_basis": "N - Not WA Transaction",
+    "usage_count": 3,
+    "percentage": 0.0,
+    "example_vendors": [
+      "ORACLE AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "Tax due",
+    "usage_count": 3,
+    "percentage": 0.0,
+    "example_vendors": [
+      "ORACLE AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "N-Taxable",
+    "usage_count": 3,
+    "percentage": 0.0,
+    "example_vendors": [
+      "ORACLE AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "N - HW support",
+    "usage_count": 2,
+    "percentage": 0.0,
+    "example_vendors": [
+      "HEWLETT PACKARD ENTERPRISE COMPANY"
+    ]
+  },
+  {
+    "refund_basis": "Nontaxable",
+    "usage_count": 2,
+    "percentage": 0.0,
+    "example_vendors": [
+      "MEDALLIA INC"
+    ]
+  },
+  {
+    "refund_basis": "N/A - Tax Credited",
+    "usage_count": 2,
+    "percentage": 0.0,
+    "example_vendors": [
+      "SALESFORCE COM INC"
+    ]
+  },
+  {
+    "refund_basis": "Discount",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "GIGAMON INC"
+    ]
+  },
+  {
+    "refund_basis": "N - Immaterial",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "HEWLETT PACKARD ENTERPRISE COMPANY"
+    ]
+  },
+  {
+    "refund_basis": "N - Not allocable",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "INSIDESALES COM INC"
+    ]
+  },
+  {
+    "refund_basis": "OSS services",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "JONES LANG LASALLE A"
+    ]
+  },
+  {
+    "refund_basis": "N-Taxable and tax charged",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "ORACLE AMERICA INC"
+    ]
+  },
+  {
+    "refund_basis": "Nontaxable Service",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "TERADATA CORPORATIONS"
+    ]
+  },
+  {
+    "refund_basis": "N - Taxed Correctly",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "example_vendors": [
+      "TERADATA CORPORATIONS"
+    ]
+  },
+  {
+    "refund_basis": "Refund Basis",
+    "usage_count": 1,
+    "percentage": 0.0,
+    "typical_final_decision": "Final Decision",
+    "example_vendors": [
+      "name1_po_vendor_name"
+    ]
+  }
+]

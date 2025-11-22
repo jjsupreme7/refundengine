@@ -1,0 +1,974 @@
+[
+  {
+    "category": "tax_categories",
+    "description": "Primary tax classification categories",
+    "keywords": [
+      {
+        "term": "License",
+        "count": 6598
+      },
+      {
+        "term": "Services",
+        "count": 5231
+      },
+      {
+        "term": "Hardware",
+        "count": 1526
+      },
+      {
+        "term": "Software maintenance",
+        "count": 1047
+      },
+      {
+        "term": "DAS",
+        "count": 707
+      },
+      {
+        "term": "Hardware maintenance",
+        "count": 673
+      },
+      {
+        "term": "Tangible goods",
+        "count": 160
+      },
+      {
+        "term": "Digital good",
+        "count": 148
+      },
+      {
+        "term": "HW maintenance",
+        "count": 22
+      },
+      {
+        "term": "Free digital product",
+        "count": 12
+      },
+      {
+        "term": "Maintenance",
+        "count": 5
+      },
+      {
+        "term": "hardware",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "product_types",
+    "description": "Types of products and services",
+    "keywords": [
+      {
+        "term": "Computer services",
+        "count": 56366
+      },
+      {
+        "term": "Signage and accessories",
+        "count": 54245
+      },
+      {
+        "term": "Building and Facility Construction and Maintenance Services",
+        "count": 28484
+      },
+      {
+        "term": "Hardware",
+        "count": 24372
+      },
+      {
+        "term": "Notebook computers",
+        "count": 20035
+      },
+      {
+        "term": "Computer Accessories",
+        "count": 18355
+      },
+      {
+        "term": "System administrators",
+        "count": 15244
+      },
+      {
+        "term": "Computer Equipment and Accessories",
+        "count": 13361
+      },
+      {
+        "term": "Security surveillance and detection",
+        "count": 11816
+      },
+      {
+        "term": "Office Equipment and Accessories and Supplies",
+        "count": 11487
+      },
+      {
+        "term": "Computer displays",
+        "count": 10201
+      },
+      {
+        "term": "Computer hardware maintenance and support",
+        "count": 8354
+      },
+      {
+        "term": "Workstations",
+        "count": 7024
+      },
+      {
+        "term": "Safety or security systems installation",
+        "count": 6972
+      },
+      {
+        "term": "Scanners",
+        "count": 6883
+      },
+      {
+        "term": "Furniture and furnishings",
+        "count": 6729
+      },
+      {
+        "term": "Signal cable",
+        "count": 6448
+      },
+      {
+        "term": "Engineering - 1Power Support",
+        "count": 6297
+      },
+      {
+        "term": "Network interface cards",
+        "count": 6124
+      },
+      {
+        "term": "Software",
+        "count": 5925
+      },
+      {
+        "term": "Cleaning equipment and supplies",
+        "count": 5750
+      },
+      {
+        "term": "Engineering - UMTS Site Support",
+        "count": 5107
+      },
+      {
+        "term": "Keyboards",
+        "count": 5082
+      },
+      {
+        "term": "Paper products",
+        "count": 5013
+      },
+      {
+        "term": "Domestic appliance and supplies and consumer electronic prod",
+        "count": 4873
+      },
+      {
+        "term": "Personal communications device accessories or parts",
+        "count": 4649
+      },
+      {
+        "term": "Office supplies",
+        "count": 4250
+      },
+      {
+        "term": "Power adapters or inverters",
+        "count": 4125
+      },
+      {
+        "term": "Docking stations",
+        "count": 4111
+      },
+      {
+        "term": "General building construction - NEW",
+        "count": 4066
+      },
+      {
+        "term": "Household appliances",
+        "count": 3461
+      },
+      {
+        "term": "Data Voice or Multimedia Network Equipment or Platforms and",
+        "count": 3452
+      },
+      {
+        "term": "Engineering - Generator",
+        "count": 3403
+      },
+      {
+        "term": "Labor training or development",
+        "count": 3361
+      },
+      {
+        "term": "Merchandising furniture and accessories",
+        "count": 3317
+      },
+      {
+        "term": "Media storge devices",
+        "count": 2869
+      },
+      {
+        "term": "Computer Printers",
+        "count": 2759
+      },
+      {
+        "term": "Hardware Maintenance",
+        "count": 2583
+      },
+      {
+        "term": "Material packing and handling",
+        "count": 2506
+      },
+      {
+        "term": "Power supply units",
+        "count": 2470
+      },
+      {
+        "term": "Engineering - 1Platforms",
+        "count": 2416
+      },
+      {
+        "term": "Postal and small parcel and courier services",
+        "count": 1861
+      },
+      {
+        "term": "Apparel and Luggage and Personal Care Products",
+        "count": 1809
+      },
+      {
+        "term": "Engineering - Power Protection Cab",
+        "count": 1770
+      },
+      {
+        "term": "Electronic Components and Supplies",
+        "count": 1710
+      },
+      {
+        "term": "Computer bags",
+        "count": 1626
+      },
+      {
+        "term": "Building construction and support and maintenance and repair",
+        "count": 1609
+      },
+      {
+        "term": "Software maintenance and support",
+        "count": 1551
+      },
+      {
+        "term": "Computer mouse or trackballs",
+        "count": 1462
+      },
+      {
+        "term": "Tools and general machinery",
+        "count": 1458
+      }
+    ]
+  },
+  {
+    "category": "refund_basis_terms",
+    "description": "Reasons for refund claims",
+    "keywords": [
+      {
+        "term": "MPU",
+        "count": 8405
+      },
+      {
+        "term": "Non-taxable",
+        "count": 3001
+      },
+      {
+        "term": "Wrong rate",
+        "count": 2210
+      },
+      {
+        "term": "N/A - Reversed",
+        "count": 1459
+      },
+      {
+        "term": "Partial OOS services",
+        "count": 1123
+      },
+      {
+        "term": "OOS services",
+        "count": 716
+      },
+      {
+        "term": "Partial OOS shipment",
+        "count": 416
+      },
+      {
+        "term": "N - Out of State",
+        "count": 346
+      },
+      {
+        "term": "N/A",
+        "count": 284
+      },
+      {
+        "term": "OOS shipment",
+        "count": 155
+      },
+      {
+        "term": "B&O tax",
+        "count": 154
+      },
+      {
+        "term": "N/A-TPP",
+        "count": 114
+      },
+      {
+        "term": "Resale",
+        "count": 44
+      },
+      {
+        "term": "N - Nontaxable",
+        "count": 36
+      },
+      {
+        "term": "N - TPP",
+        "count": 26
+      },
+      {
+        "term": "N-Hardware",
+        "count": 18
+      },
+      {
+        "term": "PartialOOS services",
+        "count": 17
+      },
+      {
+        "term": "Data Center Exemption?",
+        "count": 9
+      },
+      {
+        "term": "N - Taxable",
+        "count": 8
+      },
+      {
+        "term": "N-Untaxed Nontaxable Services",
+        "count": 6
+      },
+      {
+        "term": "Support",
+        "count": 6
+      },
+      {
+        "term": "N - Texas Sales Tax",
+        "count": 6
+      },
+      {
+        "term": "N/A - Credit (No Tax)",
+        "count": 6
+      },
+      {
+        "term": "N-Install",
+        "count": 5
+      },
+      {
+        "term": "N - Nontaxable Service",
+        "count": 5
+      },
+      {
+        "term": "N/A - Nontaxable Services",
+        "count": 4
+      },
+      {
+        "term": "NA - Nontaxable",
+        "count": 4
+      },
+      {
+        "term": "N - Nontaxable Services",
+        "count": 3
+      },
+      {
+        "term": "N/A - Non WA Tax",
+        "count": 3
+      },
+      {
+        "term": "N/A - No tax",
+        "count": 3
+      },
+      {
+        "term": "N - Not WA Transaction",
+        "count": 3
+      },
+      {
+        "term": "Tax due",
+        "count": 3
+      },
+      {
+        "term": "N-Taxable",
+        "count": 3
+      },
+      {
+        "term": "N - HW support",
+        "count": 2
+      },
+      {
+        "term": "Nontaxable",
+        "count": 2
+      },
+      {
+        "term": "N/A - Tax Credited",
+        "count": 2
+      },
+      {
+        "term": "Discount",
+        "count": 1
+      },
+      {
+        "term": "N - Immaterial",
+        "count": 1
+      },
+      {
+        "term": "N - Not allocable",
+        "count": 1
+      },
+      {
+        "term": "OSS services",
+        "count": 1
+      },
+      {
+        "term": "N-Taxable and tax charged",
+        "count": 1
+      },
+      {
+        "term": "Nontaxable Service",
+        "count": 1
+      },
+      {
+        "term": "N - Taxed Correctly",
+        "count": 1
+      },
+      {
+        "term": "Refund Basis",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "final_decisions",
+    "description": "Analyst final decision outcomes",
+    "keywords": [
+      {
+        "term": "NO OPP",
+        "count": 453020
+      },
+      {
+        "term": "LOW OPP\\NO OPP",
+        "count": 8400
+      },
+      {
+        "term": "Add to claim - REFUND SAMPLE",
+        "count": 6143
+      },
+      {
+        "term": "ADDED TO CLAIM",
+        "count": 2030
+      },
+      {
+        "term": "Add to Claim - REFUND SAMPLE",
+        "count": 420
+      },
+      {
+        "term": "POSSIBLE, TX",
+        "count": 337
+      },
+      {
+        "term": "POSSIBLE, CT",
+        "count": 259
+      },
+      {
+        "term": "POSSIBLE, GA",
+        "count": 217
+      },
+      {
+        "term": "POSSIBLE, NC",
+        "count": 86
+      },
+      {
+        "term": "VENDOR REFUND",
+        "count": 36
+      },
+      {
+        "term": "POSSIBLE, KS",
+        "count": 28
+      },
+      {
+        "term": "POSSIBLE, OH",
+        "count": 10
+      },
+      {
+        "term": "POSSIBLE, MO",
+        "count": 5
+      },
+      {
+        "term": "POSSIBLE, CO",
+        "count": 5
+      },
+      {
+        "term": "POSSIBLE, CA",
+        "count": 4
+      },
+      {
+        "term": "POSSIBLE, unclear",
+        "count": 4
+      },
+      {
+        "term": "POSSIBLE,  KS",
+        "count": 4
+      },
+      {
+        "term": "Added to claim",
+        "count": 3
+      },
+      {
+        "term": "POSSIBLE, VA",
+        "count": 3
+      },
+      {
+        "term": "POSSIBLE, UT",
+        "count": 1
+      },
+      {
+        "term": "POSSIBLE, PA",
+        "count": 1
+      },
+      {
+        "term": "POSSIBLE, FL",
+        "count": 1
+      },
+      {
+        "term": "POSSIBLE, IL",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "gl_account_descriptions",
+    "description": "General ledger account descriptions",
+    "keywords": [
+      {
+        "term": "GRIR - COS/Other",
+        "count": 304588
+      },
+      {
+        "term": "GRIR - Network",
+        "count": 43057
+      },
+      {
+        "term": "GRIR - Retail",
+        "count": 1206
+      },
+      {
+        "term": "Subcontract Variance",
+        "count": 541
+      },
+      {
+        "term": "Proj - Equipment",
+        "count": 3
+      },
+      {
+        "term": "Proj - Licenses",
+        "count": 3
+      },
+      {
+        "term": "Hard & Soft Maintenance Support",
+        "count": 3
+      },
+      {
+        "term": "Computer Hard & Soft 1(Non-Cap)",
+        "count": 3
+      },
+      {
+        "term": "Proj - Construction Fees",
+        "count": 2
+      },
+      {
+        "term": "Office Svcs-Repair/Maint",
+        "count": 1
+      },
+      {
+        "term": "Proj - Professional Fees",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "material_groups",
+    "description": "SAP material group codes",
+    "keywords": [
+      {
+        "term": "1PWR_SUP",
+        "count": 6297
+      },
+      {
+        "term": "1USUPPORT",
+        "count": 5107
+      },
+      {
+        "term": "1GENERATR",
+        "count": 3403
+      },
+      {
+        "term": "1PLATFORM",
+        "count": 2416
+      },
+      {
+        "term": "1PPC",
+        "count": 1770
+      },
+      {
+        "term": "IOT",
+        "count": 1126
+      },
+      {
+        "term": "1HARDWARE",
+        "count": 911
+      },
+      {
+        "term": "ACC",
+        "count": 466
+      },
+      {
+        "term": "1UNB_COMP",
+        "count": 396
+      },
+      {
+        "term": "1RDO_USED",
+        "count": 231
+      },
+      {
+        "term": "1AAV",
+        "count": 174
+      },
+      {
+        "term": "SIM",
+        "count": 141
+      },
+      {
+        "term": "83121703A",
+        "count": 116
+      },
+      {
+        "term": "1BTS_COMP",
+        "count": 90
+      },
+      {
+        "term": "2SOFTWARE",
+        "count": 32
+      },
+      {
+        "term": "MSIM",
+        "count": 11
+      },
+      {
+        "term": "2MISC",
+        "count": 8
+      },
+      {
+        "term": "1SPRINTDM",
+        "count": 4
+      },
+      {
+        "term": "1MW_RADIO",
+        "count": 4
+      },
+      {
+        "term": "1MISC",
+        "count": 3
+      },
+      {
+        "term": "1INSTALL",
+        "count": 3
+      },
+      {
+        "term": "COESK",
+        "count": 3
+      },
+      {
+        "term": "True",
+        "count": 2
+      },
+      {
+        "term": "1OBSOLETE",
+        "count": 2
+      },
+      {
+        "term": "#VALUE!",
+        "count": 1
+      },
+      {
+        "term": "1MSC",
+        "count": 1
+      },
+      {
+        "term": "2SFT_MNT",
+        "count": 1
+      },
+      {
+        "term": "NULL",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "allocation_methods",
+    "description": "Methods used to allocate tax across jurisdictions",
+    "keywords": [
+      {
+        "term": "User List",
+        "count": 152
+      },
+      {
+        "term": "Employee List - All",
+        "count": 55
+      },
+      {
+        "term": "Enterprise Users",
+        "count": 24
+      },
+      {
+        "term": "Percentage of CARE and Marketing Employees",
+        "count": 22
+      },
+      {
+        "term": "Users of sample application using the PCF platform",
+        "count": 20
+      },
+      {
+        "term": "Location Based",
+        "count": 18
+      },
+      {
+        "term": "Dedicated Experts team in Chattanooga TN Call Center (100) and 15 P&T Licenses. 10/115 in WA.",
+        "count": 16
+      },
+      {
+        "term": "902/2873 users in Washington based on OMi and NNMi user lists",
+        "count": 14
+      },
+      {
+        "term": "User List provided by Medalia (Care Users)",
+        "count": 13
+      },
+      {
+        "term": "RF Engineers - All Markets",
+        "count": 6
+      },
+      {
+        "term": "User List provided by Medalia (Retail Users)",
+        "count": 6
+      },
+      {
+        "term": "User List (1,625/3,149) users in Washington",
+        "count": 6
+      },
+      {
+        "term": "Nodes",
+        "count": 6
+      },
+      {
+        "term": "Retail & Care (1,829 / 34,789)",
+        "count": 5
+      },
+      {
+        "term": "Enterprise Data Security Users (39 of 46 in Washington)",
+        "count": 4
+      },
+      {
+        "term": "Retail & Care (1,820 / 35,280)",
+        "count": 4
+      },
+      {
+        "term": "User List provided by Medalia (Marketing Users)",
+        "count": 3
+      },
+      {
+        "term": "Headcount - All Employees",
+        "count": 3
+      },
+      {
+        "term": "TFB, Retail, and Care (2,050/36,684)",
+        "count": 3
+      },
+      {
+        "term": "223/234 Users in WA",
+        "count": 3
+      },
+      {
+        "term": "1/37 Users Outside Washington",
+        "count": 2
+      },
+      {
+        "term": "N/A",
+        "count": 2
+      },
+      {
+        "term": "Retail & Care (including dealers)",
+        "count": 2
+      },
+      {
+        "term": "Defined User List",
+        "count": 2
+      },
+      {
+        "term": "All Employees, no retail",
+        "count": 2
+      },
+      {
+        "term": "Split between Polaris and Titan",
+        "count": 2
+      },
+      {
+        "term": "User List (26 of 44 in WA)",
+        "count": 1
+      },
+      {
+        "term": "Tmobile for Business",
+        "count": 1
+      },
+      {
+        "term": "Visual Studio Pro User List (164/200 in WA)",
+        "count": 1
+      },
+      {
+        "term": "Retail & Care (1,717 / 36,735)",
+        "count": 1
+      },
+      {
+        "term": "TFB, Retail, and Care (2,012/36,056)",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "location_keywords",
+    "description": "Common locations referenced in transactions",
+    "keywords": [
+      {
+        "term": "WA",
+        "count": 207
+      },
+      {
+        "term": "N/A",
+        "count": 192
+      },
+      {
+        "term": "Wenatchee",
+        "count": 134
+      },
+      {
+        "term": "Data",
+        "count": 128
+      },
+      {
+        "term": "Center",
+        "count": 126
+      },
+      {
+        "term": "Bellevue",
+        "count": 49
+      },
+      {
+        "term": "HQ",
+        "count": 49
+      },
+      {
+        "term": "Polaris",
+        "count": 42
+      },
+      {
+        "term": "Titan",
+        "count": 33
+      },
+      {
+        "term": "Redmond",
+        "count": 32
+      },
+      {
+        "term": "Network",
+        "count": 24
+      },
+      {
+        "term": "Snoqualmie",
+        "count": 9
+      },
+      {
+        "term": "NP",
+        "count": 7
+      },
+      {
+        "term": "East",
+        "count": 6
+      },
+      {
+        "term": "Agmt",
+        "count": 6
+      },
+      {
+        "term": "User",
+        "count": 5
+      },
+      {
+        "term": "Device",
+        "count": 5
+      },
+      {
+        "term": "Bothel",
+        "count": 5
+      },
+      {
+        "term": "(but",
+        "count": 5
+      },
+      {
+        "term": "Titan)",
+        "count": 5
+      },
+      {
+        "term": "Plano",
+        "count": 5
+      },
+      {
+        "term": "TX",
+        "count": 5
+      },
+      {
+        "term": "Aurora",
+        "count": 3
+      },
+      {
+        "term": "CO",
+        "count": 3
+      },
+      {
+        "term": "AWS",
+        "count": 3
+      },
+      {
+        "term": "Cloud",
+        "count": 3
+      },
+      {
+        "term": "Canyon",
+        "count": 3
+      },
+      {
+        "term": "(Plano",
+        "count": 2
+      },
+      {
+        "term": "TX)",
+        "count": 2
+      },
+      {
+        "term": "Centers",
+        "count": 2
+      },
+      {
+        "term": "GA",
+        "count": 1
+      },
+      {
+        "term": "Bothell",
+        "count": 1
+      }
+    ]
+  }
+]
