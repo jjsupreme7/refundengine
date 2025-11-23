@@ -1,0 +1,262 @@
+[
+  {
+    "category": "tax_categories",
+    "description": "Primary tax classification categories",
+    "keywords": [
+      {
+        "term": "License",
+        "count": 6598
+      },
+      {
+        "term": "Services",
+        "count": 5231
+      },
+      {
+        "term": "Hardware",
+        "count": 1526
+      },
+      {
+        "term": "Software maintenance",
+        "count": 1047
+      },
+      {
+        "term": "DAS",
+        "count": 707
+      },
+      {
+        "term": "Hardware maintenance",
+        "count": 673
+      },
+      {
+        "term": "Tangible goods",
+        "count": 160
+      },
+      {
+        "term": "Digital good",
+        "count": 148
+      },
+      {
+        "term": "HW maintenance",
+        "count": 22
+      },
+      {
+        "term": "Free digital product",
+        "count": 12
+      },
+      {
+        "term": "Maintenance",
+        "count": 5
+      },
+      {
+        "term": "hardware",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "category": "product_types",
+    "description": "Types of products and services",
+    "keywords": [
+      {
+        "term": "Computer services",
+        "count": 56366
+      },
+      {
+        "term": "Signage and accessories",
+        "count": 54245
+      },
+      {
+        "term": "Building and Facility Construction and Maintenance Services",
+        "count": 28484
+      },
+      {
+        "term": "Hardware",
+        "count": 24372
+      },
+      {
+        "term": "Notebook computers",
+        "count": 20035
+      },
+      {
+        "term": "Computer Accessories",
+        "count": 18355
+      },
+      {
+        "term": "System administrators",
+        "count": 15244
+      },
+      {
+        "term": "Computer Equipment and Accessories",
+        "count": 13361
+      },
+      {
+        "term": "Security surveillance and detection",
+        "count": 11816
+      },
+      {
+        "term": "Office Equipment and Accessories and Supplies",
+        "count": 11487
+      },
+      {
+        "term": "Computer displays",
+        "count": 10201
+      },
+      {
+        "term": "Computer hardware maintenance and support",
+        "count": 8354
+      },
+      {
+        "term": "Workstations",
+        "count": 7024
+      },
+      {
+        "term": "Safety or security systems installation",
+        "count": 6972
+      },
+      {
+        "term": "Scanners",
+        "count": 6883
+      },
+      {
+        "term": "Furniture and furnishings",
+        "count": 6729
+      },
+      {
+        "term": "Signal cable",
+        "count": 6448
+      },
+      {
+        "term": "Engineering - 1Power Support",
+        "count": 6297
+      },
+      {
+        "term": "Network interface cards",
+        "count": 6124
+      },
+      {
+        "term": "Software",
+        "count": 5925
+      },
+      {
+        "term": "Cleaning equipment and supplies",
+        "count": 5750
+      },
+      {
+        "term": "Engineering - UMTS Site Support",
+        "count": 5107
+      },
+      {
+        "term": "Keyboards",
+        "count": 5082
+      },
+      {
+        "term": "Paper products",
+        "count": 5013
+      },
+      {
+        "term": "Domestic appliance and supplies and consumer electronic prod",
+        "count": 4873
+      },
+      {
+        "term": "Personal communications device accessories or parts",
+        "count": 4649
+      },
+      {
+        "term": "Office supplies",
+        "count": 4250
+      },
+      {
+        "term": "Power adapters or inverters",
+        "count": 4125
+      },
+      {
+        "term": "Docking stations",
+        "count": 4111
+      },
+      {
+        "term": "General building construction - NEW",
+        "count": 4066
+      },
+      {
+        "term": "Household appliances",
+        "count": 3461
+      },
+      {
+        "term": "Data Voice or Multimedia Network Equipment or Platforms and",
+        "count": 3452
+      },
+      {
+        "term": "Engineering - Generator",
+        "count": 3403
+      },
+      {
+        "term": "Labor training or development",
+        "count": 3361
+      },
+      {
+        "term": "Merchandising furniture and accessories",
+        "count": 3317
+      },
+      {
+        "term": "Media storge devices",
+        "count": 2869
+      },
+      {
+        "term": "Computer Printers",
+        "count": 2759
+      },
+      {
+        "term": "Hardware Maintenance",
+        "count": 2583
+      },
+      {
+        "term": "Material packing and handling",
+        "count": 2506
+      },
+      {
+        "term": "Power supply units",
+        "count": 2470
+      },
+      {
+        "term": "Engineering - 1Platforms",
+        "count": 2416
+      },
+      {
+        "term": "Postal and small parcel and courier services",
+        "count": 1861
+      },
+      {
+        "term": "Apparel and Luggage and Personal Care Products",
+        "count": 1809
+      },
+      {
+        "term": "Engineering - Power Protection Cab",
+        "count": 1770
+      },
+      {
+        "term": "Electronic Components and Supplies",
+        "count": 1710
+      },
+      {
+        "term": "Computer bags",
+        "count": 1626
+      },
+      {
+        "term": "Building construction and support and maintenance and repair",
+        "count": 1609
+      },
+      {
+        "term": "Software maintenance and support",
+        "count": 1551
+      },
+      {
+        "term": "Computer mouse or trackballs",
+        "count": 1462
+      },
+      {
+        "term": "Tools and general machinery",
+        "count": 1458
+      }
+    ]
+  }
+]

@@ -81,10 +81,22 @@ python scripts/research_vendors.py
 python scripts/research_vendors_for_ingestion.py
 ```
 
-**Pattern Learning**
+**Pattern Extraction**
 ```bash
-# Train pattern learner on historical data
-python scripts/train_pattern_learner.py
+# Extract sales tax patterns from Phase 2 Master Refunds
+python scripts/extract_patterns_from_phase2.py
+
+# Extract sales tax patterns from Denodo (2019-2023)
+python scripts/extract_patterns_from_denodo.py
+
+# Extract use tax patterns
+python scripts/extract_patterns_from_use_tax.py
+
+# Upload patterns to Supabase
+python scripts/upload_patterns_to_supabase.py
+
+# Upload patterns (dry-run preview)
+python scripts/upload_patterns_to_supabase.py --dry-run
 ```
 
 **Async Processing**

@@ -5,9 +5,7 @@
     "historical_sample_count": 422326,
     "historical_success_rate": 0.001,
     "typical_refund_basis": "Partial OOS services",
-    "description_keywords": [
-      "002"
-    ],
+    "description_keywords": [],
     "common_tax_categories": [
       "Services",
       "Hardware",
@@ -27,18 +25,7 @@
     "historical_sample_count": 196713,
     "historical_success_rate": 0.0138,
     "typical_refund_basis": "MPU",
-    "description_keywords": [
-      "002",
-      "003",
-      "004",
-      "005",
-      "006",
-      "007",
-      "009",
-      "008",
-      "011",
-      "010"
-    ],
+    "description_keywords": [],
     "common_tax_categories": [
       "License",
       "Software maintenance",
@@ -80,13 +67,7 @@
       "OOS shipment"
     ],
     "common_allocation_methods": [],
-    "description_keywords": [
-      "from",
-      "emails",
-      "Brian",
-      "Eldredge,",
-      "shipped"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP"
   },
   {
@@ -203,7 +184,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Wipro",
       "Managed",
       "TMUS",
       "Services",
@@ -227,7 +207,6 @@
       "OOS shipment"
     ],
     "description_keywords": [
-      "1014",
       "SD.DSRP18",
       "Bldg",
       "Install",
@@ -240,9 +219,7 @@
     "historical_sample_count": 25566,
     "historical_success_rate": 0.0002,
     "typical_refund_basis": "OOS services",
-    "description_keywords": [
-      "005"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [
       "Services"
@@ -273,9 +250,7 @@
     "historical_sample_count": 17282,
     "historical_success_rate": 0.0039,
     "typical_refund_basis": "Wrong rate",
-    "description_keywords": [
-      "003"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [
       "Hardware"
@@ -330,9 +305,7 @@
     "historical_sample_count": 14187,
     "historical_success_rate": 0.0,
     "typical_refund_basis": null,
-    "description_keywords": [
-      "005"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP"
   },
   {
@@ -426,10 +399,7 @@
     "historical_sample_count": 9403,
     "historical_success_rate": 0.001,
     "typical_refund_basis": "Non-taxable",
-    "description_keywords": [
-      "003",
-      "002"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [
       "Tangible goods",
@@ -447,18 +417,7 @@
     "historical_sample_count": 8749,
     "historical_success_rate": 0.0699,
     "typical_refund_basis": "Non-taxable",
-    "description_keywords": [
-      "002",
-      "003",
-      "006",
-      "005",
-      "013",
-      "008",
-      "012",
-      "004",
-      "009",
-      "014"
-    ],
+    "description_keywords": [],
     "common_tax_categories": [
       "Services",
       "License",
@@ -544,10 +503,7 @@
     "historical_sample_count": 6065,
     "historical_success_rate": 0.0,
     "typical_refund_basis": "OOS services",
-    "description_keywords": [
-      "002",
-      "004"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [
       "Services"
@@ -563,18 +519,7 @@
     "historical_sample_count": 5798,
     "historical_success_rate": 0.1134,
     "typical_refund_basis": "Non-taxable",
-    "description_keywords": [
-      "002",
-      "003",
-      "004",
-      "005",
-      "006",
-      "008",
-      "010",
-      "012",
-      "007",
-      "009"
-    ],
+    "description_keywords": [],
     "common_tax_categories": [
       "Services",
       "License",
@@ -682,7 +627,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Perk",
-      "Staples",
       "Paper",
       "Professional",
       "Coastwide"
@@ -723,7 +667,6 @@
     "description_keywords": [
       "Outsourced",
       "technical",
-      "support,",
       "paid",
       "2019."
     ],
@@ -940,7 +883,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "CBRE",
       "request",
       "cover",
       "Facilities",
@@ -958,10 +900,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "This",
-      "request",
-      "Brightpoint",
-      "North",
-      "America"
+      "request"
     ]
   },
   {
@@ -980,10 +919,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "quote,",
       "project",
       "location",
-      "out-of-state,",
       "incorrect"
     ],
     "typical_final_decision": "NO OPP"
@@ -1052,10 +989,7 @@
     "historical_sample_count": 2028,
     "historical_success_rate": 0.0,
     "typical_refund_basis": null,
-    "description_keywords": [
-      "003",
-      "002"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP"
   },
   {
@@ -1210,9 +1144,7 @@
     "historical_sample_count": 1537,
     "historical_success_rate": 0.0182,
     "typical_refund_basis": "OOS shipment",
-    "description_keywords": [
-      "002"
-    ],
+    "description_keywords": [],
     "common_tax_categories": [
       "Hardware"
     ],
@@ -1273,11 +1205,8 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Pariveda",
       "Milestone",
-      "CW2793429",
-      "SDPFW",
-      "CW3092586-Pariveda-CSR-LOE"
+      "SDPFW"
     ]
   },
   {
@@ -1555,7 +1484,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "email",
-      "from",
       "vendor",
       "Excel",
       "workbook"
@@ -1809,8 +1737,7 @@
       "credit",
       "consumer",
       "identity",
-      "Business",
-      "Information"
+      "Business"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -1820,9 +1747,7 @@
     "historical_sample_count": 938,
     "historical_success_rate": 0.0,
     "typical_refund_basis": null,
-    "description_keywords": [
-      "002"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP"
   },
   {
@@ -1839,10 +1764,6 @@
       "Wrong rate"
     ],
     "description_keywords": [
-      "CW2610244",
-      "SECURITAS",
-      "ELECTRONIC",
-      "SECURITY",
       "CAPEX"
     ]
   },
@@ -1877,8 +1798,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Purchased",
-      "from",
-      "Atlassian,",
       "that",
       "perform"
     ],
@@ -2037,10 +1956,8 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Insight",
       "Global_Knauth_4Q",
       "2023-1Q",
-      "2024",
       "June"
     ]
   },
@@ -2134,8 +2051,7 @@
       "transaction",
       "Dunn",
       "email",
-      "also",
-      "SOW,"
+      "also"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -2202,9 +2118,7 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Accounting",
-      "software,",
-      "users",
-      "out-of-state"
+      "users"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -2277,8 +2191,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "store",
-      "Premier",
-      "Fixtures,",
       "manufactures",
       "fixtures."
     ],
@@ -2458,7 +2370,6 @@
       "services",
       "taxable",
       "invoice",
-      "quote,",
       "storage"
     ],
     "typical_final_decision": "NO OPP"
@@ -2763,8 +2674,7 @@
       "Cotton",
       "short",
       "sleeve",
-      "Nexus",
-      "Jacket,"
+      "Nexus"
     ]
   },
   {
@@ -2773,9 +2683,7 @@
     "historical_sample_count": 510,
     "historical_success_rate": 0.0,
     "typical_refund_basis": null,
-    "description_keywords": [
-      "002"
-    ],
+    "description_keywords": [],
     "typical_final_decision": "NO OPP"
   },
   {
@@ -2793,7 +2701,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Maintenance",
-      "time",
       "keeping",
       "equipment",
       "installed"
@@ -2814,9 +2721,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "SOW,",
-      "non-taxable",
-      "services,",
       "onsite",
       "personnel"
     ],
@@ -2845,10 +2749,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2023",
-      "Parcel",
       "small",
-      "parcel",
       "ship"
     ]
   },
@@ -2899,7 +2800,6 @@
       "Billing",
       "platform",
       "hosted",
-      "Wyless",
       "T-Mobile"
     ],
     "typical_final_decision": "NO OPP"
@@ -3049,8 +2949,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "provides",
-      "DNS,",
-      "DHCP,",
       "Address",
       "Management"
     ],
@@ -3066,7 +2964,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Fooda",
       "Lunch",
       "Akers",
       "Mill",
@@ -3128,8 +3025,7 @@
       "SD.REB",
       "Lease",
       "Overhead",
-      "Profit",
-      "0100"
+      "Profit"
     ]
   },
   {
@@ -3189,7 +3085,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Figma",
       "design/whiteboarding/collaboration",
       "tool"
     ],
@@ -3230,9 +3125,7 @@
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [],
     "common_refund_bases": [],
-    "description_keywords": [
-      "Recruitment-BountyJobs"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "POWERSECURE INC",
@@ -3302,7 +3195,6 @@
       "related",
       "services",
       "Rule",
-      "15503",
       "provides"
     ],
     "typical_final_decision": "NO OPP"
@@ -3320,7 +3212,6 @@
       "Transwest",
       "Valet",
       "TransWest",
-      "Parking",
       "Last"
     ]
   },
@@ -3357,7 +3248,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Salesforce",
       "Enterprise",
       "Unlimited",
       "Subscrip",
@@ -3433,7 +3323,6 @@
     "description_keywords": [
       "Request",
       "funding",
-      "Bolin",
       "Labor",
       "Material"
     ]
@@ -3448,11 +3337,8 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Active",
       "Phase",
-      "PH45402",
-      "L700",
-      "SV14042"
+      "L700"
     ]
   },
   {
@@ -3497,7 +3383,6 @@
     "description_keywords": [
       "management",
       "tool",
-      "Workflow,",
       "project",
       "Workflow\\project"
     ],
@@ -3529,7 +3414,6 @@
       "email",
       "Support",
       "Wi-Fi",
-      "equipment;",
       "Intrusion"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -3659,8 +3543,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Perfect",
-      "Output",
       "Software/Storage/Mail",
       "other",
       "former"
@@ -3751,8 +3633,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "software",
-      "SOW,",
       "used",
       "monitor",
       "provide"
@@ -3854,7 +3734,6 @@
       "Sprint",
       "This",
       "Dimension",
-      "Systems",
       "Back-up"
     ],
     "typical_final_decision": "NO OPP"
@@ -3964,11 +3843,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "SOW,",
       "provides",
-      "system",
-      "monitoring,",
-      "troubleshooting,"
+      "system"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -4070,7 +3946,6 @@
       "902/2873 users in Washington based on OMi and NNMi user lists"
     ],
     "description_keywords": [
-      "from",
       "data",
       "help",
       "break",
@@ -4122,8 +3997,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "software",
-      "Lucid",
       "Suite",
       "comprised",
       "types"
@@ -4185,7 +4058,6 @@
       "HW\\SW",
       "maintenance",
       "located",
-      "equipment,",
       "17/291"
     ],
     "typical_final_decision": "NO OPP"
@@ -4238,7 +4110,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "from",
       "Software",
       "perform",
       "security",
@@ -4289,9 +4160,7 @@
     "description_keywords": [
       "Outsourced",
       "reverse",
-      "logistics",
-      "services,",
-      "(i.e.,"
+      "logistics"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -4305,9 +4174,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2019",
-      "Opera",
-      "CW2385839",
       "Expenses",
       "expenses"
     ]
@@ -4388,10 +4254,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Safety",
-      "boot,",
       "Composite",
-      "toe,",
       "Class"
     ]
   },
@@ -4420,9 +4283,7 @@
     "description_keywords": [
       "(AVI-SPL",
       "LLC)",
-      "Signature",
-      "AVI-SPL",
-      "CW2782797"
+      "Signature"
     ]
   },
   {
@@ -4451,11 +4312,9 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Kitting,",
       "Distribution",
       "Warehouse",
-      "Fees",
-      "2018"
+      "Fees"
     ]
   },
   {
@@ -4472,8 +4331,6 @@
       "Wrong rate"
     ],
     "description_keywords": [
-      "SYSTEMS",
-      "SOURCE",
       "Tech",
       "Furniture",
       "Experience"
@@ -4506,8 +4363,7 @@
       "Data",
       "Governance",
       "Privacy",
-      "automates",
-      "Discovery,"
+      "automates"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -4630,10 +4486,8 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "data",
-      "with",
       "tool",
-      "integrated",
-      "PowerCenter,"
+      "integrated"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -4647,7 +4501,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Pride",
       "Semi",
       "Annual",
       "Remodel",
@@ -4745,7 +4598,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Services",
       "Dialer/Professional",
       "Domestic",
       "Collections"
@@ -4810,8 +4662,7 @@
     "description_keywords": [
       "Logistics",
       "Trackers",
-      "Thru",
-      "2019"
+      "Thru"
     ]
   },
   {
@@ -4849,7 +4700,6 @@
       "Firewall",
       "analyzer",
       "orchestration",
-      "tool,",
       "which"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -4866,9 +4716,7 @@
     "description_keywords": [
       "Claritas/Envision",
       "Platform",
-      "Claritas",
-      "Setting",
-      "2023"
+      "Setting"
     ]
   },
   {
@@ -4916,8 +4764,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2650",
-      "Lighting",
       "SD.CN",
       "SD.REMC",
       "SD.CR"
@@ -4943,7 +4789,6 @@
       "access",
       "Software",
       "used",
-      "device,",
       "Retail"
     ],
     "typical_final_decision": "NO OPP"
@@ -4975,7 +4820,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Ensurity",
       "Device",
       "Upgrade",
       "SD.GPS22.",
@@ -5021,7 +4865,6 @@
       "users",
       "non-WA.",
       "email",
-      "from",
       "Shelly"
     ],
     "typical_final_decision": "NO OPP"
@@ -5043,10 +4886,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Opal",
       "planning",
       "teams",
-      "with",
       "social"
     ],
     "typical_final_decision": "NO OPP"
@@ -5103,8 +4944,7 @@
       "Monthly",
       "Clearing",
       "House",
-      "Fees",
-      "Syniverse"
+      "Fees"
     ]
   },
   {
@@ -5219,10 +5059,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Equipment",
-      "ACCO",
-      "Toilet",
-      "ENGINEERED",
-      "SYSTEMS"
+      "Toilet"
     ]
   },
   {
@@ -5259,8 +5096,6 @@
       "Non-taxable"
     ],
     "description_keywords": [
-      "Equifax",
-      "2022",
       "Consumer",
       "Business",
       "(Jan"
@@ -5278,7 +5113,6 @@
     "description_keywords": [
       "Participant",
       "SOTFN",
-      "2/22/2021-2/22/202",
       "Access",
       "Pass"
     ]
@@ -5435,7 +5269,6 @@
     "description_keywords": [
       "Service",
       "Line",
-      "Broadspire",
       "Escrow",
       "Funding"
     ]
@@ -5560,7 +5393,6 @@
     "description_keywords": [
       "software",
       "email",
-      "from",
       "Keith",
       "provided"
     ],
@@ -5658,7 +5490,6 @@
     "description_keywords": [
       "testing",
       "Wrong",
-      "rate,",
       "email",
       "download"
     ]
@@ -5737,7 +5568,6 @@
       "locations",
       "Invoice",
       "taxed",
-      "error,",
       "amendment"
     ],
     "typical_final_decision": "ADDED TO CLAIM"
@@ -5841,7 +5671,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "KEYCODE",
-      "MEDIA",
       "5G&Me",
       "equpment",
       "Production"
@@ -5879,7 +5708,6 @@
     "description_keywords": [
       "engagement",
       "that",
-      "from",
       "support",
       "Customer"
     ],
@@ -5932,7 +5760,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Letters",
-      "2022",
       "Postage",
       "Returned",
       "Printing"
@@ -6011,7 +5838,6 @@
     "description_keywords": [
       "Software",
       "test",
-      "mobile",
       "devices.",
       "on-premise"
     ],
@@ -6145,10 +5971,7 @@
     ],
     "description_keywords": [
       "Revolving",
-      "Door",
-      "CW2660050",
-      "BOON",
-      "EDAM"
+      "Door"
     ]
   },
   {
@@ -6164,7 +5987,6 @@
       "Plant",
       "Interior",
       "Maintenance",
-      "BOTANICAL",
       "DESIGNS"
     ]
   },
@@ -6289,7 +6111,6 @@
       "systems",
       "also",
       "Integration",
-      "software",
       "that"
     ],
     "typical_final_decision": "NO OPP"
@@ -6392,8 +6213,6 @@
       "Non-taxable"
     ],
     "description_keywords": [
-      "Americas",
-      "2023",
       "CorrigoNet",
       "April",
       "thru"
@@ -6409,9 +6228,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Kaufman",
       "Floor",
-      "Broadcast",
       "Studio",
       "Broadcasting"
     ]
@@ -6449,7 +6266,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "invoice,",
       "automobile",
       "delivered"
     ]
@@ -6496,9 +6312,7 @@
     "description_keywords": [
       "full-time",
       "resources",
-      "with",
-      "experience",
-      "Imperva"
+      "experience"
     ]
   },
   {
@@ -6604,7 +6418,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "used",
-      "Software",
       "provide",
       "employees",
       "access"
@@ -6679,9 +6492,7 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "email",
-      "from",
       "Ravi",
-      "Subramanian,",
       "downloaded"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -6698,9 +6509,7 @@
     "description_keywords": [
       "SD.CR",
       "Lease",
-      "0100",
-      "General",
-      "2600"
+      "General"
     ]
   },
   {
@@ -6720,7 +6529,6 @@
     "description_keywords": [
       "platform",
       "information",
-      "Intralinks",
       "SaaS",
       "that"
     ],
@@ -6812,8 +6620,7 @@
       "Online",
       "portal",
       "sales/retail",
-      "support",
-      "materials,"
+      "support"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -6827,10 +6634,8 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2022",
       "Customer",
       "Journey",
-      "PR215189",
       "Notification"
     ]
   },
@@ -6891,7 +6696,6 @@
       "website",
       "Software",
       "track",
-      "errors,",
       "clicks"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -6936,8 +6740,7 @@
       "Building",
       "Annual",
       "Fire",
-      "Testing",
-      "2022"
+      "Testing"
     ]
   },
   {
@@ -6953,7 +6756,6 @@
       "Purchase",
       "hardware/monitors",
       "part",
-      "Velocity",
       "Software"
     ]
   },
@@ -7012,8 +6814,7 @@
       "Automation",
       "test",
       "tool",
-      "enterprise",
-      "API’s,"
+      "enterprise"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -7084,10 +6885,8 @@
       "MPU"
     ],
     "description_keywords": [
-      "Provana",
       "Integrated",
       "Call",
-      "2023",
       "Analytics"
     ]
   },
@@ -7234,7 +7033,6 @@
       "Non-taxable"
     ],
     "description_keywords": [
-      "CW2823517",
       "Opis",
       "License",
       "Agreement",
@@ -7256,7 +7054,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "used",
-      "Mapbox",
       "create",
       "maps",
       "that"
@@ -7282,7 +7079,6 @@
       "provides",
       "platform",
       "enterprise",
-      "OutSystems",
       "application"
     ],
     "typical_final_decision": "NO OPP"
@@ -7298,7 +7094,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "2H23",
-      "Gold",
       "Services"
     ]
   },
@@ -7315,8 +7110,7 @@
       "Adhesive",
       "R-5254",
       "Head",
-      "I-5255",
-      "Lilitab,"
+      "I-5255"
     ]
   },
   {
@@ -7361,8 +7155,7 @@
       "digital",
       "Software",
       "used",
-      "hosted",
-      "vendor,"
+      "hosted"
     ]
   },
   {
@@ -7380,10 +7173,7 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "manage,",
-      "monitor,",
       "control",
-      "risks,",
       "engages"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -7455,8 +7245,7 @@
       "assistance",
       "Roadside",
       "T-Mobile",
-      "purchased",
-      "Allstate"
+      "purchased"
     ]
   },
   {
@@ -7489,8 +7278,7 @@
       "project",
       "quote",
       "(\"Revised",
-      "List\"",
-      "tab,"
+      "List\""
     ]
   },
   {
@@ -7508,7 +7296,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "know",
-      "Selligent,",
       "Omnichannel",
       "marketing",
       "solution"
@@ -7541,8 +7328,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Lookout",
-      "CW2328065",
       "Revenue",
       "Share",
       "Service"
@@ -7681,8 +7466,6 @@
     ],
     "description_keywords": [
       "Year",
-      "7/1/22-6/30/23",
-      "Copado",
       "User",
       "licenses"
     ]
@@ -7705,7 +7488,6 @@
       "Month",
       "Subscription",
       "Fees",
-      "Logmein-LastPass",
       "Business"
     ]
   },
@@ -7719,7 +7501,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2740",
       "Office",
       "Equipment",
       "Music",
@@ -7738,7 +7519,6 @@
     "description_keywords": [
       "Production",
       "Metro",
-      "2023",
       "Direct",
       "Mail"
     ]
@@ -7758,8 +7538,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "analytics,",
-      "traffic,",
       "brand",
       "product",
       "performance"
@@ -7784,7 +7562,6 @@
     "description_keywords": [
       "solution",
       "messaging",
-      "security",
       "operated",
       "Tier2"
     ]
@@ -7807,8 +7584,7 @@
       "T-Mobile",
       "Service",
       "provide",
-      "customers",
-      "monitor,"
+      "customers"
     ]
   },
   {
@@ -7850,7 +7626,6 @@
       "solution",
       "Formerly",
       "known",
-      "Jive,",
       "hosted"
     ],
     "typical_final_decision": "NO OPP"
@@ -7898,7 +7673,6 @@
     "description_keywords": [
       "services",
       "Repair",
-      "Apple",
       "phones",
       "delivered"
     ],
@@ -7944,8 +7718,7 @@
       "Platform",
       "used",
       "perform",
-      "various",
-      "analytics,"
+      "various"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -7992,8 +7765,7 @@
       "SD.CN",
       "Lease",
       "Overhead",
-      "Profit",
-      "2200"
+      "Profit"
     ]
   },
   {
@@ -8087,7 +7859,6 @@
     "description_keywords": [
       "Studio",
       "Equipment",
-      "Modern",
       "Floor",
       "Link"
     ]
@@ -8102,9 +7873,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Seattle",
-      "Baseball",
-      "Club",
       "(Seattle",
       "Marine"
     ]
@@ -8164,8 +7932,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "invoice,",
-      "shipped",
       "email",
       "Simon",
       "eSIM"
@@ -8209,7 +7975,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "SD.MD.SRP",
-      "1014",
       "design",
       "removal",
       "survey"
@@ -8224,10 +7989,7 @@
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [],
     "common_refund_bases": [],
-    "description_keywords": [
-      "2018",
-      "Graebel"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "HIGHJUMP SOFTWARE INC",
@@ -8243,7 +8005,7 @@
       "MPU"
     ],
     "description_keywords": [
-      "Körber",
+      "K\u00f6rber",
       "Supply",
       "Chain",
       "K.Motion",
@@ -8265,7 +8027,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "services",
-      "Illumio",
       "software",
       "provides",
       "host-based"
@@ -8305,7 +8066,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Liveramp",
       "T-Ads",
       "Data",
       "Monthly",
@@ -8323,7 +8083,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "What",
-      "Site?",
       "Bellevue",
       "What's",
       "bein"
@@ -8366,7 +8125,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "software",
       "deployed",
       "subject",
       "then",
@@ -8470,7 +8228,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "ElectrifAi",
       "Metro",
       "campaign",
       "support",
@@ -8487,11 +8244,8 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Juniper",
       "Support",
-      "Renewal",
-      "01/01/2022-12/31",
-      "SRX380-P-SYS-JB-AC"
+      "Renewal"
     ]
   },
   {
@@ -8544,7 +8298,6 @@
     "description_keywords": [
       "vendor",
       "email",
-      "from",
       "SaaS",
       "targeted"
     ],
@@ -8568,7 +8321,6 @@
     "description_keywords": [
       "Invoice",
       "paid",
-      "2018,",
       "sales",
       "charged"
     ],
@@ -8668,8 +8420,7 @@
       "Notification",
       "Training",
       "portal",
-      "engine",
-      "engine,"
+      "engine"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -8689,7 +8440,6 @@
     "description_keywords": [
       "services",
       "Access",
-      "company-level",
       "information",
       "companies"
     ],
@@ -8730,7 +8480,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Conduent",
       "Services",
       "Accounts",
       "Payab",
@@ -8763,7 +8512,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Ekata",
       "Cloud",
       "Order",
       "Monthly/Service"
@@ -8796,7 +8544,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Infinity",
       "Community",
       "Support",
       "Truck",
@@ -8823,7 +8570,6 @@
       "Moody's",
       "ABSS",
       "Support.",
-      "2022",
       "request"
     ]
   },
@@ -8855,8 +8601,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "General",
-      "SD.FM.PHVAC",
-      "SD.FM.,PHVAC"
+      "SD.FM.PHVAC"
     ]
   },
   {
@@ -8870,10 +8615,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Signal",
-      "MODULE,4X8-VSB",
-      "INPUT",
-      "3200",
-      "Chassis,"
+      "INPUT"
     ]
   },
   {
@@ -8909,8 +8651,7 @@
       "used",
       "call",
       "assist",
-      "forecasting",
-      "Software"
+      "forecasting"
     ]
   },
   {
@@ -8969,7 +8710,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "quote,",
       "support",
       "attributed",
       "locations",
@@ -9002,7 +8742,6 @@
       "Sales",
       "tool",
       "integrated",
-      "with",
       "salesforce"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -9024,8 +8763,7 @@
       "Site",
       "survey",
       "drafting",
-      "professional",
-      "services,"
+      "professional"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -9090,8 +8828,7 @@
       "Nielsen",
       "T-Ads",
       "Subscription",
-      "(July-Dec",
-      "2023"
+      "(July-Dec"
     ]
   },
   {
@@ -9120,7 +8857,6 @@
     "description_keywords": [
       "vulnerabilities",
       "platform",
-      "HackerOne",
       "which",
       "T-Mobile"
     ],
@@ -9140,8 +8876,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "software",
-      "support,",
       "purchased",
       "Legacy",
       "Sprint"
@@ -9165,8 +8899,7 @@
       "more",
       "users",
       "Route",
-      "leads",
-      "Salesforce;"
+      "leads"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -9183,8 +8916,7 @@
       "Replacing",
       "locks",
       "Stores",
-      "complet",
-      "Network-S.7708"
+      "complet"
     ]
   },
   {
@@ -9202,11 +8934,8 @@
       "MPU"
     ],
     "description_keywords": [
-      "MarkMonitor",
       "licensing",
-      "DPID:",
-      "DP819",
-      "1009874"
+      "DPID:"
     ]
   },
   {
@@ -9222,7 +8951,6 @@
       "Activation",
       "Fund",
       "Rights",
-      "2022",
       "Major"
     ]
   },
@@ -9239,8 +8967,7 @@
       "Workgroup",
       "UserZoom",
       "Userzoom",
-      "Subscription",
-      "2022"
+      "Subscription"
     ]
   },
   {
@@ -9337,10 +9064,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "management,",
       "integrates",
       "into",
-      "e-commerce,",
       "Core"
     ]
   },
@@ -9358,9 +9083,7 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "2017",
       "SOW.",
-      "GlobalTranz",
       "handles",
       "internal"
     ]
@@ -9434,10 +9157,7 @@
       "MPU"
     ],
     "description_keywords": [
-      "AlphaSense",
-      "2022",
       "Subscription",
-      "2020",
       "(CW2379389)"
     ]
   },
@@ -9452,7 +9172,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "COW/COLT",
-      "MS4.0",
       "Preparation",
       "Transpo",
       "Tower/Mast"
@@ -9476,8 +9195,7 @@
       "SD.FM.Door",
       "Materials",
       "labor",
-      "General",
-      "FACILITYSOURCE"
+      "General"
     ]
   },
   {
@@ -9495,10 +9213,7 @@
     ],
     "description_keywords": [
       "Dialer",
-      "2018",
-      "2019",
-      "Amount",
-      "2020"
+      "Amount"
     ]
   },
   {
@@ -9518,7 +9233,6 @@
     ],
     "description_keywords": [
       "services",
-      "Intelex",
       "Phase",
       "software",
       "subscription"
@@ -9540,9 +9254,7 @@
     "description_keywords": [
       "Enterprise",
       "Security",
-      "FY21",
-      "FICO/ISS",
-      "FY22-Q1:"
+      "FICO/ISS"
     ]
   },
   {
@@ -9558,7 +9270,6 @@
       "Request",
       "funding",
       "Labor",
-      "Nations",
       "Materials"
     ]
   },
@@ -9625,7 +9336,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "TelevisaUnivision",
       "ViX+",
       "Partnership",
       "Agree"
@@ -9642,10 +9352,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Assurant",
-      "FreeLook",
-      "Refunds,",
-      "2022",
-      "2023"
+      "FreeLook"
     ]
   },
   {
@@ -9688,9 +9395,7 @@
     "description_keywords": [
       "Provides",
       "push",
-      "notification,",
-      "in-app",
-      "messaging,"
+      "in-app"
     ],
     "typical_final_decision": "ADDED TO CLAIM"
   },
@@ -9801,10 +9506,8 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Cloud",
-      "software",
       "performance",
-      "test",
-      "t-mobile.com"
+      "test"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -9824,9 +9527,7 @@
     "description_keywords": [
       "email",
       "shipments",
-      "from",
-      "Sylvia",
-      "Fico,"
+      "Sylvia"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -9894,11 +9595,7 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "shipped",
-      "invoice,",
-      "2020",
-      "Validation",
-      "service,"
+      "Validation"
     ]
   },
   {
@@ -9919,7 +9616,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "mobile",
-      "from",
       "Retail",
       "stores",
       "employees"
@@ -9942,7 +9638,6 @@
     "description_keywords": [
       "E-learning",
       "solution",
-      "with",
       "authorized",
       "users"
     ]
@@ -9960,7 +9655,6 @@
       "power",
       "packet",
       "CONTEL#",
-      "19007",
       "RevC"
     ]
   },
@@ -9974,7 +9668,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Fern",
       "Tradeshow",
       "Management",
       "Invoice",
@@ -9992,8 +9685,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Recovery",
-      "Trackers",
-      "2019"
+      "Trackers"
     ]
   },
   {
@@ -10052,7 +9744,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Observepoint",
       "Licensing",
       "Fee-",
       "Platform",
@@ -10071,9 +9762,7 @@
     "description_keywords": [
       "SD.CN",
       "Lease",
-      "2300",
-      "HVAC",
-      "0920"
+      "HVAC"
     ]
   },
   {
@@ -10106,7 +9795,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "VMware",
       "Workstation",
       "Linux",
       "T-Mobile",
@@ -10150,8 +9838,7 @@
       "Online",
       "community",
       "platform",
-      "anyone",
-      "access,"
+      "anyone"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -10174,7 +9861,6 @@
       "which",
       "software",
       "devices",
-      "AWS,",
       "incorrectly"
     ],
     "typical_final_decision": "NO OPP"
@@ -10219,7 +9905,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "data",
-      "Software",
       "downloaded",
       "Azure",
       "USWest2"
@@ -10277,9 +9962,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "License",
-      "year",
-      "12/26/20-12/25/21",
-      "12/26/21-12/25/22"
+      "year"
     ]
   },
   {
@@ -10292,7 +9975,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Canary-Influencer",
       "creator",
       "boxes"
     ]
@@ -10343,7 +10025,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "BATT",
-      "ND12XE1110FFR2",
       "Installation",
       "(280)",
       "SBS-190F"
@@ -10367,9 +10048,7 @@
     "description_keywords": [
       "Provides",
       "pre-hire",
-      "assessments,",
-      "video",
-      "interviewing,"
+      "video"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -10383,10 +10062,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2018",
       "TeleInterpreters/Language",
-      "Language",
-      "Line",
       "Global"
     ]
   },
@@ -10424,8 +10100,7 @@
       "T-Mobile",
       "Partnerize",
       "will",
-      "provide",
-      "with"
+      "provide"
     ]
   },
   {
@@ -10438,7 +10113,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Phase",
       "Promo",
       "19Q4ATl164",
       "19Q4ATl167",
@@ -10510,9 +10184,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Office",
       "Furniture",
-      "Team",
       "Field",
       "Budget"
     ]
@@ -10537,7 +10209,6 @@
       "Sentry",
       "Elite",
       "Tier",
-      "year,",
       "Support"
     ]
   },
@@ -10551,11 +10222,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Renewal",
-      "Part#HSM9-12S-10-H0",
-      "Part#HSM9PU-SM2SH",
-      "Part#HSM9-12S-10-X0",
-      "Part#PSMON-LIC-ADD5"
+      "Renewal"
     ]
   },
   {
@@ -10609,8 +10276,7 @@
       "Learning",
       "remediation",
       "platform",
-      "Care",
-      "Retail,"
+      "Care"
     ]
   },
   {
@@ -10632,7 +10298,6 @@
       "Echo",
       "locate",
       "devices",
-      "shipped",
       "vendor"
     ]
   },
@@ -10693,7 +10358,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Workiva",
       "Financial",
       "Reporting",
       "software",
@@ -10815,9 +10479,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "CW2400779",
-      "Automation",
-      "$695,680.00",
       "Make",
       "control"
     ]
@@ -10837,7 +10498,6 @@
     ],
     "description_keywords": [
       "T-Mobile",
-      "2022",
       "Annual",
       "Support",
       "Renewal.pdf"
@@ -10875,7 +10535,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Decommissioning",
-      "T-Mobile’s",
+      "T-Mobile\u2019s",
       "suite",
       "Decom",
       "EAST"
@@ -10895,9 +10555,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Fuel",
-      "Cycle",
-      "2023",
       "Cloud",
       "Services"
     ]
@@ -10969,7 +10626,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "SD.CN",
-      "1014",
       "Bldg",
       "Materials",
       "Install"
@@ -10993,7 +10649,6 @@
       "Practitioner",
       "Poster",
       "Subscription",
-      "Prosci",
       "Methodology"
     ]
   },
@@ -11067,7 +10722,6 @@
     "description_keywords": [
       "On-site",
       "consulting",
-      "services,",
       "software",
       "installation"
     ]
@@ -11089,8 +10743,7 @@
       "Secondary",
       "market",
       "research",
-      "subscription",
-      "services"
+      "subscription"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -11108,7 +10761,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Cloud-based",
       "solution",
       "(hosted",
       "AWS)",
@@ -11131,10 +10783,7 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "email",
-      "Quantum",
-      "Metric,",
-      "Acoustic",
-      "Holdco"
+      "Quantum"
     ],
     "typical_final_decision": "ADDED TO CLAIM"
   },
@@ -11222,10 +10871,7 @@
     ],
     "description_keywords": [
       "Distribution",
-      "License;",
-      "Development",
-      "Keylines-Distribution",
-      "License,"
+      "Development"
     ]
   },
   {
@@ -11274,8 +10920,7 @@
     "description_keywords": [
       "Request",
       "Labor",
-      "funding",
-      "Clifford"
+      "funding"
     ]
   },
   {
@@ -11308,8 +10953,7 @@
       "HVAC",
       "Removal",
       "CRAC",
-      "items",
-      "Design"
+      "items"
     ]
   },
   {
@@ -11326,7 +10970,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Diligent",
       "Boards",
       "Subscription",
       "Time",
@@ -11404,9 +11047,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Reputation",
-      "Defender",
-      "2022",
-      "2023"
+      "Defender"
     ]
   },
   {
@@ -11453,9 +11094,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "6220",
       "Disable",
-      "FM200",
       "disable",
       "RTSC"
     ]
@@ -11473,8 +11112,7 @@
       "Year",
       "assets",
       "discounts",
-      "1.75M",
-      "one,"
+      "1.75M"
     ]
   },
   {
@@ -11510,7 +11148,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "storage",
-      "Veritas",
       "InfoScale",
       "Storage",
       "provides"
@@ -11527,7 +11164,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Voltserver",
       "power",
       "cable",
       "chasis",
@@ -11544,11 +11180,9 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "6200",
       "paint",
       "1A106",
-      "visitor",
-      "space,"
+      "visitor"
     ]
   },
   {
@@ -11568,8 +11202,7 @@
       "software",
       "Anomaly",
       "detection",
-      "Professional",
-      "services,"
+      "Professional"
     ],
     "typical_final_decision": "ADDED TO CLAIM"
   },
@@ -11588,9 +11221,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "search",
-      "invoice,",
-      "software",
-      "shipped",
       "incorrectly"
     ],
     "typical_final_decision": "NO OPP"
@@ -11612,7 +11242,6 @@
     "description_keywords": [
       "SaaS-based",
       "sales",
-      "tool,",
       "email"
     ],
     "typical_final_decision": "ADDED TO CLAIM"
@@ -11752,8 +11381,7 @@
       "Software",
       "tool",
       "used",
-      "Engineering",
-      "network"
+      "Engineering"
     ]
   },
   {
@@ -11772,7 +11400,6 @@
     "description_keywords": [
       "software",
       "2020-2021",
-      "license,",
       "testing",
       "platform"
     ]
@@ -11793,7 +11420,6 @@
     "description_keywords": [
       "Software",
       "development",
-      "tool;",
       "CI/CD",
       "automation"
     ]
@@ -11826,7 +11452,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "quote",
-      "svcs,",
       "taxable",
       "description",
       "prof"
@@ -11909,8 +11534,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Bellevue",
-      "Adorama-Quote#2263900",
-      "Quote#2262029-Tstudio",
       "revised"
     ]
   },
@@ -11924,7 +11547,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "AMAZON",
       "PRIME",
       "METRO-2023",
       "MEMBERSHIP",
@@ -12022,7 +11644,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "6200",
       "(ENCOMPAS)",
       "Ancillary",
       "Furniture",
@@ -12040,8 +11661,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Low-band",
-      "(n71,",
-      "n29,",
       "n26)",
       "Radio"
     ]
@@ -12073,8 +11692,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Golf",
-      "Pacific",
       "RET.INSTL.WASN004988PO.D11.Golf",
       "cart",
       "RET.INSTL.WASN004988PO.D10.Labor"
@@ -12124,7 +11741,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Ventiv",
       "Annual",
       "(21.Jan.2021",
       "Consulting",
@@ -12141,7 +11757,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "MW13007C",
       "Removal",
       "Site",
       "Fence",
@@ -12229,7 +11844,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Access",
-      "company-level",
       "information",
       "companies",
       "contacts"
@@ -12256,7 +11870,6 @@
       "data",
       "privacy",
       "consent",
-      "OneTrust",
       "software"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
@@ -12277,9 +11890,7 @@
     "description_keywords": [
       "services",
       "email",
-      "from",
-      "Silvia",
-      "Leveque,"
+      "Silvia"
     ],
     "typical_final_decision": "Add to claim - REFUND SAMPLE"
   },
@@ -12295,8 +11906,6 @@
     "description_keywords": [
       "Development",
       "Default",
-      "Init-Provision",
-      "2022",
       "annual"
     ]
   },
@@ -12338,7 +11947,6 @@
       "Outstanding",
       "balance",
       "owed",
-      "Blanchard",
       "Servant"
     ]
   },
@@ -12389,8 +11997,6 @@
     "description_keywords": [
       "Charleston",
       "Expansion",
-      "Connectivity",
-      "Point",
       "CO-1"
     ]
   },
@@ -12405,9 +12011,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Fremont",
-      "Pushspring",
-      "Corti",
-      "Construction"
+      "Pushspring"
     ]
   },
   {
@@ -12439,7 +12043,6 @@
       "Request",
       "Labor",
       "funding",
-      "Drill",
       "Cons"
     ]
   },
@@ -12459,7 +12062,6 @@
     "description_keywords": [
       "August",
       "July",
-      "2022",
       "2021-",
       "Annual"
     ]
@@ -12480,9 +12082,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Labs",
-      "2/28/21-2/27/22",
-      "2/28/20-2/27/21",
       "Project",
       "Kick-Off"
     ]
@@ -12497,10 +12096,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Asterlinux,",
       "Data",
-      "Explorer,",
-      "Gateway,",
       "Sche"
     ]
   },
@@ -12514,9 +12110,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Fresh",
-      "Wata",
-      "Creative,",
       "production",
       "even"
     ]
@@ -12564,7 +12157,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Kroma-Q4",
-      "2023",
       "print",
       "productions"
     ]
@@ -12597,9 +12189,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2019",
       "Care",
-      "LinkActiv",
       "Telesales"
     ]
   },
@@ -12642,8 +12232,6 @@
     ],
     "description_keywords": [
       "Norms",
-      "Monotype",
-      "Monotype-Metro",
       "licensing",
       "agreement"
     ]
@@ -12661,7 +12249,6 @@
       "Pressure",
       "wash",
       "Loading",
-      "Dock,",
       "including"
     ]
   },
@@ -12678,8 +12265,7 @@
       "Bellingham",
       "Winter",
       "Services",
-      "November",
-      "2023"
+      "November"
     ]
   },
   {
@@ -12692,11 +12278,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "York",
-      "Rights",
-      "Yankees",
-      "2023",
-      "2022"
+      "Rights"
     ]
   },
   {
@@ -12714,7 +12296,6 @@
     ],
     "description_keywords": [
       "September",
-      "2023",
       "Software",
       "Maintenance",
       "support"
@@ -12730,7 +12311,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Lighting",
       "lights",
       "Fixtures",
       "Tech",
@@ -12750,8 +12330,7 @@
       "SD.FM.SIGN",
       "Signage",
       "SD.FM.GEN",
-      "General",
-      "RAINIER"
+      "General"
     ]
   },
   {
@@ -12764,9 +12343,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "CW2651885",
-      "Skyhook",
-      "Wireless",
       "SyncUP",
       "Cloud"
     ]
@@ -12784,7 +12360,6 @@
       "TechValidate",
       "Survey",
       "Monkey",
-      "CW2371968",
       "Gold"
     ]
   },
@@ -12805,8 +12380,7 @@
       "aisle",
       "containment",
       "cold",
-      "Cold",
-      "tate"
+      "Cold"
     ]
   },
   {
@@ -12823,7 +12397,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Userzoom",
       "year",
       "annual",
       "license",
@@ -12876,7 +12449,6 @@
       "Signature",
       "Stores",
       "(YCD",
-      "MULTIMEDIA",
       "INC)"
     ]
   },
@@ -12895,11 +12467,7 @@
       "MPU"
     ],
     "description_keywords": [
-      "#CW2755268",
-      "YouGov",
-      "2022",
-      "Yougov",
-      "America"
+      "#CW2755268"
     ]
   },
   {
@@ -12931,8 +12499,7 @@
       "invoice",
       "website",
       "Hosting",
-      "charge",
-      "software,"
+      "charge"
     ]
   },
   {
@@ -12992,7 +12559,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Access",
-      "company-level",
       "information",
       "companies",
       "contacts"
@@ -13035,7 +12601,6 @@
     "description_keywords": [
       "acquired",
       "Shape",
-      "Security,",
       "software",
       "identify"
     ]
@@ -13056,7 +12621,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "SOW,",
       "vendor",
       "prints",
       "sends",
@@ -13122,10 +12686,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "invoice,",
       "landlord",
       "request",
-      "reimbursement,",
       "this"
     ]
   },
@@ -13165,9 +12727,7 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "On-shore/Off-shore",
       "consulting",
-      "services,",
       "software",
       "configuration"
     ]
@@ -13187,9 +12747,7 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "research",
-      "library,",
-      "employees",
-      "out-of-state"
+      "employees"
     ]
   },
   {
@@ -13326,11 +12884,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Plotly",
       "provides",
-      "online",
-      "graphing,",
-      "analytics,"
+      "online"
     ],
     "typical_final_decision": "NO OPP"
   },
@@ -13364,9 +12919,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Asurion",
-      "Warranty",
-      "2020,",
       "correct",
       "PO#490"
     ]
@@ -13382,7 +12934,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Syndicated",
-      "brand",
       "data",
       "computed",
       "based"
@@ -13398,10 +12949,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Boston",
-      "Rights",
-      "2023",
-      "2022"
+      "Rights"
     ]
   },
   {
@@ -13416,7 +12964,6 @@
     "description_keywords": [
       "Dynatrace",
       "Renewal",
-      "CW2372350.",
       "Saas",
       "tool"
     ]
@@ -13465,7 +13012,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Clusters",
-      "Environics",
       "Marketing",
       "Software."
     ]
@@ -13481,9 +13027,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Quarter",
-      "2021",
       "Fedex",
-      "Express",
       "FedEx"
     ]
   },
@@ -13522,11 +13066,9 @@
       "MPU"
     ],
     "description_keywords": [
-      "Fount",
       "software",
       "license",
-      "set-up",
-      "2023"
+      "set-up"
     ]
   },
   {
@@ -13539,10 +13081,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Generac",
-      "Power",
-      "Systems;",
-      "TXS,",
       "Automatic"
     ]
   },
@@ -13579,7 +13117,6 @@
       "procurement",
       "reports",
       "Industry",
-      "2022",
       "ProcurementIQ"
     ]
   },
@@ -13627,7 +13164,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "L-Sync",
       "Solutions",
       "Allentown",
       "General"
@@ -13681,7 +13217,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Door",
       "Operators",
       "Install",
       "After",
@@ -13717,9 +13252,7 @@
     "description_keywords": [
       "Washington",
       "Nationals",
-      "2022",
-      "Rights",
-      "2023"
+      "Rights"
     ]
   },
   {
@@ -13753,7 +13286,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "DE97XC012_Pierson_Breakfix",
       "Miami",
       "oDAS",
       "Retune",
@@ -13797,7 +13329,6 @@
       "Non-taxable"
     ],
     "description_keywords": [
-      "Regscan",
       "subscription"
     ]
   },
@@ -13812,7 +13343,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Financial",
-      "Market",
       "Database",
       "Power",
       "Pric"
@@ -13831,8 +13361,7 @@
       "Arduino",
       "Shield",
       "Assembly",
-      "Robotics",
-      "Schippers"
+      "Robotics"
     ]
   },
   {
@@ -13869,7 +13398,6 @@
       "NEO4J",
       "ENTERPRISE",
       "Item",
-      "2000008236",
       "SUBSCRIPTION"
     ]
   },
@@ -13887,10 +13415,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Sprinklr",
-      "Inc-Licensed-SO42714",
-      "Inc-Licensed-SO43336-inv.61695",
-      "Inc-Inv67356-Sales",
       "order#SO4678"
     ]
   },
@@ -13907,8 +13431,7 @@
       "WGSN",
       "GoTo",
       "Charging",
-      "Cables",
-      "UL9990"
+      "Cables"
     ]
   },
   {
@@ -13927,7 +13450,6 @@
     "description_keywords": [
       "Equity",
       "platform",
-      "from",
       "till",
       "10/13/2021"
     ]
@@ -13947,11 +13469,8 @@
       "MPU"
     ],
     "description_keywords": [
-      "CW2704173",
-      "InfoSoft",
       "(Circa)",
-      "Supplier",
-      "INFOSOFT"
+      "Supplier"
     ]
   },
   {
@@ -13971,7 +13490,6 @@
       "required",
       "(merger",
       "commitments",
-      "with",
       "FCC)"
     ]
   },
@@ -14097,10 +13615,7 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Packages",
-      "were",
-      "shipped",
-      "from",
-      "Portland,"
+      "were"
     ]
   },
   {
@@ -14173,7 +13688,6 @@
     "description_keywords": [
       "Software",
       "development",
-      "tools,",
       "updates",
       "technical"
     ]
@@ -14192,11 +13706,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "SOW,",
       "software",
-      "configuration",
-      "services,",
-      "non-taxable"
+      "configuration"
     ]
   },
   {
@@ -14224,7 +13735,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "email,",
       "repairs",
       "products",
       "done",
@@ -14247,7 +13757,6 @@
     "description_keywords": [
       "software",
       "quote",
-      "SOW,",
       "purchased",
       "license"
     ]
@@ -14319,8 +13828,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "MSA,",
-      "Reston,",
       "sales",
       "charged",
       "contract."
@@ -14432,7 +13939,6 @@
     "description_keywords": [
       "sales",
       "email",
-      "from",
       "Whitney",
       "Haeberle"
     ]
@@ -14550,7 +14056,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "email,",
       "training",
       "Delivery",
       "Administration",
@@ -14591,8 +14096,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Invoice",
-      "2019",
-      "Metrix",
       "Testing"
     ]
   },
@@ -14607,8 +14110,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Licensing",
-      "April",
-      "2023"
+      "April"
     ]
   },
   {
@@ -14644,7 +14146,6 @@
       "HIGH",
       "POWER",
       "OUTDOOR",
-      "SDR-ICS-43-P",
       "REPEATER"
     ]
   },
@@ -14778,10 +14279,8 @@
       "MPU"
     ],
     "description_keywords": [
-      "CenterCode",
       "Renewal",
       "2021-Dec",
-      "2022",
       "2022-Dec"
     ]
   },
@@ -14816,8 +14315,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "deliverables",
-      "Apr,"
+      "deliverables"
     ]
   },
   {
@@ -14860,7 +14358,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Copado",
       "licensing",
       "Salesforce",
       "CI/CD",
@@ -14877,9 +14374,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2021",
       "renewal",
-      "CreditSafe",
       "subscription",
       "TPRM"
     ]
@@ -14894,9 +14389,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "license",
-      "2020",
-      "2021"
+      "license"
     ]
   },
   {
@@ -14924,9 +14417,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "DisplayIt",
       "Mobile",
-      "header,",
       "power"
     ]
   },
@@ -14957,7 +14448,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "SD.DCC",
-      "0200",
       "Decommission",
       "OPEX"
     ]
@@ -14973,8 +14463,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Wall",
-      "Builders",
-      "Hammond,",
       "ASCO",
       "Switch"
     ]
@@ -14993,10 +14481,7 @@
       "MPU"
     ],
     "description_keywords": [
-      "Glance",
-      "CW2685119",
       "Implementation",
-      "CW2685121",
       "Cloud"
     ]
   },
@@ -15026,7 +14511,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Frisco",
-      "HITT",
       "Phase",
       "CapEx",
       "Change"
@@ -15063,7 +14547,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "with",
       "Spare",
       "Part",
       "purchases",
@@ -15096,8 +14579,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Institutional",
-      "Investor",
       "Perception",
       "Study"
     ]
@@ -15146,7 +14627,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "iSpot",
       "analytics",
       "enable",
       "measurement"
@@ -15165,7 +14645,6 @@
       "Nokia",
       "cabinet",
       "installation",
-      "SE01654B",
       "Preform"
     ]
   },
@@ -15179,7 +14658,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Jebbit",
       "Software",
       "Subscription",
       "include"
@@ -15211,7 +14689,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Kathrein",
       "Cube",
       "Antennas",
       "Drone"
@@ -15279,7 +14756,6 @@
     "description_keywords": [
       "Year",
       "LICENSE",
-      "3/30/23-3/30/24",
       "Capex",
       "MAINTENANCE"
     ]
@@ -15293,10 +14769,7 @@
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [],
     "common_refund_bases": [],
-    "description_keywords": [
-      "0322:N-004907-01:0:CW2792027:ProjectUn1c",
-      "0322:N-004910-01:1001929:CW2767750:2022_"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "MOMENTIVE INC",
@@ -15315,7 +14788,6 @@
       "GetFeedback",
       "Renewal",
       "licenses",
-      "with",
       "Ultimate"
     ]
   },
@@ -15348,7 +14820,6 @@
     "description_keywords": [
       "Furniture",
       "Removal",
-      "from",
       "Dining",
       "Area"
     ]
@@ -15364,8 +14835,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Annual",
-      "membership",
-      "National"
+      "membership"
     ]
   },
   {
@@ -15412,7 +14882,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Power",
       "Portable",
       "Generator",
       "Electri",
@@ -15445,10 +14914,7 @@
     "typical_final_decision": "NO OPP",
     "common_tax_categories": [],
     "common_refund_bases": [],
-    "description_keywords": [
-      "packet",
-      "power"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "PANOPTO INC",
@@ -15502,7 +14968,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Redlee",
       "Covid-19",
       "Richarson",
       "Supplies",
@@ -15521,7 +14986,6 @@
     "description_keywords": [
       "Badges",
       "March",
-      "2019",
       "Badges."
     ]
   },
@@ -15537,7 +15001,6 @@
     "description_keywords": [
       "VGYH0A7A",
       "LVGP",
-      "Safari",
       "Temp",
       "Wi-Fi"
     ]
@@ -15602,8 +15065,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "CW2383684",
-      "-Electronic",
       "device",
       "accesso"
     ]
@@ -15623,10 +15084,8 @@
     ],
     "description_keywords": [
       "July",
-      "2021",
       "Additional",
-      "Users",
-      "CW2745135-sprout"
+      "Users"
     ]
   },
   {
@@ -15639,7 +15098,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Spycloud",
       "License",
       "license",
       "8/30/21",
@@ -15758,9 +15216,7 @@
     "typical_final_decision": "Unknown",
     "common_tax_categories": [],
     "common_refund_bases": [],
-    "description_keywords": [
-      "True"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "UNIFY CONSULTING LLC",
@@ -15792,11 +15248,9 @@
       "MPU"
     ],
     "description_keywords": [
-      "Upwave",
       "subscription",
       "Enterprise",
-      "Tier",
-      "CW3117649"
+      "Tier"
     ]
   },
   {
@@ -15828,7 +15282,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Zuora",
       "Module",
       "purchase",
       "Renewal"
@@ -15849,10 +15302,8 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "invoice",
-      "quote,",
       "services",
-      "delivered",
-      "out-of-state"
+      "delivered"
     ]
   },
   {
@@ -15882,9 +15333,7 @@
     "description_keywords": [
       "digital",
       "charged",
-      "Appetit",
-      "magazine",
-      "subscription,"
+      "Appetit"
     ]
   },
   {
@@ -15901,10 +15350,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "quote,",
       "construction",
       "project",
-      "York,",
       "paid"
     ]
   },
@@ -15943,10 +15390,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Aptitude",
       "Revenue",
       "Recognition",
-      "Engine;",
       "Accounting"
     ]
   },
@@ -15967,8 +15412,7 @@
       "Software",
       "tool",
       "used",
-      "Engineering",
-      "network"
+      "Engineering"
     ]
   },
   {
@@ -16007,10 +15451,8 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Acquired",
-      "Infovista;",
       "Main",
-      "collection",
-      "network"
+      "collection"
     ]
   },
   {
@@ -16091,10 +15533,8 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "paid",
-      "2018,",
       "email",
-      "SOW.",
-      "Pick,"
+      "SOW."
     ]
   },
   {
@@ -16166,8 +15606,6 @@
     "description_keywords": [
       "retail",
       "stores.",
-      "Convergent",
-      "Media",
       "made"
     ]
   },
@@ -16208,7 +15646,6 @@
     "description_keywords": [
       "user",
       "paid",
-      "2019,",
       "provide",
       "feature"
     ]
@@ -16228,7 +15665,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Equipment",
-      "shipped",
       "warehouse.",
       "email"
     ]
@@ -16270,7 +15706,6 @@
     "description_keywords": [
       "Automated",
       "database",
-      "deployments;",
       "integrated",
       "into"
     ]
@@ -16290,7 +15725,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "paid",
-      "2019,",
       "web-based",
       "Cyber",
       "Threat"
@@ -16310,7 +15744,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "email,",
       "purchased",
       "delivered"
     ]
@@ -16414,7 +15847,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Goods",
-      "shipped",
       "inappropriately",
       "paid"
     ]
@@ -16436,7 +15868,6 @@
       "solution",
       "Formerly",
       "known",
-      "Jive,",
       "hosted"
     ]
   },
@@ -16477,7 +15908,6 @@
     "description_keywords": [
       "firmware",
       "devices",
-      "issues,",
       "Software",
       "sends"
     ]
@@ -16518,9 +15948,6 @@
     "common_allocation_methods": [],
     "description_keywords": [
       "Custom",
-      "design,",
-      "development,",
-      "integration,",
       "testing."
     ]
   },
@@ -16538,11 +15965,8 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "Printing",
       "materials",
-      "shipped",
-      "directly",
-      "customers;"
+      "directly"
     ]
   },
   {
@@ -16562,7 +15986,6 @@
       "data",
       "Electronic",
       "billing",
-      "system,",
       "Website"
     ]
   },
@@ -16583,7 +16006,6 @@
       "T-Mobile",
       "Tuesday",
       "ebook",
-      "redemptions;",
       "digital"
     ]
   },
@@ -16604,7 +16026,6 @@
       "paid",
       "2019.",
       "email",
-      "SOW,",
       "network"
     ]
   },
@@ -16643,10 +16064,7 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "email,",
-      "pre-payment",
       "associated",
-      "with",
       "printed"
     ]
   },
@@ -16696,7 +16114,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "with",
       "paid",
       "Excel",
       "workbook",
@@ -16719,9 +16136,7 @@
     "description_keywords": [
       "email.",
       "Goods",
-      "drop",
-      "shipped",
-      "out-of-state"
+      "drop"
     ]
   },
   {
@@ -16770,9 +16185,6 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "SOW,",
-      "non-taxable",
-      "services,",
       "Devise",
       "Procurement"
     ]
@@ -16793,7 +16205,6 @@
     "description_keywords": [
       "Vendor",
       "uninstalled",
-      "re-purposed",
       "equipment",
       "various"
     ]
@@ -16815,8 +16226,7 @@
       "Income",
       "software",
       "used",
-      "income",
-      "team,"
+      "income"
     ]
   },
   {
@@ -16854,11 +16264,10 @@
     ],
     "common_allocation_methods": [],
     "description_keywords": [
-      "TimeShiftX®",
+      "TimeShiftX\u00ae",
       "creates",
       "virtual",
-      "dates",
-      "times,"
+      "dates"
     ]
   },
   {
@@ -16931,8 +16340,7 @@
     "description_keywords": [
       "Payroll",
       "Processing",
-      "(Jan",
-      "2022"
+      "(Jan"
     ]
   },
   {
@@ -16947,8 +16355,7 @@
     "description_keywords": [
       "Irvine",
       "control",
-      "Installation",
-      "Service"
+      "Installation"
     ]
   },
   {
@@ -17011,7 +16418,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "CW2664249",
       "SPCC",
       "Plan",
       "Development",
@@ -17048,9 +16454,7 @@
     "common_refund_bases": [
       "MPU"
     ],
-    "description_keywords": [
-      "Branch"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "BRETFORD MANUFACTURING INC",
@@ -17065,7 +16469,6 @@
       "Internal",
       "power",
       "strip",
-      "Bretford",
       "Heal"
     ]
   },
@@ -17079,7 +16482,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Brightidea",
       "Programs"
     ]
   },
@@ -17226,10 +16628,7 @@
     "common_refund_bases": [
       "MPU"
     ],
-    "description_keywords": [
-      "December,",
-      "2023"
-    ]
+    "description_keywords": []
   },
   {
     "vendor_name": "EAST PENN MANUFACTURING CO INC",
@@ -17242,8 +16641,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "spare",
-      "batteries",
-      "5500"
+      "batteries"
     ]
   },
   {
@@ -17308,7 +16706,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "F-Secure",
       "managing",
       "legacy",
       "Lookout",
@@ -17341,7 +16738,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "GameBench",
       "provided",
       "custom",
       "software",
@@ -17359,7 +16755,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "SD.REM",
-      "0200",
       "Lease",
       "Cond",
       "Demo"
@@ -17378,7 +16773,6 @@
       "Mobile",
       "World",
       "Congress",
-      "2023",
       "Vegas"
     ]
   },
@@ -17413,7 +16807,6 @@
     "common_refund_bases": [],
     "description_keywords": [
       "Quadratic",
-      "Insights",
       "Insights)"
     ]
   },
@@ -17427,7 +16820,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Alcatel-Lucent",
       "Nokia",
       "3HE10550AA",
       "Compatib"
@@ -17445,7 +16837,6 @@
     "description_keywords": [
       "20KW",
       "GENERATOR",
-      "5011020",
       "Week)"
     ]
   },
@@ -17478,7 +16869,6 @@
     ],
     "description_keywords": [
       "Inhand",
-      "IR305",
       "Routers"
     ]
   },
@@ -17515,8 +16905,6 @@
     ],
     "description_keywords": [
       "Business",
-      "Insider",
-      "2020",
       "subscription",
       "(CW23"
     ]
@@ -17613,8 +17001,7 @@
     "description_keywords": [
       "Milestone",
       "Four",
-      "classes",
-      "$13,500"
+      "classes"
     ]
   },
   {
@@ -17646,7 +17033,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Leappoint-Egnyte/Workfront",
       "Connector"
     ]
   },
@@ -17775,7 +17161,6 @@
       "SMRA",
       "Security",
       "Multiple",
-      "Safe",
       "Order"
     ]
   },
@@ -17789,10 +17174,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2022",
-      "Philo",
-      "Reconciliation",
-      "2021"
+      "Reconciliation"
     ]
   },
   {
@@ -17840,7 +17222,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "DN03425B",
       "Site",
       "Walk"
     ]
@@ -17875,9 +17256,7 @@
       "MPU"
     ],
     "description_keywords": [
-      "Subscription",
-      "Rapid",
-      "Ratings"
+      "Subscription"
     ]
   },
   {
@@ -17920,7 +17299,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "2092200",
       "CAPTIVE",
       "NUTS",
       "CONTACT"
@@ -17938,7 +17316,6 @@
     "description_keywords": [
       "Request",
       "funding",
-      "Schweiger",
       "Constr"
     ]
   },
@@ -17952,7 +17329,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Select",
       "Rewards",
       "Recognition",
       "Consumer"
@@ -17968,7 +17344,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "SIGNIFI",
       "SMRA",
       "VENDING",
       "MACHINES",
@@ -17985,9 +17360,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Smart",
-      "Growth",
-      "America",
       "annual",
       "Hometown"
     ]
@@ -18006,7 +17378,6 @@
       "Non-taxable"
     ],
     "description_keywords": [
-      "Socialbakers",
       "(social",
       "media",
       "post",
@@ -18024,9 +17395,7 @@
     "common_refund_bases": [],
     "description_keywords": [
       "BloodHound",
-      "Enterprise",
-      "50,000",
-      "100,000"
+      "Enterprise"
     ]
   },
   {
@@ -18039,8 +17408,7 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Renewal",
-      "Louisiana"
+      "Renewal"
     ]
   },
   {
@@ -18072,8 +17440,7 @@
       "Mirantis",
       "Docker",
       "license",
-      "renewal",
-      "2021"
+      "renewal"
     ]
   },
   {
@@ -18112,8 +17479,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Thomson",
-      "Reuters",
       "Implement",
       "DataFlow"
     ]
@@ -18159,10 +17524,8 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Validity",
       "Data",
-      "Management",
-      "12/31/2021-"
+      "Management"
     ]
   },
   {
@@ -18191,8 +17554,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "MNU3EGW1-36PNB8-",
-      "5CS15A0A10-S-A",
       "rPDU"
     ]
   },
@@ -18206,8 +17567,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Wi-Fi",
-      "Alliance",
       "Membership"
     ]
   },
@@ -18238,7 +17597,6 @@
       "MPU"
     ],
     "description_keywords": [
-      "Writer",
       "2023-2024"
     ]
   },
@@ -18268,7 +17626,6 @@
     "common_tax_categories": [],
     "common_refund_bases": [],
     "description_keywords": [
-      "Zayo",
       "Houston",
       "deployment"
     ]

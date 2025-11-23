@@ -46,74 +46,6 @@
     ]
   },
   {
-    "category": "refund_basis_terms",
-    "tax_type": "use_tax",
-    "keywords": [
-      {
-        "keyword": "Non-taxable - SIRC RISK",
-        "frequency": 6629
-      },
-      {
-        "keyword": "OOS services",
-        "frequency": 5433
-      },
-      {
-        "keyword": "Wrong rate",
-        "frequency": 2913
-      },
-      {
-        "keyword": "OOS shipment",
-        "frequency": 1347
-      },
-      {
-        "keyword": "Non-taxable",
-        "frequency": 1075
-      },
-      {
-        "keyword": "MPU",
-        "frequency": 394
-      },
-      {
-        "keyword": "Partial OOS shipment",
-        "frequency": 160
-      },
-      {
-        "keyword": "Resale",
-        "frequency": 87
-      },
-      {
-        "keyword": "Partial OOS services",
-        "frequency": 20
-      },
-      {
-        "keyword": "OOS\\Partial OOS",
-        "frequency": 4
-      }
-    ]
-  },
-  {
-    "category": "final_decisions",
-    "tax_type": "use_tax",
-    "keywords": [
-      {
-        "keyword": "Add to claim - REFUND SAMPLE",
-        "frequency": 18016
-      },
-      {
-        "keyword": "NO OPP",
-        "frequency": 14788
-      },
-      {
-        "keyword": "ADDED TO CLAIM",
-        "frequency": 22
-      },
-      {
-        "keyword": "Add to claim - ReFUND SAMPLE",
-        "frequency": 1
-      }
-    ]
-  },
-  {
     "category": "description_keywords",
     "tax_type": "use_tax",
     "keywords": [
@@ -126,40 +58,8 @@
         "frequency": 5966
       },
       {
-        "keyword": "Active",
-        "frequency": 3837
-      },
-      {
-        "keyword": "Phase",
-        "frequency": 3525
-      },
-      {
-        "keyword": "Anchor",
-        "frequency": 2963
-      },
-      {
-        "keyword": "Site",
-        "frequency": 2647
-      },
-      {
-        "keyword": "Request",
-        "frequency": 2545
-      },
-      {
-        "keyword": "funding",
-        "frequency": 2545
-      },
-      {
-        "keyword": "Fee",
-        "frequency": 2539
-      },
-      {
         "keyword": "Inspection",
         "frequency": 2484
-      },
-      {
-        "keyword": "(SIF)",
-        "frequency": 2477
       },
       {
         "keyword": "Labor",
@@ -170,28 +70,12 @@
         "frequency": 1927
       },
       {
-        "keyword": "Keep",
-        "frequency": 1922
-      },
-      {
         "keyword": "Repair",
         "frequency": 1712
       },
       {
-        "keyword": "New",
-        "frequency": 1370
-      },
-      {
         "keyword": "Build",
         "frequency": 1366
-      },
-      {
-        "keyword": "Acti",
-        "frequency": 1320
-      },
-      {
-        "keyword": "L600",
-        "frequency": 906
       },
       {
         "keyword": "Hardening",
@@ -200,14 +84,6 @@
       {
         "keyword": "National",
         "frequency": 800
-      },
-      {
-        "keyword": "Bolin",
-        "frequency": 676
-      },
-      {
-        "keyword": "One",
-        "frequency": 663
       },
       {
         "keyword": "Power",
@@ -226,24 +102,12 @@
         "frequency": 372
       },
       {
-        "keyword": "EOL",
-        "frequency": 348
-      },
-      {
-        "keyword": "Repla",
-        "frequency": 348
-      },
-      {
         "keyword": "Capacity",
         "frequency": 341
       },
       {
         "keyword": "Unified",
         "frequency": 324
-      },
-      {
-        "keyword": "Orr",
-        "frequency": 282
       },
       {
         "keyword": "Materials",
@@ -278,40 +142,16 @@
         "frequency": 222
       },
       {
-        "keyword": "SE02",
-        "frequency": 201
-      },
-      {
         "keyword": "Equipment",
         "frequency": 200
-      },
-      {
-        "keyword": "Act",
-        "frequency": 191
-      },
-      {
-        "keyword": "Non_POR",
-        "frequency": 182
       },
       {
         "keyword": "Construction",
         "frequency": 182
       },
       {
-        "keyword": "SPECIAL",
-        "frequency": 178
-      },
-      {
-        "keyword": "PROJECT",
-        "frequency": 177
-      },
-      {
         "keyword": "Cell",
         "frequency": 175
-      },
-      {
-        "keyword": "AEHC",
-        "frequency": 173
       },
       {
         "keyword": "Material",
