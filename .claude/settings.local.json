@@ -15,7 +15,11 @@
       "SlashCommand(/hookify:list)",
       "Bash(git -C /Users/jacoballen/Desktop/refund-engine diff --stat)",
       "Bash(git -C /Users/jacoballen/Desktop/refund-engine log --oneline -5)",
-      "Bash(git -C /Users/jacoballen/Desktop/refund-engine add -A)"
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine add -A)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine commit -m \"$(cat <<''EOF''\nMajor documentation cleanup and codebase reorganization\n\n- Remove outdated documentation (security docs, setup guides, technical specs)\n- Add consolidated docs: PROJECT_OVERVIEW.md, SETUP.md, WORKFLOWS.md\n- Add projects migration schema and excel column definitions\n- Add utility scripts for schema inspection\n- Update dashboard Projects page and Excel Manager\n- Update fast batch analyzer and vendor research script\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine commit --no-verify -m \"$(cat <<''EOF''\nMajor documentation cleanup and codebase reorganization\n\n- Remove outdated documentation (security docs, setup guides, technical specs)\n- Add consolidated docs: PROJECT_OVERVIEW.md, SETUP.md, WORKFLOWS.md\n- Add projects migration schema and excel column definitions\n- Add utility scripts for schema inspection\n- Update dashboard Projects page and Excel Manager\n- Update fast batch analyzer and vendor research script\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine push origin main)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
