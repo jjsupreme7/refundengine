@@ -55,6 +55,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Recommendation notice
+st.info("💡 **Recommended**: Upload files through **Projects** page → Select project → **Upload Files** tab for better organization")
+st.markdown("This page shows uploads across all projects. For project-specific uploads, use the Projects page.")
+
 # Get user email from session
 user_email = st.session_state.get("user_email", "user@example.com")
 
@@ -150,11 +154,12 @@ with tab1:
                     with open(excel_path, "wb") as f:
                         f.write(excel_file.getbuffer())
 
-                    # Check if file already exists
+                    # Check if file already exists in THIS project (project-scoped)
                     existing_file = (
                         supabase.table("excel_file_tracking")
                         .select("id")
                         .eq("file_name", excel_file.name)
+                        .eq("project_id", selected_project_id)  # PROJECT-SCOPED
                         .execute()
                     )
 
@@ -177,7 +182,7 @@ with tab1:
                         # New file - upload it
                         file_id = excel_manager.upload_file(
                             file_path=str(excel_path),
-                            project_id=None,  # Will add real project linking later
+                            project_id=selected_project_id,
                             user_email=user_email,
                         )
                         st.info(f"📄 Uploading new file: {excel_file.name}")

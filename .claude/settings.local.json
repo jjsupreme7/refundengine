@@ -1,17 +1,21 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir:*)",
-      "Bash(python scripts/extract_patterns_from_phase2.py:*)",
-      "Bash(python scripts/extract_patterns_from_denodo.py:*)",
-      "Bash(python:*)",
-      "Bash(dir \"c:\\Users\\jacob\\refundengine\\refundengine\\extracted_patterns\")",
-      "Bash(findstr:*)",
-      "Bash(nul)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine status --short)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine diff --stat --staged)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine status)",
+      "Bash(rm:*)",
+      "Bash(find:*)",
+      "Bash(mv:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nEnhance pattern extraction with quality filtering and complete vendor mappings\n\nMajor improvements to pattern extraction system:\n\nFeatures:\n- Extract keywords from specific description columns (AG, BK, CC)\n- Show ALL vendors per refund basis (not just 5 examples)\n- Remove GL accounts from vendor patterns per user requirement\n- Comprehensive quality filtering to remove junk data\n\nQuality Filtering (pattern_filters.py):\n- Filter out PDF filenames (e.g., \"0000002774642-1.PDF\")\n- Filter out pure numeric codes and invoice numbers\n- Filter out stopwords and non-text patterns\n- Reduced refund basis patterns from 337 to 44 (86.6% noise reduction)\n\nPattern Files:\n- vendor_patterns.json: 1,033 vendors (removed deprecated fields)\n- keyword_patterns.json: 8 categories with clean taxonomy\n- refund_basis_patterns.json: 44 patterns with complete vendor lists\n- citation_patterns.json: Deprecated (user request)\n\nScripts:\n- extract_patterns_from_phase2.py: Phase 2 Master Refunds extraction\n- extract_patterns_from_denodo.py: Denodo 2019-2023 extraction\n- pattern_filters.py: Centralized filtering module\n\nData Coverage: 484,479 historical records from 1,033 vendors\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push:*)",
-      "Bash(git commit:*)"
+      "Bash(git mv:*)",
+      "Bash(env)",
+      "Bash(python3:*)",
+      "Bash(tree:*)",
+      "SlashCommand(/hookify:list)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine diff --stat)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine log --oneline -5)",
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine add -A)"
     ],
     "deny": [],
     "ask": []

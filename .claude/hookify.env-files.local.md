@@ -3,10 +3,7 @@ name: env-files
 enabled: true
 event: file
 action: block
-conditions:
-  - field: file_path
-    operator: regex_match
-    pattern: (^|/)\.env$
+pattern: (^|/)\.env$
 ---
 
 🔒 **SECURITY WARNING: Attempting to edit .env file!**

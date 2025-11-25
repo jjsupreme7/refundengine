@@ -14,6 +14,12 @@ Key Features:
 - Higher quality legal research with AI-powered reranking
 - Maintains fast batch processing for efficiency
 
+INTELLIGENT CHANGE DETECTION (NEW):
+- INPUT column changes (new invoice file, new PO, changed amounts) → Re-analyze
+- OUTPUT column changes (corrections to AI analysis) → Skip re-analysis (feedback only)
+- Uses excel_cell_changes table if file is in versioning system
+- Falls back to row-level hash checking for non-versioned files
+
 Usage:
     # Analyze only changed rows
     python analysis/fast_batch_analyzer.py \\
@@ -44,6 +50,7 @@ from openai import OpenAI  # noqa: E402
 from core.database import get_supabase_client  # noqa: E402
 from core.enhanced_rag import EnhancedRAG  # noqa: E402
 from core.excel_file_watcher import ExcelFileWatcher  # noqa: E402
+from core.excel_column_definitions import INPUT_COLUMNS, is_input_column  # noqa: E402
 from scripts.utils.smart_cache import SmartCache  # noqa: E402
 
 # Load environment
@@ -60,9 +67,192 @@ cache = SmartCache()
 enhanced_rag = EnhancedRAG()
 
 
+# ==========================================
+# PATTERN QUERY FUNCTIONS
+# ==========================================
+
+def get_vendor_pattern(vendor_name: str, tax_type: str) -> Optional[Dict]:
+    """Get historical vendor pattern from Supabase"""
+    try:
+        result = supabase.table("vendor_products") \
+            .select("*") \
+            .eq("vendor_name", vendor_name) \
+            .eq("tax_type", tax_type) \
+            .maybe_single() \
+            .execute()
+        return result.data
+    except Exception as e:
+        print(f"  ⚠️  Vendor pattern lookup failed for {vendor_name}: {e}")
+        return None
+
+
+def get_refund_basis_patterns(tax_type: str, limit: int = 10) -> List[Dict]:
+    """Get top refund basis patterns for tax type"""
+    try:
+        result = supabase.table("refund_citations") \
+            .select("*") \
+            .eq("tax_type", tax_type) \
+            .order("usage_count", desc=True) \
+            .limit(limit) \
+            .execute()
+        return result.data
+    except Exception as e:
+        print(f"  ⚠️  Refund basis pattern lookup failed: {e}")
+        return []
+
+
+def get_keyword_patterns(tax_type: str) -> Dict[str, List[str]]:
+    """Get all keyword patterns as dict by category"""
+    try:
+        result = supabase.table("keyword_patterns") \
+            .select("*") \
+            .eq("tax_type", tax_type) \
+            .execute()
+
+        # Convert to dict: {"tax_categories": [...], "product_types": [...]}
+        return {
+            row["category"]: row["keywords"]
+            for row in result.data
+        }
+    except Exception as e:
+        print(f"  ⚠️  Keyword pattern lookup failed: {e}")
+        return {}
+
+
+def _extract_pdf_image(file_path: str) -> str:
+    """Extract first page of PDF as base64 image"""
+    import base64
+    from io import BytesIO
+    import pdfplumber
+
+    with pdfplumber.open(file_path) as pdf:
+        if len(pdf.pages) == 0:
+            return None
+
+        first_page = pdf.pages[0]
+        img = first_page.to_image(resolution=150)
+
+        buffered = BytesIO()
+        img.original.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+
+def _extract_image(file_path: str) -> str:
+    """Extract JPG/PNG image as base64"""
+    import base64
+
+    with open(file_path, 'rb') as f:
+        return base64.b64encode(f.read()).decode('utf-8')
+
+
+def _extract_excel_invoice(file_path: str) -> Dict[str, Any]:
+    """
+    Extract invoice data from Excel file
+
+    Expected columns: Vendor, Invoice Number, Date, Line Item, Amount, Tax
+    """
+    try:
+        df = pd.read_excel(file_path)
+
+        # Try to find common column patterns
+        vendor_col = next((col for col in df.columns if 'vendor' in col.lower()), None)
+        invoice_col = next((col for col in df.columns if 'invoice' in col.lower() and 'number' in col.lower()), None)
+        date_col = next((col for col in df.columns if 'date' in col.lower()), None)
+        amount_col = next((col for col in df.columns if 'amount' in col.lower() or 'total' in col.lower()), None)
+        tax_col = next((col for col in df.columns if 'tax' in col.lower()), None)
+        desc_col = next((col for col in df.columns if 'description' in col.lower() or 'item' in col.lower()), None)
+
+        # Extract line items
+        line_items = []
+        for idx, row in df.iterrows():
+            line_items.append({
+                "description": row.get(desc_col, "Unknown") if desc_col else "Unknown",
+                "amount": float(row.get(amount_col, 0)) if amount_col else 0,
+                "tax": float(row.get(tax_col, 0)) if tax_col else 0
+            })
+
+        return {
+            "vendor_name": df[vendor_col].iloc[0] if vendor_col and len(df) > 0 else "Unknown",
+            "invoice_number": df[invoice_col].iloc[0] if invoice_col and len(df) > 0 else "Unknown",
+            "invoice_date": str(df[date_col].iloc[0]) if date_col and len(df) > 0 else None,
+            "total_amount": sum(item['amount'] for item in line_items),
+            "tax_amount": sum(item['tax'] for item in line_items),
+            "line_items": line_items
+        }
+    except Exception as e:
+        return {"error": f"Excel extraction failed: {str(e)}"}
+
+
+def _extract_word_invoice(file_path: str) -> Dict[str, Any]:
+    """
+    Extract invoice data from Word document
+
+    Uses python-docx to parse tables, falls back to GPT-4 for text extraction
+    """
+    try:
+        from docx import Document
+
+        doc = Document(file_path)
+
+        # Extract all text
+        full_text = '\n'.join([para.text for para in doc.paragraphs])
+
+        # Try to extract tables (invoices often have tables)
+        tables_text = []
+        for table in doc.tables:
+            for row in table.rows:
+                row_text = ' | '.join([cell.text for cell in row.cells])
+                tables_text.append(row_text)
+
+        combined_text = full_text + '\n\n' + '\n'.join(tables_text)
+
+        # Send to GPT-4 for structured extraction
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{
+                "role": "user",
+                "content": f"""Extract invoice data from this Word document text and return JSON:
+
+{combined_text}
+
+Return format:
+{{
+  "vendor_name": "Company Name",
+  "invoice_number": "INV-123",
+  "invoice_date": "2024-01-15",
+  "total_amount": 100.00,
+  "tax_amount": 10.00,
+  "line_items": [
+    {{
+      "description": "Product/service description",
+      "amount": 100.00,
+      "tax": 10.00
+    }}
+  ]
+}}"""
+            }],
+            response_format={"type": "json_object"},
+            max_tokens=2000,
+        )
+
+        return json.loads(response.choices[0].message.content)
+
+    except ImportError:
+        return {"error": "python-docx not installed. Run: pip install python-docx"}
+    except Exception as e:
+        return {"error": f"Word extraction failed: {str(e)}"}
+
+
 def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
     """
-    Extract invoice data using GPT-4 Vision
+    Extract invoice data using GPT-4 Vision or structured parsing
+
+    Supports:
+    - PDF files (GPT-4 Vision)
+    - Images: JPG, PNG (GPT-4 Vision)
+    - Excel files: .xlsx, .xls (pandas parsing)
+    - Word docs: .docx (python-docx parsing)
+
     With caching support
     """
     # Check cache first
@@ -71,24 +261,26 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
 
     print(f"  📄 Extracting: {Path(file_path).name}")
 
+    file_ext = Path(file_path).suffix.lower()
+
     try:
         import base64  # noqa: E402
         from io import BytesIO  # noqa: E402
 
-        import pdfplumber  # noqa: E402
+        # Route to appropriate extraction method based on file type
+        if file_ext == '.pdf':
+            img_base64 = _extract_pdf_image(file_path)
+        elif file_ext in ['.jpg', '.jpeg', '.png']:
+            img_base64 = _extract_image(file_path)
+        elif file_ext in ['.xlsx', '.xls']:
+            return _extract_excel_invoice(file_path)
+        elif file_ext == '.docx':
+            return _extract_word_invoice(file_path)
+        else:
+            return {"error": f"Unsupported file format: {file_ext}"}
 
-        # Convert first page to image
-        with pdfplumber.open(file_path) as pdf:
-            if len(pdf.pages) == 0:
-                return {"error": "Empty PDF"}
-
-            first_page = pdf.pages[0]
-            img = first_page.to_image(resolution=150)
-
-            # Convert to base64
-            buffered = BytesIO()
-            img.original.save(buffered, format="PNG")
-            img_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        if not img_base64:
+            return {"error": "Failed to extract image from file"}
 
         # GPT-4 Vision extraction
         response = openai_client.chat.completions.create(
@@ -237,23 +429,45 @@ def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
 
 
 def analyze_batch(
-    items: List[Dict], legal_context: Dict[str, List], state: str = "WA"
+    items: List[Dict], legal_context: Dict[str, List], state: str = "WA", tax_type: str = "sales_tax"
 ) -> List[Dict]:
     """
     Batch analyze multiple line items at once
+    Now with historical pattern intelligence!
     """
+    # Get unique vendors in this batch
+    vendors_in_batch = list(set(item['vendor'] for item in items))
+
+    # Query vendor patterns for this batch
+    vendor_patterns = {}
+    for vendor_name in vendors_in_batch:
+        pattern = get_vendor_pattern(vendor_name, tax_type)
+        if pattern:
+            vendor_patterns[vendor_name] = pattern
+
+    # Query top refund basis patterns for this tax type
+    refund_basis_patterns = get_refund_basis_patterns(tax_type, limit=10)
+
     # Build prompt for batch analysis
     items_text = ""
     for i, item in enumerate(items, 1):
         vendor_info = item.get("vendor_info", {})
         line_item = item.get("line_item", {})
         category = item.get("category", "other")
+        vendor_name = item['vendor']
 
-        items_text += f"\n{i}. Vendor: {item['vendor']}\n"
+        items_text += f"\n{i}. Vendor: {vendor_name}\n"
         items_text += f"   Product: {line_item.get('description', 'Unknown')}\n"
         items_text += f"   Amount: ${item['amount']:,.2f}\n"
         items_text += f"   Tax Charged: ${item['tax']:,.2f}\n"
         items_text += f"   Category: {category}\n"
+
+        # Add vendor pattern info if available
+        if vendor_name in vendor_patterns:
+            vp = vendor_patterns[vendor_name]
+            items_text += f"   📊 Historical Pattern: {vp.get('historical_sample_count', 0)} transactions, "
+            items_text += f"typical refund: {vp.get('typical_refund_basis', 'Unknown')}\n"
+
         if vendor_info:
             items_text += (
                 f"   Vendor Type: {vendor_info.get('business_model', 'Unknown')}\n"
@@ -269,17 +483,34 @@ def analyze_batch(
                 doc_citation = doc.get('citation', 'N/A')
                 legal_text += f"  - {doc_title} ({doc_citation})\n"
 
-    prompt = f"""You are a Washington State tax refund expert.
+    # Build pattern context
+    pattern_text = ""
+    if refund_basis_patterns:
+        pattern_text += f"\nTOP REFUND BASIS PATTERNS ({tax_type.upper().replace('_', ' ')}):\n"
+        for pattern in refund_basis_patterns[:5]:
+            refund_basis = pattern.get('refund_basis', 'Unknown')
+            usage_count = pattern.get('usage_count', 0)
+            percentage = pattern.get('percentage', 0)
+            pattern_text += f"  - {refund_basis}: {usage_count} uses ({percentage:.1f}%)\n"
+
+    prompt = f"""You are a Washington State tax refund expert analyzing {tax_type.replace('_', ' ')} transactions.
 
 Analyze these {len(items)} transactions for refund eligibility.
 
-WASHINGTON TAX LAW CONTEXT:
+PRIMARY SOURCE - WASHINGTON TAX LAW (80-90% weight):
 {legal_text}
 
-STATE TAX RULES:
-- SaaS/Cloud services: Taxable but may qualify for MPU (multi-point use) allocation
-- Professional services: Not taxable if "primarily human effort"
-- Hardware: Taxable unless shipped out-of-state or other exemptions apply
+SECONDARY SOURCE - HISTORICAL PATTERNS (10-20% weight):
+{pattern_text}
+
+DECISION HIERARCHY:
+1. Base recommendations primarily on Washington State tax law (WAC/RCW)
+2. Use historical patterns to:
+   - Confirm your legal interpretation (high confidence when they align)
+   - Flag potential inconsistencies (review needed when they conflict)
+   - Provide context for vendor-specific behavior
+3. If law and patterns conflict, law takes precedence (but note the discrepancy)
+4. Always cite legal authority (WAC/RCW) when available
 
 TRANSACTIONS:
 {items_text}
@@ -311,10 +542,25 @@ Return JSON array:
 }}"""
 
     try:
-        system_msg = (
-            "You are a Washington State tax expert. "
-            "Provide accurate analysis with legal citations."
-        )
+        system_msg = """You are a Washington State tax refund expert analyzing invoices and purchase orders.
+
+YOUR ANALYSIS MUST:
+1. **Apply Washington State tax law** (WAC/RCW) as primary authority
+2. **Reference historical patterns** for consistency and confidence
+3. **Prioritize legal correctness** over historical precedent
+4. **Flag discrepancies** when your analysis differs from typical patterns
+
+KNOWLEDGE SOURCES:
+- Tax Law Context: Legal citations and rules (PRIMARY - 80-90% weight)
+- Historical Patterns: Vendor behavior, refund basis precedent (SECONDARY - 10-20% weight)
+
+When analyzing each transaction:
+- Determine legal taxability FIRST (based on WAC/RCW)
+- Check historical patterns SECOND (for consistency)
+- If they align: High confidence
+- If they conflict: Flag for review, recommend legal answer
+
+Provide accurate analysis with legal citations and confidence scores."""
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -333,6 +579,67 @@ Return JSON array:
         return []
 
 
+def get_rows_with_input_changes(file_id: str, hours_lookback: int = 24) -> set:
+    """
+    Query excel_cell_changes table to find rows where INPUT columns changed.
+
+    This identifies rows that need re-analysis because new data was added
+    (e.g., new invoice file, new PO, changed tax amount).
+
+    OUTPUT column changes (like corrections to Analysis_Notes) are ignored
+    since those are feedback, not new data requiring re-analysis.
+
+    Args:
+        file_id: UUID of the Excel file in excel_file_tracking
+        hours_lookback: How far back to check for changes (default: 24 hours)
+
+    Returns:
+        Set of row indices that have INPUT column changes
+    """
+    from datetime import datetime, timedelta
+
+    try:
+        # Calculate cutoff time
+        cutoff_time = (datetime.utcnow() - timedelta(hours=hours_lookback)).isoformat()
+
+        # Query recent cell changes for this file
+        result = supabase.table('excel_cell_changes')\
+            .select('row_index, column_name, old_value, new_value, changed_at')\
+            .eq('file_id', file_id)\
+            .gte('changed_at', cutoff_time)\
+            .execute()
+
+        if not result.data:
+            return set()
+
+        # Filter to INPUT column changes only
+        rows_needing_reanalysis = set()
+        input_changes_count = 0
+        output_changes_count = 0
+
+        for change in result.data:
+            column_name = change['column_name']
+            row_index = change['row_index']
+
+            if is_input_column(column_name):
+                rows_needing_reanalysis.add(row_index)
+                input_changes_count += 1
+            else:
+                output_changes_count += 1
+
+        print(f"  📊 Cell changes in last {hours_lookback} hours:")
+        print(f"     INPUT columns (triggers re-analysis): {input_changes_count}")
+        print(f"     OUTPUT columns (feedback only): {output_changes_count}")
+        print(f"  📝 Rows needing re-analysis: {len(rows_needing_reanalysis)}")
+
+        return rows_needing_reanalysis
+
+    except Exception as e:
+        print(f"  ⚠️  Could not check excel_cell_changes: {e}")
+        print(f"     Falling back to standard change detection")
+        return set()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Fast Batch Refund Analyzer")
     parser.add_argument("--excel", required=True, help="Path to Excel file")
@@ -340,6 +647,12 @@ def main():
         "--state",
         default="washington",
         help="State to analyze for (default: washington)",
+    )
+    parser.add_argument(
+        "--tax-type",
+        choices=["sales_tax", "use_tax"],
+        default="sales_tax",
+        help="Tax type: sales_tax or use_tax (default: sales_tax)",
     )
     parser.add_argument("--limit", type=int, help="Limit to first N rows (testing)")
     parser.add_argument("--output", help="Output file path")
@@ -350,6 +663,7 @@ def main():
     print("=" * 70)
     print(f"Excel: {args.excel}")
     print(f"State: {args.state.upper()}")
+    print(f"Tax Type: {args.tax_type.replace('_', ' ').title()}")
     print("=" * 70)
 
     # Load Excel
@@ -359,21 +673,57 @@ def main():
 
     # Initialize ExcelFileWatcher for intelligent row tracking
     print("\n🔍 Checking for changes...")
-    watcher = ExcelFileWatcher()
+
+    # Try to find file_id from versioning system first
+    file_id = None
+    try:
+        # Check if this file is tracked in the versioning system
+        abs_path = str(Path(args.excel).resolve())
+        result = supabase.table('excel_file_tracking')\
+            .select('id')\
+            .or_(f'file_path.eq.{abs_path},file_name.eq.{Path(args.excel).name}')\
+            .limit(1)\
+            .execute()
+
+        if result.data:
+            file_id = result.data[0]['id']
+            print(f"  ✓ Found file in versioning system (ID: {file_id[:8]}...)")
+    except Exception as e:
+        print(f"  ⚠️  Could not check versioning system: {e}")
 
     # Get changed rows (new or modified rows only)
     if not args.limit:
-        changed_rows = watcher.get_changed_rows(args.excel, df)
+        # Option 1: Use versioning system if available (more intelligent)
+        if file_id:
+            print(f"  🔍 Checking INPUT column changes (versioning-aware)...")
+            rows_with_input_changes = get_rows_with_input_changes(file_id, hours_lookback=72)
 
-        if changed_rows:
-            changed_indices = [idx for idx, _, _ in changed_rows]
-            df = df.loc[changed_indices]
-            print(f"✓ Found {len(changed_rows)} changed/new rows out of {original_row_count} total")
-            print(f"  Skipping {original_row_count - len(changed_rows)} already-analyzed rows")
+            if rows_with_input_changes:
+                # Filter DataFrame to only rows with INPUT column changes
+                df = df.loc[df.index.isin(rows_with_input_changes)]
+                print(f"✓ Found {len(df)} rows with INPUT column changes out of {original_row_count} total")
+                print(f"  Skipping {original_row_count - len(df)} rows (no INPUT changes)")
+            else:
+                print("✓ No INPUT column changes detected!")
+                print("  💡 OUTPUT column changes (corrections) don't trigger re-analysis")
+                print("  💡 Use --limit flag to force re-analysis for testing")
+                sys.exit(0)
+
+        # Option 2: Fallback to row-level hash checking (less intelligent)
         else:
-            print("✓ No changes detected - all rows already analyzed!")
-            print("\n💡 Tip: Use --limit flag to force re-analysis for testing")
-            sys.exit(0)
+            print(f"  🔍 Checking row-level changes (hash-based)...")
+            watcher = ExcelFileWatcher()
+            changed_rows = watcher.get_changed_rows(args.excel, df)
+
+            if changed_rows:
+                changed_indices = [idx for idx, _, _ in changed_rows]
+                df = df.loc[changed_indices]
+                print(f"✓ Found {len(changed_rows)} changed/new rows out of {original_row_count} total")
+                print(f"  Skipping {original_row_count - len(changed_rows)} already-analyzed rows")
+            else:
+                print("✓ No changes detected - all rows already analyzed!")
+                print("\n💡 Tip: Use --limit flag to force re-analysis for testing")
+                sys.exit(0)
     else:
         df = df.head(args.limit)
         print(f"✓ Test mode: Processing first {args.limit} rows (change tracking disabled)")
@@ -520,7 +870,7 @@ def main():
         total_batches = (len(analysis_queue) - 1) // batch_size + 1
         print(f"  Batch {batch_num}/{total_batches}")
 
-        analyses = analyze_batch(batch, legal_context, args.state.upper())
+        analyses = analyze_batch(batch, legal_context, args.state.upper(), args.tax_type)
         all_analyses.extend(analyses)
 
     # Write results back to DataFrame

@@ -162,30 +162,53 @@ def get_vendor_breakdown(df: pd.DataFrame) -> pd.DataFrame:
 
 def get_projects_from_db() -> List[Dict]:
     """
-    Get projects from database (or return mock data if DB unavailable).
+    Get projects from database.
 
     Returns:
         List of project dictionaries
     """
-    # For now, return mock data matching the React mockup
-    return [
-        {
-            "id": "WA-UT-2022_2024",
-            "name": "Washington Use Tax Review",
-            "period": "2022–2024",
-            "est_refund": 184230,
-            "status": "Analyzing",
-            "description": "Comprehensive review of use tax liabilities for Washington State",
-        },
-        {
-            "id": "OR-UT-2023",
-            "name": "Oregon Use Tax (Audit Support)",
-            "period": "2023",
-            "est_refund": 0,
-            "status": "On Hold",
-            "description": "Supporting documentation for Oregon use tax audit",
-        },
-    ]
+    if not SUPABASE_AVAILABLE:
+        # Return empty list if Supabase not available
+        return []
+
+    try:
+        supabase = get_supabase_client()
+
+        # Query projects table
+        response = supabase.table("projects") \
+            .select("*") \
+            .order("created_at", desc=True) \
+            .execute()
+
+        if not response.data:
+            return []
+
+        # Transform to match expected format
+        projects = []
+        for project in response.data:
+            # Format period from tax_year
+            period = str(project.get("tax_year", "N/A")) if project.get("tax_year") else "N/A"
+
+            projects.append({
+                "id": project["id"],
+                "name": project["name"],
+                "period": period,
+                "est_refund": float(project.get("estimated_refund_amount", 0) or 0),
+                "status": project.get("status", "active").title(),
+                "description": project.get("description", ""),
+                "tax_type": project.get("tax_type", ""),
+                "tax_year": project.get("tax_year"),
+                "state_code": project.get("state_code", "WA"),
+                "client_name": project.get("client_name", ""),
+                "filing_status": project.get("filing_status", ""),
+                "created_at": project.get("created_at", ""),
+            })
+
+        return projects
+
+    except Exception as e:
+        print(f"Error loading projects from database: {e}")
+        return []
 
 
 def get_documents_from_db() -> List[Dict]:

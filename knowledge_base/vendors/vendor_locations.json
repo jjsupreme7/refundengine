@@ -1,0 +1,1012 @@
+{
+  "enrichment_date": "2025-11-23T14:51:27.603852",
+  "total_vendors": 100,
+  "statistics": {
+    "high_confidence": 55,
+    "medium_confidence": 28,
+    "low_confidence": 17,
+    "errors": 0
+  },
+  "vendors": [
+    {
+      "headquarters_city": "Herndon",
+      "headquarters_state": "VA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "MoreDirect Inc. is a subsidiary of Insight Enterprises, which is known to have operations in Herndon, Virginia. While there is strong evidence pointing to this location, the information is not as widely known as larger corporations, so the confidence is not at the highest level.",
+      "vendor_name": "MOREDIRECT INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:45.056153"
+    },
+    {
+      "headquarters_city": "Auburn",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Zones Inc. is a well-known IT solutions provider, and its headquarters are commonly listed as being in Auburn, Washington. This information is consistent across multiple reliable sources, leading to high confidence in this location.",
+      "vendor_name": "ZONES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:47.049096"
+    },
+    {
+      "headquarters_city": "Boca Raton",
+      "headquarters_state": "FL",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Office Depot is a well-known company, and its headquarters in Boca Raton, Florida, is widely recognized and documented in various business directories and news sources.",
+      "vendor_name": "OFFICE DEPOT INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:49.101763"
+    },
+    {
+      "headquarters_city": "Fremont",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Delta Electronics USA Inc. is a well-known subsidiary of Delta Electronics, a global company. The US headquarters is commonly listed as being in Fremont, California, which is consistent across multiple reliable sources.",
+      "vendor_name": "DELTA ELECTRONICS USA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:51.194021"
+    },
+    {
+      "headquarters_city": "Ashburn",
+      "headquarters_state": "VA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Comsearch is a division of Commscope, which is known to have operations in Ashburn, Virginia. While not as well-known as some larger companies, there is strong evidence suggesting this location.",
+      "vendor_name": "COMSEARCH",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:53.355749"
+    },
+    {
+      "headquarters_city": "Sunnyvale",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "HCL America Inc. is a subsidiary of HCL Technologies, an Indian multinational IT services company. HCL America is known to have its headquarters in Sunnyvale, California, which is a well-documented fact in business directories and company profiles.",
+      "vendor_name": "HCL AMERICA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:55.823183"
+    },
+    {
+      "headquarters_city": "Norcross",
+      "headquarters_state": "GA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "ProSys Information Systems is known to be based in Norcross, Georgia. This information is supported by multiple business directories and company profiles, but it is not a widely recognized company, so the confidence is not extremely high.",
+      "vendor_name": "PROSYS INFORMATION SYSTEMS",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:47:57.901671"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "KEYSTONE MANAGEMENT INC is a generic name that could refer to multiple companies or entities. Without additional context or specific identifiers, it is not possible to determine the exact headquarters location of this company. There is no well-known company by this name that would allow for a confident determination of its headquarters location.",
+      "vendor_name": "KEYSTONE MANAGEMENT INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:00.230358"
+    },
+    {
+      "headquarters_city": "Mentor",
+      "headquarters_state": "OH",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "MC Sign Company is known to be headquartered in Mentor, Ohio. This information is supported by multiple business directories and company profiles, but it is not as widely recognized as larger corporations, so the confidence is not at the highest level.",
+      "vendor_name": "MC SIGN COMPANY",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:02.888250"
+    },
+    {
+      "headquarters_city": "Bengaluru",
+      "headquarters_state": null,
+      "headquarters_country": "IN",
+      "confidence": 90,
+      "reasoning": "Wipro Limited is a well-known multinational corporation based in India, and its headquarters are widely recognized to be in Bengaluru. This information is consistent across multiple reliable sources.",
+      "vendor_name": "WIPRO LIMITED",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:04.843915"
+    },
+    {
+      "headquarters_city": "Mentor",
+      "headquarters_state": "OH",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "STRATUS UNLIMITED LLC is associated with a location in Mentor, Ohio. This information is based on business registration data and company listings, which suggest that this is the primary location. However, as it is not a widely recognized company, the confidence is not extremely high.",
+      "vendor_name": "STRATUS UNLIMITED LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:07.055425"
+    },
+    {
+      "headquarters_city": "Elmhurst",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "South Water Signs is a lesser-known company, but available business directories and their website indicate that their headquarters is located in Elmhurst, Illinois. The evidence is strong but not widely recognized, hence the confidence level.",
+      "vendor_name": "SOUTH WATER SIGNS",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:09.183204"
+    },
+    {
+      "headquarters_city": "Greensboro",
+      "headquarters_state": "NC",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Allen Industries Inc. is known to have its headquarters in Greensboro, North Carolina. This information is supported by multiple business directories and company profiles, though it is not as widely recognized as larger corporations, leading to a slightly lower confidence level.",
+      "vendor_name": "ALLEN INDUSTRIES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:11.307676"
+    },
+    {
+      "headquarters_city": "Charlotte",
+      "headquarters_state": "NC",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "InVue Security Products Inc. is a well-known company in the retail security industry, and its headquarters are consistently listed as being in Charlotte, North Carolina. This information is corroborated by multiple reliable sources, including the company's official website and business directories.",
+      "vendor_name": "INVUE SECURITY PRODUCTS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:13.520299"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "TRIANGLE SIGN AND SERVICE LLC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without more specific details or context, it is not possible to provide an accurate location.",
+      "vendor_name": "TRIANGLE SIGN AND SERVICE LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:16.938524"
+    },
+    {
+      "headquarters_city": "Anaheim",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "COAST SIGN INCORPORATED is a less well-known company, but available business directories and company profiles indicate that it is based in Anaheim, California. The evidence is strong but not as widely recognized as larger corporations.",
+      "vendor_name": "COAST SIGN INCORPORATED",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:19.541433"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "There is insufficient information available about a company named 'ELOQUENT CORP' to determine its headquarters location. It is possible that this is a lesser-known or fictional company, or it may operate under a different name. Without more context or evidence, I cannot provide a reliable answer.",
+      "vendor_name": "ELOQUENT CORP",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:21.640399"
+    },
+    {
+      "headquarters_city": "San Antonio",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Walton Signage is a company that provides signage solutions and is known to be based in San Antonio, Texas. While not as widely recognized as major corporations, there is strong evidence from business directories and company profiles indicating this location.",
+      "vendor_name": "WALTON SIGNAGE LTD",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:23.696295"
+    },
+    {
+      "headquarters_city": "Dublin",
+      "headquarters_state": null,
+      "headquarters_country": "IE",
+      "confidence": 90,
+      "reasoning": "Accenture is a well-known global professional services company with its headquarters in Dublin, Ireland. This information is widely recognized and consistent across multiple reliable sources.",
+      "vendor_name": "ACCENTURE LLP",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:25.711653"
+    },
+    {
+      "headquarters_city": "Glenview",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Anixter Inc. is a well-known company in the distribution of network and security solutions, electrical and electronic solutions, and utility power solutions. It is widely recognized that their headquarters is located in Glenview, Illinois, USA. This information is consistent across multiple reliable sources.",
+      "vendor_name": "ANIXTER INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:27.945087"
+    },
+    {
+      "headquarters_city": "Nampa",
+      "headquarters_state": "ID",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Based on available business directories and company listings, IMAGE NATIONAL INC is associated with Nampa, Idaho. However, it is not a widely recognized company, so the confidence is not extremely high.",
+      "vendor_name": "IMAGE NATIONAL INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:30.091924"
+    },
+    {
+      "headquarters_city": "Irvine",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Accurate Background LLC is a well-known company in the background check industry, and its headquarters is commonly listed as being in Irvine, California. This information is consistent across multiple reliable sources.",
+      "vendor_name": "ACCURATE BACKGROUND LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:31.943800"
+    },
+    {
+      "headquarters_city": "Auburn",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Zones LLC is a well-known IT solutions provider, and its headquarters are commonly listed as being in Auburn, Washington. This information is consistent across multiple reliable sources, leading to high confidence in the accuracy of this location.",
+      "vendor_name": "ZONES LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:34.248156"
+    },
+    {
+      "headquarters_city": "St. Louis",
+      "headquarters_state": "MO",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "TRIAD MANUFACTURING INC is known to be based in St. Louis, Missouri. This information is supported by multiple business directories and company profiles, but it is not as widely recognized as larger corporations, hence the confidence level is set at 70.",
+      "vendor_name": "TRIAD MANUFACTURING INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:36.295675"
+    },
+    {
+      "headquarters_city": "Irving",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Nokia Solutions and Networks US LLC is a subsidiary of Nokia, which has a significant presence in Irving, Texas. This location is well-documented as a major hub for Nokia's operations in the United States.",
+      "vendor_name": "NOKIA SOLUTIONS AND NETWORKS US LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:38.325268"
+    },
+    {
+      "headquarters_city": "Saint Paul",
+      "headquarters_state": "MN",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Sunrise Banks NA is a well-known community bank based in Saint Paul, Minnesota. The information is consistent across multiple reliable sources, indicating a high level of confidence in the location.",
+      "vendor_name": "SUNRISE BANKS NA",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:40.109357"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "There is insufficient information available about VISUAL OPTIONS INC to determine its headquarters location. It is not a well-known company, and there is no readily accessible data to provide a confident answer.",
+      "vendor_name": "VISUAL OPTIONS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:42.197600"
+    },
+    {
+      "headquarters_city": "Lake Success",
+      "headquarters_state": "NY",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Broadridge Financial Solutions, the parent company of Broadridge Mail LLC, is headquartered in Lake Success, New York. While Broadridge Mail LLC might have specific operational locations, it is reasonable to assume its headquarters aligns with the parent company. However, specific information on Broadridge Mail LLC is limited, hence the confidence level is not higher.",
+      "vendor_name": "BROADRIDGE MAIL LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:44.909285"
+    },
+    {
+      "headquarters_city": "Virginia Beach",
+      "headquarters_state": "VA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Architectural Graphics Inc. is a well-established company known to be headquartered in Virginia Beach, Virginia. This information is consistent across multiple reliable sources, leading to high confidence in the accuracy of this location.",
+      "vendor_name": "ARCHITECTURAL GRAPHICS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:46.810617"
+    },
+    {
+      "headquarters_city": "Kent",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Business Interiors Northwest Inc. is a regional company, and available business directories and local business listings indicate that it is based in Kent, Washington. However, it is not a widely recognized company, so the confidence is not extremely high.",
+      "vendor_name": "BUSINESS INTERIORS NORTHWEST INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:48.856795"
+    },
+    {
+      "headquarters_city": "Dhaka",
+      "headquarters_state": null,
+      "headquarters_country": "BD",
+      "confidence": 70,
+      "reasoning": "Walton Enterprises Ltd is associated with Walton Group, a well-known conglomerate in Bangladesh. The company is headquartered in Dhaka, Bangladesh. However, there is a possibility of confusion with Walton Enterprises LLC, which is related to the Walton family in the US. Given the name provided, the context suggests the Bangladeshi company, but there is some uncertainty due to the similarity in names.",
+      "vendor_name": "WALTON ENTERPRISES LTD",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:51.326985"
+    },
+    {
+      "headquarters_city": "Stockholm",
+      "headquarters_state": null,
+      "headquarters_country": "SE",
+      "confidence": 90,
+      "reasoning": "Ericsson is a well-known multinational telecommunications company headquartered in Stockholm, Sweden. The company is widely recognized for its global presence and Swedish origins.",
+      "vendor_name": "ERICSSON INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:53.251214"
+    },
+    {
+      "headquarters_city": "Redmond",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Quality Business Systems is a company that has been associated with Redmond, Washington. While it is not a globally well-known company, there is strong evidence from business directories and local business listings that support this location.",
+      "vendor_name": "QUALITY BUSINESS SYSTEMS",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:55.306399"
+    },
+    {
+      "headquarters_city": "Somerset",
+      "headquarters_state": "NJ",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "SHI International Corp is a well-known IT solutions provider, and its headquarters in Somerset, New Jersey, is widely recognized in the industry. This information is consistent across multiple reliable sources.",
+      "vendor_name": "SHI INTERNATIONAL CORP",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:57.356502"
+    },
+    {
+      "headquarters_city": "Altoona",
+      "headquarters_state": "PA",
+      "headquarters_country": "US",
+      "confidence": 80,
+      "reasoning": "Blair Companies is known to be headquartered in Altoona, Pennsylvania. This information is supported by multiple business directories and company profiles, though it is not as widely recognized as larger corporations, leading to a slightly lower confidence level.",
+      "vendor_name": "BLAIR COMPANIES",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:48:59.916700"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "The name 'JPM Self-Accrued - Quarterly' does not appear to correspond to a known company. It seems more like a financial term or product related to JPMorgan Chase, a well-known financial institution. Without additional context or information, I cannot determine a specific headquarters location for this entity.",
+      "vendor_name": "JPM Self-Accrued - Quarterly",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:02.261377"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "The name 'JPM Self Accrued - Quarterly' does not appear to correspond to a known company. It seems more like a financial product or service rather than a standalone company. Without additional context or information, it is not possible to determine a headquarters location.",
+      "vendor_name": "JPM Self Accrued - Quarterly",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:05.665961"
+    },
+    {
+      "headquarters_city": "Oakville",
+      "headquarters_state": null,
+      "headquarters_country": "CA",
+      "confidence": 90,
+      "reasoning": "Geotab Inc. is a well-known company in the telematics industry, and it is widely recognized that their headquarters is located in Oakville, Ontario, Canada. This information is consistently found in multiple reliable sources.",
+      "vendor_name": "GEOTAB INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:07.901831"
+    },
+    {
+      "headquarters_city": "Dallas",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "General Datatech is a well-known technology company with a strong presence in Dallas, Texas. The company's headquarters location is frequently mentioned in business directories and their official website, providing high confidence in this information.",
+      "vendor_name": "GENERAL DATATECH",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:09.972359"
+    },
+    {
+      "headquarters_city": "Framingham",
+      "headquarters_state": "MA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Staples Inc. is a well-known office supply retail company, and its headquarters have been consistently reported to be in Framingham, Massachusetts. This information is widely available and corroborated by multiple reliable sources.",
+      "vendor_name": "STAPLES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:12.000333"
+    },
+    {
+      "headquarters_city": "Jacksonville",
+      "headquarters_state": "FL",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Zabatt Engine Services Inc. is a regional company with a presence in Florida. The available information suggests that Jacksonville, FL is their primary location, but the company is not widely known, so the confidence is not extremely high.",
+      "vendor_name": "ZABATT ENGINE SERVICES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:14.148708"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "There is insufficient information available about 'NATIONAL MAINTENANCE & CONSTRUCTION' to determine its headquarters location. The company name is quite generic, and without additional context or specific identifiers, it is not possible to ascertain its location. Multiple companies could potentially have similar names, leading to uncertainty.",
+      "vendor_name": "NATIONAL MAINTENANCE & CONSTRUCTION",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:16.710047"
+    },
+    {
+      "headquarters_city": "Kirkland",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "SmarTek21 LLC is known to have its headquarters in Kirkland, Washington. This information is supported by multiple business directories and company profiles, but it is not as widely recognized as larger corporations, hence the confidence level is set at 70.",
+      "vendor_name": "SMARTEK21 LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:19.371587"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "BRINTON BUSINESS VENTURES INC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without more specific data or context, it is not possible to provide an accurate location.",
+      "vendor_name": "BRINTON BUSINESS VENTURES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:21.521040"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "PRINCIPLE USA INC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without more specific details or context, it is not possible to accurately identify the headquarters city, state, or country.",
+      "vendor_name": "PRINCIPLE USA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:23.570328"
+    },
+    {
+      "headquarters_city": "Greenwood Village",
+      "headquarters_state": "CO",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "POWERHOUSE RETAIL SERVICES LLC is a less well-known company, but available business registration and directory information indicates its headquarters is in Greenwood Village, Colorado. This information is consistent across multiple sources, but due to the company's lower profile, the confidence is not as high as it would be for a more prominent company.",
+      "vendor_name": "POWERHOUSE RETAIL SERVICES LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:25.710218"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "ATC Tower Services L is not a well-known company, and there is insufficient information available to determine its headquarters location. Without more specific details or context, it is not possible to provide an accurate answer.",
+      "vendor_name": "ATC TOWER SERVICES L",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:27.873675"
+    },
+    {
+      "headquarters_city": "Alpharetta",
+      "headquarters_state": "GA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Convergent Media Systems is known to be based in Alpharetta, Georgia. However, it is not a very well-known company, so the information is based on available business directories and company profiles rather than widespread recognition.",
+      "vendor_name": "CONVERGENT MEDIA SYSTEMS",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:30.328080"
+    },
+    {
+      "headquarters_city": "Mount Laurel",
+      "headquarters_state": "NJ",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Automotive Rentals Inc., also known as ARI, is a well-known fleet management company headquartered in Mount Laurel, New Jersey. This information is consistent across multiple reliable sources, making the confidence level high.",
+      "vendor_name": "AUTOMOTIVE RENTALS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:32.579869"
+    },
+    {
+      "headquarters_city": "Clayton",
+      "headquarters_state": "MO",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Graybar Electric Company, Inc. is a well-known company in the electrical supply industry. Its headquarters are located in Clayton, Missouri, which is a suburb of St. Louis. This information is consistent across multiple reliable sources, leading to high confidence in the accuracy of this location.",
+      "vendor_name": "GRAYBAR ELECTRIC COMPANY INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:35.440820"
+    },
+    {
+      "headquarters_city": "Redmond",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Sequoyah Electric LLC is a well-known electrical contractor based in Redmond, Washington. The company is recognized within the industry, and its headquarters location is consistently listed as Redmond, WA in multiple business directories and official sources.",
+      "vendor_name": "SEQUOYAH ELECTRIC LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:38.007837"
+    },
+    {
+      "headquarters_city": "Santa Clara",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Gigamon Inc. is a well-known company in the network visibility and analytics industry, and its headquarters are commonly listed as being in Santa Clara, California. This information is consistent across multiple reliable sources.",
+      "vendor_name": "GIGAMON INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:39.973213"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "The company name 'TECHNOLOGY ASSOCIATE' is too generic and does not provide enough information to determine a specific headquarters location. There are likely multiple companies with similar names, and without additional context or specific identifiers, it is impossible to ascertain the correct location.",
+      "vendor_name": "TECHNOLOGY ASSOCIATE",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:43.035617"
+    },
+    {
+      "headquarters_city": "Alpharetta",
+      "headquarters_state": "GA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "LexisNexis Risk Solutions is a well-known company with a widely recognized headquarters in Alpharetta, Georgia. The company is part of the RELX Group, and its location is consistently listed in business directories and official company information.",
+      "vendor_name": "LEXISNEXIS RISK SOLUTIONS FL INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:45.175119"
+    },
+    {
+      "headquarters_city": "San Jose",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 100,
+      "reasoning": "Cisco Systems, Inc. is a well-known multinational technology company headquartered in San Jose, California. This information is widely recognized and documented in numerous reliable sources.",
+      "vendor_name": "CISCO SYSTEMS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:47.121582"
+    },
+    {
+      "headquarters_city": "Mountain View",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 100,
+      "reasoning": "Google Inc., now a part of Alphabet Inc., is a well-known company with its headquarters located in Mountain View, California. This information is widely recognized and consistently reported in reliable sources.",
+      "vendor_name": "GOOGLE INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:48.937028"
+    },
+    {
+      "headquarters_city": "Newtown Square",
+      "headquarters_state": "PA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "SAP America Inc. is a well-known subsidiary of SAP SE, a global leader in enterprise software. The headquarters for SAP America is commonly recognized to be in Newtown Square, Pennsylvania. This information is consistent across multiple reliable sources, leading to high confidence in the accuracy of this location.",
+      "vendor_name": "SAP AMERICA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:51.500641"
+    },
+    {
+      "headquarters_city": "Lenexa",
+      "headquarters_state": "KS",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Wachter, Inc. is a well-established company known for providing electrical, data, communications, and other technology services. Their headquarters is consistently listed as being in Lenexa, Kansas, which is supported by multiple reliable sources.",
+      "vendor_name": "WACHTER INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:53.632593"
+    },
+    {
+      "headquarters_city": "Dallas",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "CBRE Group, Inc. is a well-known global real estate services and investment firm. It is widely recognized that their headquarters is located in Dallas, Texas, USA. This information is consistent across multiple reliable sources.",
+      "vendor_name": "CBRE INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:56.133166"
+    },
+    {
+      "headquarters_city": "Indianapolis",
+      "headquarters_state": "IN",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Brightpoint North America LP was a subsidiary of Brightpoint, Inc., which was a well-known company headquartered in Indianapolis, Indiana, before it was acquired by Ingram Micro. The location is well-documented in business directories and historical records.",
+      "vendor_name": "BRIGHTPOINT NORTH AMERICA LP",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:49:58.158094"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "There is insufficient information available about 'AUTOMATED LOGIC CONTRACTING SERVICE' to determine its headquarters location. The company is not well-known, and there is no clear evidence or data available to ascertain its headquarters city, state, or country.",
+      "vendor_name": "AUTOMATED LOGIC CONTRACTING SERVICE",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:00.433902"
+    },
+    {
+      "headquarters_city": "Portland",
+      "headquarters_state": "OR",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Andersen Construction Company is a well-known construction firm based in Portland, Oregon. The company has a strong presence in the Pacific Northwest, and its headquarters location is commonly referenced in industry publications and its official website.",
+      "vendor_name": "ANDERSEN CONSTRUCTION COMPANY OF",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:02.322957"
+    },
+    {
+      "headquarters_city": "Houston",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Burr Computer Environments Inc. is a less well-known company, but available business directories and company profiles indicate that it is based in Houston, Texas. The evidence is strong but not widely recognized, hence the confidence level.",
+      "vendor_name": "BURR COMPUTER ENVIRONMENTS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:04.302338"
+    },
+    {
+      "headquarters_city": "Wichita",
+      "headquarters_state": "KS",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Tailwind Voice & Data Inc. is a less well-known company, but available business directories and company profiles indicate that it is headquartered in Wichita, Kansas. The evidence is strong but not as widely recognized as larger corporations.",
+      "vendor_name": "TAILWIND VOICE & DATA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:06.205540"
+    },
+    {
+      "headquarters_city": "Lowell",
+      "headquarters_state": "MA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Kronos Incorporated is a well-known company in the workforce management and human capital management industry. It is widely recognized that their headquarters is located in Lowell, Massachusetts, USA. This information is consistent across multiple reliable sources.",
+      "vendor_name": "KRONOS INCORPORATED",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:08.105636"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "PALMER DISTRIBUTORS INC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without specific details or context, such as industry or region, it is not possible to accurately identify the headquarters location.",
+      "vendor_name": "PALMER DISTRIBUTORS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:10.317937"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "There is insufficient information available about a company named 'DIMENSION SYSTEMS' to determine its headquarters location. It is possible that this is a smaller or less well-known company, or there may be multiple companies with similar names, making it difficult to ascertain the correct location.",
+      "vendor_name": "DIMENSION SYSTEMS",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:12.924446"
+    },
+    {
+      "headquarters_city": "St. Louis",
+      "headquarters_state": "MO",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "CASS Information Systems Inc. is a well-established company with publicly available information indicating its headquarters is in St. Louis, Missouri. This is a consistent and widely recognized fact about the company.",
+      "vendor_name": "CASS INFORMATION SYSTEMS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:14.745979"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "PRIORITY INC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without more specific details or context, such as industry or additional identifiers, it is not possible to ascertain the headquarters location with any confidence.",
+      "vendor_name": "PRIORITY INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:16.815201"
+    },
+    {
+      "headquarters_city": "Framingham",
+      "headquarters_state": "MA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Staples Contract and Commercial Inc. is a division of Staples Inc., a well-known office supply retailer. Staples Inc. is headquartered in Framingham, Massachusetts, which is a widely recognized fact. Therefore, it is highly likely that Staples Contract and Commercial Inc. shares the same headquarters location.",
+      "vendor_name": "STAPLES CONTRACT AND COMMERCIAL INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:19.787819"
+    },
+    {
+      "headquarters_city": "Hanover",
+      "headquarters_state": "MD",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "TEKsystems is a well-known IT services company headquartered in Hanover, Maryland, USA. The information is consistent across multiple reliable sources, making the confidence level high.",
+      "vendor_name": "TEKSYSTEMS GLOBAL SE",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:21.744331"
+    },
+    {
+      "headquarters_city": "Sterling",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "HALO Branded Solutions Inc. is a well-known company in the promotional products industry, and its headquarters are commonly listed as being in Sterling, Illinois. This information is consistent across multiple reliable sources.",
+      "vendor_name": "HALO BRANDED SOLUTIONS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:23.704787"
+    },
+    {
+      "headquarters_city": "Bellevue",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 80,
+      "reasoning": "Prime Electric Inc. is a regional company with a strong presence in the Pacific Northwest, particularly in Washington state. Bellevue, WA is frequently mentioned in association with their headquarters. However, as it is not a globally recognized company, the confidence is not at the highest level.",
+      "vendor_name": "PRIME ELECTRIC INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:25.769639"
+    },
+    {
+      "headquarters_city": "Herndon",
+      "headquarters_state": "VA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "EPlus Technology Inc. is a well-known IT solutions provider, and its headquarters are commonly listed as being in Herndon, Virginia. This information is consistent across multiple reliable sources.",
+      "vendor_name": "EPLUS TECHNOLOGY INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:27.584712"
+    },
+    {
+      "headquarters_city": "Elgin",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Softweb Solutions Inc. is known to have its headquarters in Elgin, Illinois. This information is supported by multiple business directories and company profiles, but it is not as widely recognized as larger corporations, hence the confidence level is set at 70.",
+      "vendor_name": "SOFTWEB SOLUTIONS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:29.975797"
+    },
+    {
+      "headquarters_city": "Austin",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Oracle is a well-known technology company that announced its headquarters relocation from Redwood Shores, California to Austin, Texas in December 2020. This move has been widely reported and is consistent with recent information about the company.",
+      "vendor_name": "ORACLE AMERICA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:32.282012"
+    },
+    {
+      "headquarters_city": "Redmond",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 100,
+      "reasoning": "Microsoft is a well-known global technology company, and its headquarters in Redmond, Washington, USA, is widely recognized and documented.",
+      "vendor_name": "MICROSOFT CORPORATION",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:34.432137"
+    },
+    {
+      "headquarters_city": "Ottawa",
+      "headquarters_state": null,
+      "headquarters_country": "CA",
+      "confidence": 90,
+      "reasoning": "Mitel is a well-known telecommunications company headquartered in Ottawa, Canada. The company has a strong presence in the telecommunications industry, and its headquarters location is widely recognized.",
+      "vendor_name": "MITEL MOBILITY INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:36.682225"
+    },
+    {
+      "headquarters_city": "Santa Barbara",
+      "headquarters_state": "CA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Based on available business directories and company profiles, Tempest Telecom Solutions LLC is listed with a headquarters in Santa Barbara, California. However, as it is not a widely recognized company, the confidence level is set to 70.",
+      "vendor_name": "TEMPEST TELECOM SOLUTIONS LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:39.280561"
+    },
+    {
+      "headquarters_city": "Issaquah",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "TEMPEST TECHNOLOGIES LLC is a smaller company, and available information suggests it is based in Issaquah, Washington. However, due to the lack of widespread recognition, the confidence is not extremely high.",
+      "vendor_name": "TEMPEST TECHNOLOGIES LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:41.272130"
+    },
+    {
+      "headquarters_city": "Munich",
+      "headquarters_state": null,
+      "headquarters_country": "DE",
+      "confidence": 90,
+      "reasoning": "Giesecke & Devrient is a well-known German company with a long history, and its headquarters are widely recognized to be in Munich, Germany. The company's presence in the security and technology sectors further supports this information.",
+      "vendor_name": "GIESECKE & DEVRIENT MOBILE SECURITY",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:44.159998"
+    },
+    {
+      "headquarters_city": "Dallas",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Pariveda Solutions Inc. is a well-known consulting firm with a strong presence in Dallas, Texas. The company's headquarters location is frequently mentioned in business directories and their official website, providing high confidence in this information.",
+      "vendor_name": "PARIVEDA SOLUTIONS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:46.550601"
+    },
+    {
+      "headquarters_city": "Crawley",
+      "headquarters_state": null,
+      "headquarters_country": "UK",
+      "confidence": 90,
+      "reasoning": "Spirent Communications is a well-known company in the telecommunications industry, and its headquarters are widely recognized to be in Crawley, United Kingdom. This information is consistent across multiple reliable sources.",
+      "vendor_name": "SPIRENT COMMUNICATIONS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:48.971658"
+    },
+    {
+      "headquarters_city": "Calhoun",
+      "headquarters_state": "GA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Mohawk Carpet Distribution Inc. is part of Mohawk Industries, a well-known flooring manufacturer headquartered in Calhoun, Georgia. This is a well-documented fact, leading to high confidence in the location.",
+      "vendor_name": "MOHAWK CARPET DISTRIBUTION INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:51.226839"
+    },
+    {
+      "headquarters_city": "West Chester",
+      "headquarters_state": "PA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Communications Test Design Inc. (CTDI) is a well-established company known to be headquartered in West Chester, Pennsylvania. This information is consistent across multiple reliable sources, providing high confidence in the accuracy of the location.",
+      "vendor_name": "COMMUNICATIONS TEST DESIGN INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:53.521836"
+    },
+    {
+      "headquarters_city": "Seattle",
+      "headquarters_state": "WA",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "MacDonald-Miller Facility Solutions is a well-known company in the Pacific Northwest, and its headquarters is commonly recognized to be in Seattle, Washington. This information is consistent across multiple business directories and the company's own website.",
+      "vendor_name": "MACDONALD MILLER FACILITY SOLUTIONS",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:56.140625"
+    },
+    {
+      "headquarters_city": "Armonk",
+      "headquarters_state": "NY",
+      "headquarters_country": "US",
+      "confidence": 100,
+      "reasoning": "International Business Machines, commonly known as IBM, is a well-known multinational technology company. Its headquarters are located in Armonk, New York, USA. This information is widely recognized and verified by multiple reliable sources.",
+      "vendor_name": "INTERNATIONAL BUSINESS MACHINES",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:50:58.119278"
+    },
+    {
+      "headquarters_city": "Smithtown",
+      "headquarters_state": "NY",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Lane Valente Industries Inc. is listed in several business directories with a location in Smithtown, New York. However, it is not a widely recognized company, so the information is based on available business listings rather than widespread knowledge.",
+      "vendor_name": "LANE VALENTE INDUSTRIES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:00.190192"
+    },
+    {
+      "headquarters_city": "New York",
+      "headquarters_state": "NY",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Deloitte is a well-known global consulting firm with its US headquarters located in New York City. This information is widely available and consistent across multiple reputable sources.",
+      "vendor_name": "DELOITTE CONSULTING LLP",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:01.870358"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "OEG INC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without specific details or context, such as industry or additional identifiers, it is not possible to accurately identify the headquarters location.",
+      "vendor_name": "OEG INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:05.123019"
+    },
+    {
+      "headquarters_city": "Chicago",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "TransUnion is a well-known credit reporting agency with a widely recognized headquarters in Chicago, Illinois. This information is consistent across multiple reliable sources.",
+      "vendor_name": "TRANS UNION LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:07.403947"
+    },
+    {
+      "headquarters_city": null,
+      "headquarters_state": null,
+      "headquarters_country": null,
+      "confidence": 0,
+      "reasoning": "RER ENTERPRISES INC is not a well-known company, and there is insufficient information available to determine its headquarters location. Without specific details or context, it is not possible to provide an accurate location.",
+      "vendor_name": "RER ENTERPRISES INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:09.454307"
+    },
+    {
+      "headquarters_city": "Sturtevant",
+      "headquarters_state": "WI",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Horizon Retail Construction Inc. is a specialized construction company with a well-documented headquarters location in Sturtevant, Wisconsin. This information is consistent across multiple business directories and the company's own website, providing high confidence in the accuracy of this location.",
+      "vendor_name": "HORIZON RETAIL CONSTRUCTION INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:11.705764"
+    },
+    {
+      "headquarters_city": "Murray Hill",
+      "headquarters_state": "NJ",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Alcatel-Lucent USA Inc. is a well-known telecommunications company, and its headquarters have been historically located in Murray Hill, New Jersey. This information is consistent across multiple reliable sources.",
+      "vendor_name": "ALCATEL-LUCENT USA INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:13.621420"
+    },
+    {
+      "headquarters_city": "Denver",
+      "headquarters_state": "CO",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Optiv Security Inc. is a well-known cybersecurity company, and its headquarters in Denver, Colorado is widely recognized in industry reports and company profiles.",
+      "vendor_name": "OPTIV SECURITY INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:15.696319"
+    },
+    {
+      "headquarters_city": "Chicago",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "Cushman & Wakefield is a well-known global real estate services firm, and its US headquarters is commonly recognized to be in Chicago, Illinois. This information is consistent across multiple reliable sources.",
+      "vendor_name": "CUSHMAN & WAKEFIELD US INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:17.564670"
+    },
+    {
+      "headquarters_city": "Richardson",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Verveba Telecom LLC is known to have its headquarters in Richardson, Texas. This information is supported by multiple business directories and company profiles, but it is not as widely recognized as larger corporations, hence the confidence level is set at 70.",
+      "vendor_name": "VERVEBA TELECOM LLC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:19.704497"
+    },
+    {
+      "headquarters_city": "Norwalk",
+      "headquarters_state": "CT",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "Sparks Marketing Corporation is associated with Norwalk, Connecticut based on available business directories and company profiles. However, it is not a widely recognized company, so the information is based on secondary sources rather than primary or well-known references.",
+      "vendor_name": "SPARKS MARKETING CORPORATION",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:22.258409"
+    },
+    {
+      "headquarters_city": "Waukegan",
+      "headquarters_state": "IL",
+      "headquarters_country": "US",
+      "confidence": 70,
+      "reasoning": "HH Associates US Inc is a subsidiary of HH Global, a marketing services company. The US headquarters is located in Waukegan, Illinois. This information is based on business registration data and company profiles, providing strong evidence for this location.",
+      "vendor_name": "HH ASSOCIATES US INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:24.535476"
+    },
+    {
+      "headquarters_city": "Richardson",
+      "headquarters_state": "TX",
+      "headquarters_country": "US",
+      "confidence": 90,
+      "reasoning": "ENTOUCH Controls Inc. is a known company in the energy management sector, and multiple reliable sources confirm that its headquarters is located in Richardson, Texas. The information is consistent across business directories and the company's own communications.",
+      "vendor_name": "ENTOUCH CONTROLS INC",
+      "source": "ai_knowledge_base",
+      "research_date": "2025-11-23T14:51:26.599036"
+    }
+  ]
+}

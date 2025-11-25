@@ -34,6 +34,10 @@ from typing import Dict, List, Optional
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.database import get_supabase_client  # noqa: E402
+from openai import OpenAI  # noqa: E402
+
+# Initialize OpenAI client
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # WA Tax Classifications (from tax_rules.json)
 WA_TAX_CLASSIFICATIONS = {
@@ -306,6 +310,65 @@ class VendorResearcher:
         }
         return delivery_map.get(product_type, "Unknown")
 
+    def research_vendor_location(self, vendor_name: str) -> Dict:
+        """
+        Research vendor headquarters location using AI
+
+        Returns dict with:
+            - headquarters_city, headquarters_state, headquarters_country
+            - confidence (0-100)
+            - reasoning
+        """
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """You are a business research assistant. Given a company name, determine their headquarters location.
+
+Provide your response in JSON format:
+{
+    "headquarters_city": "City name",
+    "headquarters_state": "Two-letter state code (US only, otherwise null)",
+    "headquarters_country": "Country code (US, CA, UK, etc.)",
+    "confidence": 0-100,
+    "reasoning": "Brief explanation of how confident you are and why"
+}
+
+Confidence levels:
+- 90-100: Well-known company, certain of location
+- 70-89: Strong evidence, likely correct
+- 50-69: Some evidence, reasonable guess
+- 30-49: Weak evidence, uncertain
+- 0-29: Very uncertain, multiple possibilities or no information
+
+For US companies, always provide state as 2-letter code (WA, CA, NY, etc.).
+For non-US companies, state should be null.
+If you cannot determine location at all, set all fields to null and confidence to 0."""
+                    },
+                    {
+                        "role": "user",
+                        "content": f"What is the headquarters location of the company: {vendor_name}"
+                    }
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+            )
+
+            result = json.loads(response.choices[0].message.content)
+            return result
+
+        except Exception as e:
+            print(f"  ⚠️  Location research error: {e}")
+            return {
+                "headquarters_city": None,
+                "headquarters_state": None,
+                "headquarters_country": None,
+                "confidence": 0,
+                "reasoning": f"Error: {str(e)}"
+            }
+
     def update_vendor_in_supabase(self, vendor_id: str, enriched_data: Dict) -> bool:
         """Update vendor record in Supabase"""
         try:
@@ -319,6 +382,11 @@ class VendorResearcher:
                 "product_description": enriched_data.get(
                     "product_description", "Automated inference from vendor name"
                 ),
+                # Location data
+                "headquarters_city": enriched_data.get("headquarters_city"),
+                "headquarters_state": enriched_data.get("headquarters_state"),
+                "headquarters_country": enriched_data.get("headquarters_country"),
+                "location_confidence": enriched_data.get("location_confidence"),
             }
 
             # Add primary_products if available
@@ -355,15 +423,31 @@ class VendorResearcher:
                         "Automated inference from vendor name (no web search)"
                     )
                 else:
-                    # TODO: Add web search integration here
-                    # For now, use inference as fallback
-                    print(
-                        "  Using name-based inference (web search not implemented yet)"
-                    )
+                    # AI-based research with location lookup
+                    print("  🔍 Researching vendor with AI...")
+
+                    # Get industry/business info from name inference
                     enriched_data = self.infer_from_vendor_name(vendor_name)
+
+                    # Add location research
+                    location_data = self.research_vendor_location(vendor_name)
+                    enriched_data["headquarters_city"] = location_data.get("headquarters_city")
+                    enriched_data["headquarters_state"] = location_data.get("headquarters_state")
+                    enriched_data["headquarters_country"] = location_data.get("headquarters_country")
+                    enriched_data["location_confidence"] = location_data.get("confidence", 0)
+                    enriched_data["location_reasoning"] = location_data.get("reasoning", "")
+
+                    # Update research notes
+                    conf = location_data.get("confidence", 0)
+                    city = location_data.get("headquarters_city", "Unknown")
+                    state = location_data.get("headquarters_state", "")
+                    location_str = f"{city}, {state}" if state else city
+
                     enriched_data["research_notes"] = (
-                        "Inference from vendor name pattern matching"
+                        f"AI research: Location={location_str} (confidence: {conf}%)"
                     )
+
+                    print(f"  📍 Location: {location_str} (confidence: {conf}%)")
 
                 # Update Supabase
                 if self.update_vendor_in_supabase(vendor_id, enriched_data):
