@@ -244,6 +244,18 @@ if "user_role" not in st.session_state:
 if "current_project" not in st.session_state:
     st.session_state.current_project = "WA-UT-2022_2024"
 
+# Import data functions
+from dashboard.utils.data_loader import get_projects_from_db, load_analyzed_transactions, get_dashboard_stats
+
+# Get real data
+projects = get_projects_from_db()
+df = load_analyzed_transactions()
+stats = get_dashboard_stats(df)
+
+project_count = len(projects)
+pending_reviews = stats.get("flagged_count", 0)
+total_refund = stats.get("total_refund", 0)
+
 # Sidebar Navigation
 with st.sidebar:
     st.markdown("### 📊 TaxDesk")
@@ -270,9 +282,9 @@ with st.sidebar:
 
     # Quick stats
     st.markdown("### 📈 Quick Stats")
-    st.metric("Open Projects", "2")
-    st.metric("Pending Reviews", "12")
-    st.metric("Est. Total Refund", "$184,230")
+    st.metric("Open Projects", str(project_count))
+    st.metric("Pending Reviews", str(pending_reviews))
+    st.metric("Est. Total Refund", f"${total_refund:,.0f}")
 
 
 # Main content
@@ -301,100 +313,114 @@ def main():
 
     with col1:
         st.markdown(
-            """
+            f"""
         <div class="stat-card">
             <div class="stat-label">Open Projects</div>
-            <div class="stat-value">2</div>
-            <div class="stat-sublabel">Across 2 jurisdictions</div>
+            <div class="stat-value">{project_count}</div>
+            <div class="stat-sublabel">Active projects</div>
         </div>
         """,
             unsafe_allow_html=True,
         )
         if st.button("View Projects →", key="view_projects"):
-            st.info("Navigate to '1_Projects' in the sidebar")
+            st.info("Navigate to 'Projects' in the sidebar")
 
     with col2:
+        doc_count = stats.get("total_transactions", 0)
         st.markdown(
-            """
+            f"""
         <div class="stat-card warning">
-            <div class="stat-label">Documents Awaiting Review</div>
-            <div class="stat-value">1</div>
-            <div class="stat-sublabel">Pending analysis</div>
+            <div class="stat-label">Documents Loaded</div>
+            <div class="stat-value">{doc_count}</div>
+            <div class="stat-sublabel">Total transactions</div>
         </div>
         """,
             unsafe_allow_html=True,
         )
         if st.button("View Documents →", key="view_docs"):
-            st.info("Navigate to '2_Documents' in the sidebar")
+            st.info("Navigate to 'Documents' in the sidebar")
 
     with col3:
         st.markdown(
-            """
+            f"""
         <div class="stat-card danger">
             <div class="stat-label">Exceptions to Review</div>
-            <div class="stat-value red">2</div>
+            <div class="stat-value red">{pending_reviews}</div>
             <div class="stat-sublabel">Below 90% confidence</div>
         </div>
         """,
             unsafe_allow_html=True,
         )
         if st.button("Open Review Queue →", key="view_review"):
-            st.info("Navigate to '3_Review_Queue' in the sidebar")
+            st.info("Navigate to 'Review Queue' in the sidebar")
 
     with col4:
+        refund_rows = stats.get("refund_rows", 0)
         st.markdown(
-            """
+            f"""
         <div class="stat-card success">
-            <div class="stat-label">Draft Claims</div>
-            <div class="stat-value">1</div>
-            <div class="stat-sublabel">Ready for submission</div>
+            <div class="stat-label">Refund Eligible</div>
+            <div class="stat-value">{refund_rows}</div>
+            <div class="stat-sublabel">Transactions with refunds</div>
         </div>
         """,
             unsafe_allow_html=True,
         )
         if st.button("View Claims →", key="view_claims"):
-            st.info("Navigate to '4_Claims' in the sidebar")
+            st.info("Navigate to 'Claims' in the sidebar")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Project Spotlight Section
-    st.markdown("### ⭐ Project Spotlight: WA Use Tax 2022–2024")
-    st.markdown(
-        """
-    <div class="section-card">
-        <div class="section-subtitle">Quick actions for your most active project.</div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    # Project Spotlight Section - only show if there are projects
+    if projects:
+        latest_project = projects[0]  # Most recent project
+        st.markdown(f"### ⭐ Project Spotlight: {latest_project['name']}")
+        st.markdown(
+            """
+        <div class="section-card">
+            <div class="section-subtitle">Quick actions for your most recent project.</div>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
-    col1, col2, col3 = st.columns([1, 1, 3])
-    with col1:
-        if st.button("👁️ View Project", use_container_width=True):
-            st.session_state.current_project = "WA-UT-2022_2024"
-            st.info("Navigate to '1_Projects' to view project details")
+        col1, col2, col3 = st.columns([1, 1, 3])
+        with col1:
+            if st.button("👁️ View Project", use_container_width=True):
+                st.session_state.current_project = latest_project['id']
+                st.info("Navigate to 'Projects' to view project details")
 
-    with col2:
-        if st.button("🔍 Open Review Queue (2)", use_container_width=True):
-            st.info("Navigate to '3_Review_Queue' to review flagged items")
+        with col2:
+            if st.button(f"🔍 Open Review Queue ({pending_reviews})", use_container_width=True):
+                st.info("Navigate to 'Review Queue' to review flagged items")
 
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+    else:
+        # No projects - show getting started message
+        st.markdown("### 🚀 Getting Started")
+        st.info("No projects yet. Click 'Create New Project' above to get started!")
+        st.markdown("<br>", unsafe_allow_html=True)
 
-    # Recent Activity
+    # Recent Activity - show placeholder when empty
     st.markdown("### 📋 Recent Activity")
-    st.markdown(
-        """
-    <div class="section-card">
-        <ul style="color: #4a5568; line-height: 2;">
-            <li><strong>2 hours ago</strong>: Analyzed 25 transactions from Red Bison Tech Services</li>
-            <li><strong>1 day ago</strong>: Created project "WA Use Tax 2022-2024"</li>
-            <li><strong>2 days ago</strong>: Flagged 2 transactions for manual review</li>
-            <li><strong>3 days ago</strong>: Ingested new ESSB 5814 guidance documents</li>
-        </ul>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    if project_count > 0 or stats.get("total_transactions", 0) > 0:
+        st.markdown(
+            """
+        <div class="section-card">
+            <p style="color: #4a5568;">Activity will appear here as you work with projects and documents.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            """
+        <div class="section-card">
+            <p style="color: #718096;">No recent activity. Create a project and upload documents to get started.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
 
     # Footer
     st.markdown("---")

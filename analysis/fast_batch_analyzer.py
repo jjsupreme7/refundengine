@@ -51,6 +51,7 @@ from core.database import get_supabase_client  # noqa: E402
 from core.enhanced_rag import EnhancedRAG  # noqa: E402
 from core.excel_file_watcher import ExcelFileWatcher  # noqa: E402
 from core.excel_column_definitions import INPUT_COLUMNS, is_input_column  # noqa: E402
+from core.model_router import ModelRouter  # noqa: E402
 from scripts.utils.smart_cache import SmartCache  # noqa: E402
 
 # Load environment
@@ -60,10 +61,18 @@ load_dotenv()
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 supabase = get_supabase_client()
 
+# Initialize multi-model router
+# Routes tasks to optimal models:
+#   - GPT-5 for extraction/vision (best document understanding)
+#   - Claude Sonnet 4.5 for tax analysis & legal reasoning
+#   - Claude Opus 4.5 for high-stakes decisions ($25k+)
+#   - GPT-4o-mini for validation tasks
+router = ModelRouter()
+
 # Initialize cache
 cache = SmartCache()
 
-# Initialize EnhancedRAG
+# Initialize EnhancedRAG (also uses the router internally)
 enhanced_rag = EnhancedRAG()
 
 
@@ -187,7 +196,8 @@ def _extract_word_invoice(file_path: str) -> Dict[str, Any]:
     """
     Extract invoice data from Word document
 
-    Uses python-docx to parse tables, falls back to GPT-4 for text extraction
+    Uses python-docx to parse tables, then GPT-5 (via router) for text extraction.
+    GPT-5 excels at document understanding and structured data extraction.
     """
     try:
         from docx import Document
@@ -206,12 +216,8 @@ def _extract_word_invoice(file_path: str) -> Dict[str, Any]:
 
         combined_text = full_text + '\n\n' + '\n'.join(tables_text)
 
-        # Send to GPT-4 for structured extraction
-        response = openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[{
-                "role": "user",
-                "content": f"""Extract invoice data from this Word document text and return JSON:
+        # Use router for extraction task (routes to GPT-5)
+        prompt = f"""Extract invoice data from this Word document text and return JSON:
 
 {combined_text}
 
@@ -230,12 +236,14 @@ Return format:
     }}
   ]
 }}"""
-            }],
-            response_format={"type": "json_object"},
-            max_tokens=2000,
+
+        result = router.execute(
+            task="extraction",
+            prompt=prompt,
+            stakes=0,  # Extraction is a preliminary task
         )
 
-        return json.loads(response.choices[0].message.content)
+        return json.loads(result["content"])
 
     except ImportError:
         return {"error": "python-docx not installed. Run: pip install python-docx"}
@@ -245,11 +253,14 @@ Return format:
 
 def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
     """
-    Extract invoice data using GPT-4 Vision or structured parsing
+    Extract invoice data using GPT-5 Vision (via router) or structured parsing.
+
+    GPT-5 has improved visual perception and 45% fewer hallucinations than GPT-4o,
+    making it ideal for document extraction tasks.
 
     Supports:
-    - PDF files (GPT-4 Vision)
-    - Images: JPG, PNG (GPT-4 Vision)
+    - PDF files (GPT-5 Vision)
+    - Images: JPG, PNG (GPT-5 Vision)
     - Excel files: .xlsx, .xls (pandas parsing)
     - Word docs: .docx (python-docx parsing)
 
@@ -282,16 +293,8 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
         if not img_base64:
             return {"error": "Failed to extract image from file"}
 
-        # GPT-4 Vision extraction
-        response = openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": """Extract invoice data and return JSON:
+        # Use router for extraction task with vision (routes to GPT-5)
+        prompt = """Extract invoice data and return JSON:
 {
   "vendor_name": "Company Name",
   "invoice_number": "INV-123",
@@ -305,20 +308,16 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
       "tax": 10.00
     }
   ]
-}""",
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/png;base64,{img_base64}"},
-                        },
-                    ],
-                }
-            ],
-            response_format={"type": "json_object"},
-            max_tokens=2000,
+}"""
+
+        result = router.execute(
+            task="extraction",
+            prompt=prompt,
+            stakes=0,
+            images=[img_base64],  # Pass image for vision extraction
         )
 
-        invoice_data = json.loads(response.choices[0].message.content)
+        invoice_data = json.loads(result["content"])
 
         # Cache result
         cache.set_invoice_data(file_path, invoice_data)
@@ -561,18 +560,24 @@ When analyzing each transaction:
 - If they conflict: Flag for review, recommend legal answer
 
 Provide accurate analysis with legal citations and confidence scores."""
-        response = openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": prompt},
-            ],
-            response_format={"type": "json_object"},
+
+        # Calculate stakes for this batch (sum of tax amounts)
+        batch_stakes = sum(item.get('tax', 0) for item in items)
+
+        # Use router for analysis task (routes to Claude Sonnet 4.5 for legal reasoning)
+        # Claude excels at careful, methodical reasoning through complex tax rules
+        # For high-stakes batches ($25k+), router automatically escalates to Claude Opus 4.5
+        result = router.execute(
+            task="analysis",
+            prompt=prompt,
+            system_prompt=system_msg,
+            stakes=batch_stakes,
             temperature=0.2,
         )
 
-        result = json.loads(response.choices[0].message.content)
-        return result.get("analyses", [])
+        parsed = json.loads(result["content"])
+        print(f"    📊 Model used: {result['model']} (stakes: ${batch_stakes:,.0f})")
+        return parsed.get("analyses", [])
 
     except Exception as e:
         print(f"  ❌ Batch analysis error: {e}")

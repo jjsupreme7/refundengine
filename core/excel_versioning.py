@@ -44,7 +44,12 @@ from typing import Dict, List, Optional, Tuple
 import openpyxl
 import pandas as pd
 from openpyxl import load_workbook
-from storage3.exceptions import StorageApiError
+# Try to import StorageApiError, fall back to generic Exception
+try:
+    from storage3.exceptions import StorageApiError
+except ImportError:
+    # Fallback if storage3 package structure changed
+    StorageApiError = Exception
 from supabase import Client
 
 from core.database import get_supabase_client

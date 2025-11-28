@@ -283,6 +283,10 @@ def require_authentication() -> bool:
     Returns:
         bool: True if authenticated, False if not
     """
+    # DEV MODE: Skip authentication for testing
+    if os.getenv("DEV_MODE", "").lower() in ("1", "true", "yes"):
+        return True
+
     # Check if session is valid
     if is_session_valid():
         show_logout_button()

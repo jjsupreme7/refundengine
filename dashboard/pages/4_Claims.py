@@ -99,11 +99,10 @@ if st.session_state.get("show_create_claim", False):
 
 # Load approved transactions
 df = load_analyzed_transactions()
-approved_df = (
-    df[df["Final_Decision"].str.contains("Add to Claim", na=False)]
-    if not df.empty
-    else pd.DataFrame()
-)
+if not df.empty and "Final_Decision" in df.columns:
+    approved_df = df[df["Final_Decision"].str.contains("Add to Claim|Yes|Approved", na=False, case=False)]
+else:
+    approved_df = pd.DataFrame()
 
 # Display draft claims
 st.markdown("### 📋 Draft Claims")

@@ -32,7 +32,7 @@ def load_analyzed_transactions(excel_path: Optional[str] = None) -> pd.DataFrame
         excel_path: Path to Excel file. If None, uses default test data path.
 
     Returns:
-        DataFrame with analyzed transactions
+        DataFrame with analyzed transactions (normalized column names)
     """
     if excel_path is None:
         excel_path = (
@@ -43,6 +43,48 @@ def load_analyzed_transactions(excel_path: Optional[str] = None) -> pd.DataFrame
 
     try:
         df = pd.read_excel(excel_path)
+
+        # Normalize column names - map various formats to expected names
+        column_mapping = {
+            # Confidence
+            "Confidence_Score": "AI_Confidence",
+            "confidence_score": "AI_Confidence",
+            # Decision
+            "Refund_Eligible": "Final_Decision",
+            "Analysis_Status": "Final_Decision",
+            # Refund amount
+            "Potential_Refund": "Estimated_Refund",
+            "potential_refund": "Estimated_Refund",
+            # Description
+            "Product_Description": "Line_Item_Description",
+            "product_description": "Line_Item_Description",
+            # Category
+            "Product_Category": "Tax_Category",
+            "product_category": "Tax_Category",
+            # File names
+            "Invoice_File": "Invoice_File_Name_1",
+            "invoice_file": "Invoice_File_Name_1",
+            "PO_File": "Purchase_Order_File_Name",
+            "po_file": "Purchase_Order_File_Name",
+        }
+
+        # Apply column mapping
+        df = df.rename(columns=column_mapping)
+
+        # Ensure required columns exist with defaults
+        required_columns = {
+            "AI_Confidence": 0.0,
+            "Final_Decision": "",
+            "Estimated_Refund": 0.0,
+            "Tax_Category": "",
+            "Line_Item_Description": "",
+            "AI_Reasoning": "",
+        }
+
+        for col, default in required_columns.items():
+            if col not in df.columns:
+                df[col] = default
+
         return df
     except FileNotFoundError:
         # Return empty DataFrame with expected columns if file doesn't exist
@@ -72,29 +114,40 @@ def get_dashboard_stats(df: pd.DataFrame) -> Dict:
     Returns:
         Dictionary with statistics
     """
+    default_stats = {
+        "total_transactions": 0,
+        "unique_invoices": 0,
+        "total_refund": 0.0,
+        "avg_confidence": 0.0,
+        "flagged_count": 0,
+        "flagged_pct": 0.0,
+        "refund_rows": 0,
+        "unique_vendors": 0,
+    }
+
     if df.empty:
-        return {
-            "total_transactions": 0,
-            "unique_invoices": 0,
-            "total_refund": 0.0,
-            "avg_confidence": 0.0,
-            "flagged_count": 0,
-            "flagged_pct": 0.0,
-            "refund_rows": 0,
-            "unique_vendors": 0,
-        }
+        return default_stats
 
     total_transactions = len(df)
-    unique_invoices = df["Invoice_Number"].nunique()
-    total_refund = df["Estimated_Refund"].sum()
-    avg_confidence = df["AI_Confidence"].mean()
-    flagged = df[df["AI_Confidence"] < 90]
-    flagged_count = len(flagged)
+
+    # Safe column access with defaults
+    unique_invoices = df["Invoice_Number"].nunique() if "Invoice_Number" in df.columns else 0
+    total_refund = df["Estimated_Refund"].sum() if "Estimated_Refund" in df.columns else 0.0
+    avg_confidence = df["AI_Confidence"].mean() if "AI_Confidence" in df.columns else 0.0
+
+    # Handle flagged count safely
+    if "AI_Confidence" in df.columns:
+        flagged = df[df["AI_Confidence"] < 90]
+        flagged_count = len(flagged)
+    else:
+        flagged_count = 0
+
     flagged_pct = (
         (flagged_count / total_transactions * 100) if total_transactions > 0 else 0
     )
-    refund_rows = len(df[df["Estimated_Refund"] > 0])
-    unique_vendors = df["Vendor_Name"].nunique()
+
+    refund_rows = len(df[df["Estimated_Refund"] > 0]) if "Estimated_Refund" in df.columns else 0
+    unique_vendors = df["Vendor_Name"].nunique() if "Vendor_Name" in df.columns else 0
 
     return {
         "total_transactions": total_transactions,
@@ -123,6 +176,9 @@ def get_review_queue(
     """
     if df.empty:
         return df
+
+    if "AI_Confidence" not in df.columns:
+        return df.head(0)  # Return empty DataFrame with same structure
 
     return df[df["AI_Confidence"] < confidence_threshold].copy()
 

@@ -22,7 +22,14 @@
       "Bash(cat:*)",
       "Bash(git -C /Users/jacoballen/Desktop/refund-engine commit -m \"$(cat <<''EOF''\nAdd slash commands and remove deprecated code\n\n- Add 20 slash commands for common workflows (.claude/commands/)\n- Delete deprecated/ folder (34 files)\n- Delete scripts/ai_training/archive/ (4 files)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git -C /Users/jacoballen/Desktop/refund-engine commit --no-verify -m \"$(cat <<''EOF''\nAdd slash commands and remove deprecated code\n\n- Add 20 slash commands for common workflows (.claude/commands/)\n- Delete deprecated/ folder (34 files)\n- Delete scripts/ai_training/archive/ (4 files)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git -C /Users/jacoballen/Desktop/refund-engine commit --no-verify -m \"$(cat <<''EOF''\nImprove slash commands with comprehensive documentation\n\n- Add priority prefixes (01-21) to organize by importance\n- Each command now includes:\n  - System architecture diagrams\n  - Detailed argument documentation\n  - Usage examples\n  - Success/failure indicators\n  - Troubleshooting guidance\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git -C /Users/jacoballen/Desktop/refund-engine commit --no-verify -m \"$(cat <<''EOF''\nImprove slash commands with comprehensive documentation\n\n- Add priority prefixes (01-21) to organize by importance\n- Each command now includes:\n  - System architecture diagrams\n  - Detailed argument documentation\n  - Usage examples\n  - Success/failure indicators\n  - Troubleshooting guidance\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "WebSearch",
+      "Bash(PYTHONPATH=. python3:*)",
+      "Bash(open outputs/Tax_Metadata.xlsx outputs/Vendor_Metadata.xlsx)",
+      "Bash(open:*)",
+      "Bash(streamlit run:*)",
+      "Bash(PYTHONPATH=. streamlit run:*)",
+      "Bash(DEV_MODE=1 PYTHONPATH=. streamlit run:*)"
     ],
     "deny": [],
     "ask": []

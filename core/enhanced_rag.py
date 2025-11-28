@@ -26,6 +26,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Import centralized database client
 from core.database import get_supabase_client  # noqa: E402
 
+# Import multi-model router
+from core.model_router import ModelRouter, TaskType  # noqa: E402
+
+# Legacy OpenAI client for backwards compatibility
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
@@ -36,7 +40,7 @@ class EnhancedRAG:
         self,
         supabase_client: Client = None,
         tax_rules_path: str = None,
-        enable_dynamic_models: bool = False,
+        enable_dynamic_models: bool = True,  # Now enabled by default
     ):
         """
         Initialize Enhanced RAG
@@ -48,8 +52,18 @@ class EnhancedRAG:
         """
         self.supabase = supabase_client or get_supabase_client()
         self.embedding_model = "text-embedding-3-small"
-        self.analysis_model = "gpt-4o"
-        self.fast_model = "gpt-4o-mini"
+
+        # Initialize multi-model router for intelligent model selection
+        # Routes tasks to optimal models:
+        #   - GPT-5 for extraction/parsing
+        #   - Claude Sonnet 4.5 for tax analysis & legal reasoning
+        #   - Claude Opus 4.5 for high-stakes decisions ($25k+)
+        #   - GPT-4o-mini for validation tasks
+        self.router = ModelRouter()
+
+        # Legacy model names (for backwards compatibility)
+        self.analysis_model = "gpt-4o"  # Will be overridden by router
+        self.fast_model = "gpt-4o-mini"  # Will be overridden by router
 
         # Dynamic model selection
         self.enable_dynamic_models = enable_dynamic_models
@@ -168,7 +182,13 @@ class EnhancedRAG:
 
     def select_model(self, task: str, context: Dict) -> Dict:
         """
-        Dynamically select which LLM to use based on stakes and task
+        Dynamically select which LLM to use based on stakes and task.
+
+        Now uses the ModelRouter for intelligent multi-model selection:
+        - GPT-5 for extraction/parsing tasks
+        - Claude Sonnet 4.5 for tax analysis & legal reasoning
+        - Claude Opus 4.5 for high-stakes decisions ($25k+)
+        - GPT-4o-mini/Claude Haiku for validation tasks
 
         Args:
             task: Type of operation (final_answer|reranking|validation|query_expansion)
@@ -176,76 +196,38 @@ class EnhancedRAG:
 
         Returns:
             Dictionary with:
-                - model: Model identifier (e.g., "gpt-4o", "claude-sonnet-4.5")
+                - model: Model identifier (e.g., "gpt-5", "claude-sonnet-4-5-20250929")
                 - reason: Why this model was selected
                 - stakes: Calculated stakes value
                 - cost_estimate: Estimated cost per 1k tokens
         """
-        # If dynamic models disabled, use defaults
-        if not self.enable_dynamic_models:
-            if task in ["validation", "query_expansion"]:
-                return {
-                    "model": self.fast_model,
-                    "reason": "Default fast model",
-                    "stakes": 0,
-                    "cost_estimate": 0.001,
-                }
-            else:
-                return {
-                    "model": self.analysis_model,
-                    "reason": "Default analysis model",
-                    "stakes": 0,
-                    "cost_estimate": 0.004,
-                }
-
         # Calculate stakes
-        stakes = self.calculate_stakes(context)
-        complexity = context.get("complexity", "medium")
+        stakes = self.calculate_stakes(context) if self.enable_dynamic_models else 0
 
-        # High stakes thresholds
-        if stakes > self.stakes_threshold_high:  # $25k+ at risk
-            return {
-                "model": "claude-sonnet-4.5",
-                "reason": f"${stakes:,.0f} at stake - maximum accuracy required",
-                "stakes": stakes,
-                "cost_estimate": 0.0075,
-            }
+        # Map legacy task names to router TaskTypes
+        task_mapping = {
+            "final_answer": "decision",
+            "reranking": "analysis",
+            "validation": "validation",
+            "query_expansion": "validation",
+            "extraction": "extraction",
+            "analysis": "analysis",
+            "legal": "legal",
+        }
 
-        # Medium stakes
-        elif stakes > self.stakes_threshold_medium:  # $5k-$25k at risk
-            return {
-                "model": "gpt-4o",
-                "reason": f"${stakes:,.0f} at stake - balanced approach",
-                "stakes": stakes,
-                "cost_estimate": 0.0042,
-            }
+        router_task = task_mapping.get(task, "analysis")
 
-        # Low stakes but complex reasoning
-        elif complexity == "complex" and task in ["final_answer", "reranking"]:
-            return {
-                "model": "gpt-4o",
-                "reason": "Complex analysis requires capable model",
-                "stakes": stakes,
-                "cost_estimate": 0.0042,
-            }
+        # Use the router to get the optimal model
+        model_config = self.router.get_model(router_task, stakes=stakes)
 
-        # Fast operations - always use cheap model
-        elif task in ["validation", "query_expansion"]:
-            return {
-                "model": "gpt-4o-mini",
-                "reason": "Simple task - cost-optimized",
-                "stakes": stakes,
-                "cost_estimate": 0.001,
-            }
-
-        # Low stakes default
-        else:
-            return {
-                "model": "gpt-4o-mini",
-                "reason": f"${stakes:,.0f} at stake - cost-optimized",
-                "stakes": stakes,
-                "cost_estimate": 0.001,
-            }
+        return {
+            "model": model_config.model_id,
+            "reason": model_config.reason or f"Router selected for {router_task} task",
+            "stakes": stakes,
+            "cost_estimate": 0.004 if model_config.cost_tier == "standard" else (
+                0.001 if model_config.cost_tier == "budget" else 0.008
+            ),
+        }
 
     # ==================== AGENTIC RAG: DECISION LAYER ====================
 
@@ -646,23 +628,23 @@ Rate relevance on 0.0-1.0 scale. Consider:
 
 Return JSON:
 {{
-    "score": 0.85,  # 0.0-1.0
+    "score": 0.85,
     "reason": "This RCW directly addresses software licensing taxation"
 }}
 """
 
         try:
-            response = client.chat.completions.create(
-                model=self.fast_model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-                max_tokens=150,
+            # Use router for validation task (cheap, fast model)
+            result = self.router.execute(
+                task="validation",
+                prompt=prompt,
+                stakes=0,  # Low stakes for validation
             )
 
-            result = json.loads(response.choices[0].message.content)
+            parsed = json.loads(result["content"])
             return {
-                "score": float(result.get("score", 0.5)),
-                "reason": result.get("reason", "No reason provided"),
+                "score": float(parsed.get("score", 0.5)),
+                "reason": parsed.get("reason", "No reason provided"),
             }
         except Exception as e:
             print(f"Error assessing relevance: {e}")
@@ -690,7 +672,7 @@ Return JSON:
     def _refine_query_with_ai(self, original_query: str) -> str:
         """Generate a refined query using AI with tax law terminology"""
 
-        prompt = """Original query: {original_query}
+        prompt = f"""Original query: {original_query}
 
 The search didn't find enough relevant results.
 Rewrite this query using Washington State tax law terminology.
@@ -707,12 +689,13 @@ Return only the refined query, no explanation.
 """
 
         try:
-            response = client.chat.completions.create(
-                model=self.fast_model,
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=100,
+            # Use router for validation task (cheap, fast model)
+            result = self.router.execute(
+                task="validation",
+                prompt=prompt,
+                stakes=0,
             )
-            refined = response.choices[0].message.content.strip()
+            refined = result["content"].strip()
             return refined
         except Exception as e:
             print(f"Error refining query: {e}")
@@ -742,7 +725,10 @@ Return only the refined query, no explanation.
         return final_results
 
     def _rerank_chunks(self, query: str, chunks: List[Dict]) -> List[Dict]:
-        """Rerank chunks using AI understanding of legal context"""
+        """Rerank chunks using AI understanding of legal context.
+
+        Uses Claude Sonnet 4.5 for legal reasoning (via router).
+        """
 
         if not chunks:
             return []
@@ -772,15 +758,15 @@ Return JSON array of indices in order of MOST to LEAST relevant:
 """
 
         try:
-            response = client.chat.completions.create(
-                model=self.analysis_model,  # Use better model for reranking
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-                max_tokens=200,
+            # Use router for legal/analysis task (Claude Sonnet 4.5 for legal reasoning)
+            result = self.router.execute(
+                task="legal",
+                prompt=prompt,
+                stakes=0,  # Reranking is a support task, not high-stakes
             )
 
-            result = json.loads(response.choices[0].message.content)
-            ranked_indices = result.get("ranked_indices", list(range(len(chunks))))
+            parsed = json.loads(result["content"])
+            ranked_indices = parsed.get("ranked_indices", list(range(len(chunks))))
 
             # Reorder chunks based on ranking
             reranked = []
@@ -858,15 +844,15 @@ Return JSON:
 """
 
         try:
-            response = client.chat.completions.create(
-                model=self.fast_model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-                max_tokens=200,
+            # Use router for validation task (cheap, fast model)
+            result = self.router.execute(
+                task="validation",
+                prompt=prompt,
+                stakes=0,
             )
 
-            result = json.loads(response.choices[0].message.content)
-            expanded_queries = result.get("queries", [])
+            parsed = json.loads(result["content"])
+            expanded_queries = parsed.get("queries", [])
 
             # Always include original query first
             return [original_query] + expanded_queries

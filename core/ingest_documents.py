@@ -338,6 +338,86 @@ def generate_embedding(text: str) -> List[float]:
         return None
 
 
+def export_from_supabase(document_type: str, output_excel: str, limit: int = None):
+    """
+    Export document metadata from Supabase to Excel for review/editing.
+    Queries the knowledge_documents table filtered by document_type.
+    """
+    import pandas as pd
+
+    print(f"\n📥 Exporting {document_type} metadata from Supabase...")
+
+    try:
+        # Query knowledge_documents table filtered by type
+        # Paginate to get all records (Supabase default limit is 1000)
+        all_data = []
+        page_size = 1000
+        offset = 0
+
+        while True:
+            query = (
+                supabase.table("knowledge_documents")
+                .select("*")
+                .eq("document_type", document_type)
+                .limit(page_size)
+                .offset(offset)
+            )
+            response = query.execute()
+
+            if not response.data:
+                break
+
+            all_data.extend(response.data)
+
+            if len(response.data) < page_size:
+                break  # Last page
+
+            offset += page_size
+
+            # If user specified a limit and we've reached it, stop
+            if limit and len(all_data) >= limit:
+                all_data = all_data[:limit]
+                break
+
+        if not all_data:
+            print(f"⚠️  No {document_type} documents found in database")
+            return
+
+        df = pd.DataFrame(all_data)
+
+        # Export all columns, but put the most important ones first
+        if document_type == "tax_law":
+            priority_cols = [
+                "id", "title", "citation", "law_category", "effective_date",
+                "referenced_statutes", "topic_tags", "tax_types", "tax_notes",
+                "source_file", "file_url", "total_chunks", "processing_status",
+                "confidence_score", "data_source", "created_at", "updated_at",
+            ]
+        elif document_type == "vendor_background":
+            priority_cols = [
+                "id", "vendor_name", "title", "vendor_category", "industry",
+                "industries", "primary_products", "business_model", "typical_delivery",
+                "tax_types", "tax_notes", "topic_tags",
+                "source_file", "file_url", "total_chunks", "processing_status",
+                "confidence_score", "data_source", "created_at", "updated_at",
+            ]
+        else:
+            priority_cols = []
+
+        # Reorder: priority columns first, then any remaining columns
+        existing_priority = [c for c in priority_cols if c in df.columns]
+        remaining = [c for c in df.columns if c not in priority_cols]
+        df = df[existing_priority + remaining]
+
+        # Export to Excel
+        df.to_excel(output_excel, index=False, sheet_name=document_type[:31])  # Excel sheet name limit
+        print(f"✅ Exported {len(df)} records to {output_excel}")
+
+    except Exception as e:
+        print(f"❌ Export failed: {e}")
+        raise
+
+
 def export_metadata_to_excel(
     pdf_files: List[Path], document_type: str, output_excel: str, limit: int = None
 ):
@@ -952,7 +1032,7 @@ def main():
     )
     parser.add_argument(
         "--type",
-        choices=["tax_law", "vendor"],
+        choices=["tax_law", "vendor_background"],
         help="Document type (required for --export-metadata)",
     )
     parser.add_argument("--folder", help="Folder containing PDF files")
@@ -980,40 +1060,14 @@ def main():
 
     args = parser.parse_args()
 
-    # MODE 1: Export metadata to Excel
+    # MODE 1: Export metadata to Excel (from Supabase)
     if args.export_metadata:
         if not args.type:
             print("❌ --type required when using --export-metadata")
             print("   Use: --type tax_law or --type vendor")
             return
 
-        if not args.folder:
-            print("❌ --folder required when using --export-metadata")
-            return
-
-        folder_path = Path(args.folder).expanduser()
-
-        if not folder_path.exists():
-            print(f"❌ Folder not found: {folder_path}")
-            return
-
-        # Find all PDFs and HTML files
-        pdf_files = list(folder_path.glob("*.pd"))
-        html_files = list(folder_path.glob("*.html"))
-        all_files = pdf_files + html_files
-
-        if not all_files:
-            print(f"❌ No PDF or HTML files found in {folder_path}")
-            return
-
-        print(
-            f"\n🔍 Found {
-                len(all_files)} files ({
-                len(pdf_files)} PDFs, {
-                len(html_files)} HTML)"
-        )
-
-        export_metadata_to_excel(all_files, args.type, args.export_metadata, args.limit)
+        export_from_supabase(args.type, args.export_metadata, args.limit)
         return
 
     # MODE 2: Import metadata from Excel and ingest
@@ -1029,16 +1083,16 @@ def main():
 
     else:
         print("❌ Invalid usage. Use one of:")
-        print("\n  Step 1 - Export metadata to Excel:")
+        print("\n  Step 1 - Export metadata from Supabase to Excel:")
         print(
-            "    python scripts/ingest_documents.py --type tax_law --folder knowledge_base/wa_tax_law --export-metadata outputs/Tax_Metadata.xlsx"
+            "    python core/ingest_documents.py --type tax_law --export-metadata outputs/Tax_Metadata.xlsx"
         )
         print(
-            "    python scripts/ingest_documents.py --type vendor --folder knowledge_base/vendors --export-metadata outputs/Vendor_Metadata.xlsx"
+            "    python core/ingest_documents.py --type vendor_background --export-metadata outputs/Vendor_Metadata.xlsx"
         )
-        print("\n  Step 2 - Import edited Excel:")
+        print("\n  Step 2 - Import edited Excel back to Supabase:")
         print(
-            "    python scripts/ingest_documents.py --import-metadata outputs/Tax_Metadata.xlsx"
+            "    python core/ingest_documents.py --import-metadata outputs/Tax_Metadata.xlsx"
         )
 
 
