@@ -1,0 +1,34 @@
+Content-Type: multipart/mixed; boundary="===============0925700008758783511=="
+MIME-Version: 1.0
+From: Elizabeth Fowler <elizabeth.fowler@valley.com>
+To: Accounts Payable <ap@northstartech.com>
+Subject: PO Approval Request: Software Services
+Date: Tue, 14 Feb 2023 00:00:00 +0000
+
+--===============0925700008758783511==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear Accounts Payable Team,
+
+Please find below the purchase order request for approval:
+
+Vendor: Valley Data Systems
+PO Number: PO-4900348121
+Requested By: Brittany Farmer
+
+Items:
+  - Training Program - On-site: 7 x $11,325.00 = $79,275.00
+  - Technical Consulting - Per Diem: 8 x $1,651.00 = $13,208.00
+  - System Integration Services: 9 x $102,356.00 = $921,204.00
+
+Subtotal: $1,013,687.00
+Tax: $0.00 (to be self-accrued)
+Total: $1,013,687.00
+
+Best regards,
+Elizabeth Fowler
+Valley Data Systems
+
+--===============0925700008758783511==--

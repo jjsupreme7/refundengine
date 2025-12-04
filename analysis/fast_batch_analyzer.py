@@ -34,6 +34,7 @@ import argparse
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -48,6 +49,7 @@ from dotenv import load_dotenv  # noqa: E402
 from openai import OpenAI  # noqa: E402
 
 from core.database import get_supabase_client  # noqa: E402
+from core.wa_tax_rate_lookup import compare_rate, get_correct_rate  # noqa: E402
 from core.enhanced_rag import EnhancedRAG  # noqa: E402
 from core.excel_file_watcher import ExcelFileWatcher  # noqa: E402
 from core.excel_column_definitions import INPUT_COLUMNS, is_input_column  # noqa: E402
@@ -59,7 +61,13 @@ load_dotenv()
 
 # Initialize clients
 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-supabase = get_supabase_client()
+
+# Initialize Supabase (optional - will work without it)
+try:
+    supabase = get_supabase_client()
+except ValueError:
+    print("⚠️  Supabase not configured - vendor patterns disabled")
+    supabase = None
 
 # Initialize multi-model router
 # Routes tasks to optimal models:
@@ -82,6 +90,8 @@ enhanced_rag = EnhancedRAG()
 
 def get_vendor_pattern(vendor_name: str, tax_type: str) -> Optional[Dict]:
     """Get historical vendor pattern from Supabase"""
+    if supabase is None:
+        return None
     try:
         result = supabase.table("vendor_products") \
             .select("*") \
@@ -97,6 +107,8 @@ def get_vendor_pattern(vendor_name: str, tax_type: str) -> Optional[Dict]:
 
 def get_refund_basis_patterns(tax_type: str, limit: int = 10) -> List[Dict]:
     """Get top refund basis patterns for tax type"""
+    if supabase is None:
+        return []
     try:
         result = supabase.table("refund_citations") \
             .select("*") \
@@ -112,6 +124,8 @@ def get_refund_basis_patterns(tax_type: str, limit: int = 10) -> List[Dict]:
 
 def get_keyword_patterns(tax_type: str) -> Dict[str, List[str]]:
     """Get all keyword patterns as dict by category"""
+    if supabase is None:
+        return {}
     try:
         result = supabase.table("keyword_patterns") \
             .select("*") \
@@ -128,8 +142,261 @@ def get_keyword_patterns(tax_type: str) -> Dict[str, List[str]]:
         return {}
 
 
+def get_human_corrections(limit: int = 20) -> List[Dict]:
+    """
+    Get recent human corrections from user_feedback table.
+    These are used to improve analysis accuracy based on past reviewer feedback.
+    """
+    if supabase is None:
+        return []
+    try:
+        result = supabase.table("user_feedback") \
+            .select("query, suggested_answer, feedback_comment") \
+            .eq("feedback_type", "correction") \
+            .order("created_at", desc=True) \
+            .limit(limit) \
+            .execute()
+        return result.data or []
+    except Exception as e:
+        print(f"  ⚠️  Human corrections lookup failed: {e}")
+        return []
+
+
+def research_vendor_for_ambiguous(vendor_name: str, description: str, tax_type: str = "sales_tax", amount: float = 0) -> dict:
+    """
+    Research vendor when description is ambiguous.
+    Tier 1: Check database for historical patterns (fast, free)
+    Tier 2: AI inference based on vendor name (fast, cheap)
+
+    NOTE: Web search disabled for cost/speed. Enable by setting ENABLE_WEB_SEARCH=true
+
+    Returns dict with vendor context for AI analysis.
+    """
+    import os
+
+    # Tier 1: Check database first
+    db_info = get_vendor_pattern(vendor_name, tax_type)
+    if db_info and db_info.get("historical_sample_count", 0) >= 3:
+        return {
+            "source": "database",
+            "business_type": db_info.get("typical_product_type", "Unknown"),
+            "context": f"Based on {db_info['historical_sample_count']} previous transactions",
+            "typical_refund_basis": db_info.get("typical_refund_basis", "Unknown"),
+            "confident": True,
+            "sources": []
+        }
+
+    # Tier 2: AI inference (fast, cheap) - skip web search unless explicitly enabled
+    if os.getenv("ENABLE_WEB_SEARCH", "").lower() != "true":
+        # Use GPT-4o inference instead of web search (much faster and cheaper)
+        try:
+            fallback_prompt = f"""Based on the vendor name "{vendor_name}" and description "{description}",
+what type of business is this likely to be? Return brief JSON:
+{{"business_type": "type", "typical_services": "description"}}"""
+
+            result = router.execute(
+                task="analysis",
+                prompt=fallback_prompt,
+                stakes=0,
+            )
+            content = result["content"].strip()
+            if content.startswith("```"):
+                content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            vendor_info = json.loads(content)
+            return {
+                "source": "ai_inference",
+                "business_type": vendor_info.get("business_type", "Unknown"),
+                "context": vendor_info.get("typical_services", ""),
+                "confident": False,
+                "sources": []
+            }
+        except Exception:
+            return {
+                "source": "unknown",
+                "business_type": "Unknown",
+                "context": "",
+                "confident": False,
+                "sources": []
+            }
+
+    # Tier 3: REAL web search (only if ENABLE_WEB_SEARCH=true)
+    try:
+        prompt = f"""Research this vendor and their invoice for Washington State tax classification:
+
+Vendor: {vendor_name}
+Invoice description: {description}
+Tax type: {tax_type}
+
+Please search for:
+1. What type of company is {vendor_name}? What services/products do they provide?
+2. How should "{description}" be classified for WA state {tax_type}?
+3. Are there any relevant WA DOR rules, RCW citations, or WAC references?
+4. Is this likely taxable, exempt, or requires more information?
+
+Provide your analysis with:
+- Business type and typical services
+- WA tax classification recommendation
+- Key questions that would affect the classification
+- Sources you found (include URLs)
+
+Be thorough - this affects tax refund decisions."""
+
+        print(f"  🔍 Web searching for: {vendor_name}...")
+        result = router.execute_with_web_search(
+            prompt=prompt,
+            stakes=amount,  # Use amount to determine model quality
+        )
+
+        # Parse the response - it's free-form analysis, not JSON
+        content = result.get("content", "")
+        sources = result.get("sources", [])
+
+        # Extract key info from the response
+        business_type = "Unknown"
+        tax_implications = ""
+
+        # Simple extraction from response
+        content_lower = content.lower()
+        if "software" in content_lower or "saas" in content_lower:
+            business_type = "Software/SaaS"
+        elif "consulting" in content_lower or "professional services" in content_lower:
+            business_type = "Professional Services"
+        elif "construction" in content_lower or "contractor" in content_lower:
+            business_type = "Construction Services"
+        elif "telecom" in content_lower or "tower" in content_lower:
+            business_type = "Telecommunications Infrastructure"
+        elif "hardware" in content_lower or "equipment" in content_lower:
+            business_type = "Hardware/Equipment"
+
+        return {
+            "source": "web_search",
+            "business_type": business_type,
+            "context": content[:500] if len(content) > 500 else content,  # First 500 chars
+            "full_analysis": content,  # Full analysis for detailed review
+            "tax_implications": tax_implications,
+            "sources": sources,
+            "confident": True  # Web search is more confident than AI inference
+        }
+
+    except Exception as e:
+        print(f"  ⚠️  Web search failed for {vendor_name}: {e}")
+        # Fallback to basic AI inference if web search fails
+        try:
+            fallback_prompt = f"""Based on the vendor name "{vendor_name}" and description "{description}",
+what type of business is this likely to be? Return brief JSON:
+{{"business_type": "type", "typical_services": "description"}}"""
+
+            result = router.execute(
+                task="analysis",
+                prompt=fallback_prompt,
+                stakes=0,
+            )
+            content = result["content"].strip()
+            if content.startswith("```"):
+                content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+            vendor_info = json.loads(content)
+            return {
+                "source": "ai_inference_fallback",
+                "business_type": vendor_info.get("business_type", "Unknown"),
+                "context": vendor_info.get("typical_services", ""),
+                "confident": False,
+                "sources": []
+            }
+        except Exception:
+            return {
+                "source": "unknown",
+                "business_type": "Unknown",
+                "context": "",
+                "confident": False,
+                "sources": []
+            }
+
+
+def is_description_ambiguous(description: str) -> bool:
+    """
+    Check if an invoice description is vague/ambiguous and needs deeper analysis.
+    """
+    desc_lower = description.lower()
+
+    # Ambiguous keywords that need context to classify
+    AMBIGUOUS_KEYWORDS = [
+        "inspection", "assessment", "evaluation", "review",
+        "consulting", "consultation", "advisory",
+        "services", "professional services", "service fee",
+        "installation", "setup", "configuration",
+        "maintenance", "support", "management",
+        "site", "field", "on-site",
+        "project", "engagement", "retainer",
+        "fee", "charge", "cost",
+    ]
+
+    # Check for ambiguous patterns
+    ambiguous_count = sum(1 for kw in AMBIGUOUS_KEYWORDS if kw in desc_lower)
+
+    # If multiple ambiguous keywords or very short description
+    if ambiguous_count >= 2:
+        return True
+
+    # Very short descriptions are often ambiguous
+    if len(description.split()) <= 3:
+        return True
+
+    return False
+
+
+def _extract_pdf_text(file_path: str) -> str:
+    """
+    Extract text from ALL pages of PDF (fast, no API call needed).
+
+    This is the preferred method for machine-generated PDFs which have
+    embedded text. Falls back to vision API only for scanned documents.
+    """
+    import pdfplumber
+
+    try:
+        with pdfplumber.open(file_path) as pdf:
+            if len(pdf.pages) == 0:
+                return ""
+
+            all_text = []
+            for i, page in enumerate(pdf.pages):
+                text = page.extract_text() or ""
+                if text.strip():
+                    all_text.append(f"[Page {i+1}]\n{text}")
+
+            return "\n\n".join(all_text)
+    except Exception as e:
+        print(f"  ⚠️ PDF text extraction failed: {e}")
+        return ""
+
+
+def _extract_pdf_all_pages_images(file_path: str, max_pages: int = 5) -> list:
+    """
+    Extract first N pages of PDF as base64 images for vision API.
+
+    Used as fallback for scanned PDFs where text extraction fails.
+    Limits to max_pages to avoid sending huge documents to API.
+    """
+    import base64
+    from io import BytesIO
+    import pdfplumber
+
+    images = []
+    try:
+        with pdfplumber.open(file_path) as pdf:
+            for i, page in enumerate(pdf.pages[:max_pages]):
+                img = page.to_image(resolution=150)
+                buffered = BytesIO()
+                img.original.save(buffered, format="PNG")
+                images.append(base64.b64encode(buffered.getvalue()).decode("utf-8"))
+        return images
+    except Exception as e:
+        print(f"  ⚠️ PDF image extraction failed: {e}")
+        return []
+
+
 def _extract_pdf_image(file_path: str) -> str:
-    """Extract first page of PDF as base64 image"""
+    """Extract first page of PDF as base64 image (legacy, use _extract_pdf_all_pages_images instead)"""
     import base64
     from io import BytesIO
     import pdfplumber
@@ -169,7 +436,12 @@ def _extract_excel_invoice(file_path: str) -> Dict[str, Any]:
         date_col = next((col for col in df.columns if 'date' in col.lower()), None)
         amount_col = next((col for col in df.columns if 'amount' in col.lower() or 'total' in col.lower()), None)
         tax_col = next((col for col in df.columns if 'tax' in col.lower()), None)
-        desc_col = next((col for col in df.columns if 'description' in col.lower() or 'item' in col.lower()), None)
+        desc_col = next((col for col in df.columns if 'description' in col.lower() or 'item' in col.lower() or 'product' in col.lower()), None)
+        # Location columns for rate lookup
+        ship_city_col = next((col for col in df.columns if 'ship' in col.lower() and 'city' in col.lower()), None)
+        ship_state_col = next((col for col in df.columns if 'ship' in col.lower() and 'state' in col.lower()), None)
+        ship_zip_col = next((col for col in df.columns if 'ship' in col.lower() and 'zip' in col.lower()), None)
+        subtotal_col = next((col for col in df.columns if 'subtotal' in col.lower()), None)
 
         # Extract line items
         line_items = []
@@ -186,7 +458,12 @@ def _extract_excel_invoice(file_path: str) -> Dict[str, Any]:
             "invoice_date": str(df[date_col].iloc[0]) if date_col and len(df) > 0 else None,
             "total_amount": sum(item['amount'] for item in line_items),
             "tax_amount": sum(item['tax'] for item in line_items),
-            "line_items": line_items
+            "line_items": line_items,
+            # Location data for rate lookup
+            "ship_to_city": str(df[ship_city_col].iloc[0]) if ship_city_col and len(df) > 0 else "",
+            "ship_to_state": str(df[ship_state_col].iloc[0]) if ship_state_col and len(df) > 0 else "",
+            "ship_to_zip": str(df[ship_zip_col].iloc[0]) if ship_zip_col and len(df) > 0 else "",
+            "subtotal": float(df[subtotal_col].iloc[0]) if subtotal_col and len(df) > 0 else sum(item['amount'] for item in line_items),
         }
     except Exception as e:
         return {"error": f"Excel extraction failed: {str(e)}"}
@@ -279,22 +556,46 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
         from io import BytesIO  # noqa: E402
 
         # Route to appropriate extraction method based on file type
-        if file_ext == '.pdf':
-            img_base64 = _extract_pdf_image(file_path)
-        elif file_ext in ['.jpg', '.jpeg', '.png']:
-            img_base64 = _extract_image(file_path)
-        elif file_ext in ['.xlsx', '.xls']:
+        if file_ext in ['.xlsx', '.xls']:
             return _extract_excel_invoice(file_path)
         elif file_ext == '.docx':
             return _extract_word_invoice(file_path)
-        else:
-            return {"error": f"Unsupported file format: {file_ext}"}
 
-        if not img_base64:
-            return {"error": "Failed to extract image from file"}
+        # For PDFs: Try text extraction first (fast, ALL pages)
+        # Falls back to vision only for scanned documents
+        if file_ext == '.pdf':
+            pdf_text = _extract_pdf_text(file_path)
+            if len(pdf_text) > 100:
+                # Good text extraction - use AI to parse text (no vision needed)
+                prompt = f"""Extract invoice data from this document text and return JSON:
 
-        # Use router for extraction task with vision (routes to GPT-5)
-        prompt = """Extract invoice data and return JSON:
+DOCUMENT TEXT:
+{pdf_text[:8000]}  # Limit to 8k chars for API
+
+Return this JSON format:
+{{
+  "vendor_name": "Company Name",
+  "invoice_number": "INV-123",
+  "invoice_date": "2024-01-15",
+  "total_amount": 100.00,
+  "tax_amount": 10.00,
+  "line_items": [
+    {{"description": "Product/service description", "amount": 100.00, "tax": 10.00}}
+  ]
+}}"""
+                result = router.execute(
+                    task="extraction",
+                    prompt=prompt,
+                    stakes=0,
+                )
+            else:
+                # Scanned PDF - use vision with ALL pages (up to 5)
+                print(f"    (scanned PDF, using vision for {Path(file_path).name})")
+                images = _extract_pdf_all_pages_images(file_path, max_pages=5)
+                if not images:
+                    return {"error": "Failed to extract images from scanned PDF"}
+
+                prompt = """Extract invoice data from these document pages and return JSON:
 {
   "vendor_name": "Company Name",
   "invoice_number": "INV-123",
@@ -302,22 +603,58 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
   "total_amount": 100.00,
   "tax_amount": 10.00,
   "line_items": [
-    {
-      "description": "Product/service description",
-      "amount": 100.00,
-      "tax": 10.00
-    }
+    {"description": "Product/service description", "amount": 100.00, "tax": 10.00}
   ]
 }"""
+                result = router.execute(
+                    task="extraction",
+                    prompt=prompt,
+                    stakes=0,
+                    images=images,  # Pass ALL page images
+                )
 
-        result = router.execute(
-            task="extraction",
-            prompt=prompt,
-            stakes=0,
-            images=[img_base64],  # Pass image for vision extraction
-        )
+        elif file_ext in ['.jpg', '.jpeg', '.png']:
+            img_base64 = _extract_image(file_path)
+            if not img_base64:
+                return {"error": "Failed to extract image from file"}
 
-        invoice_data = json.loads(result["content"])
+            prompt = """Extract invoice data and return JSON:
+{
+  "vendor_name": "Company Name",
+  "invoice_number": "INV-123",
+  "invoice_date": "2024-01-15",
+  "total_amount": 100.00,
+  "tax_amount": 10.00,
+  "line_items": [
+    {"description": "Product/service description", "amount": 100.00, "tax": 10.00}
+  ]
+}"""
+            result = router.execute(
+                task="extraction",
+                prompt=prompt,
+                stakes=0,
+                images=[img_base64],
+            )
+        else:
+            return {"error": f"Unsupported file format: {file_ext}"}
+
+        # Strip markdown code fences if present (GPT often wraps JSON in ```json...```)
+        content = result["content"].strip()
+        if content.startswith("```"):
+            # Remove opening fence (```json or ```)
+            first_newline = content.find("\n")
+            if first_newline != -1:
+                content = content[first_newline + 1:]
+            # Remove closing fence
+            if content.endswith("```"):
+                content = content[:-3].strip()
+
+        try:
+            invoice_data = json.loads(content)
+        except json.JSONDecodeError as json_err:
+            print(f"  ⚠️ Invalid JSON from invoice extraction: {json_err}")
+            print(f"     Content preview: {content[:200]}...")
+            return {"error": "JSON parse failed", "raw_preview": content[:500]}
 
         # Cache result
         cache.set_invoice_data(file_path, invoice_data)
@@ -331,31 +668,89 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
 
 def categorize_product(description: str, vendor_info: Optional[Dict] = None) -> str:
     """
-    Categorize product based on description and vendor info
+    Categorize product based on description and vendor info.
+    Uses comprehensive keyword lists for accurate hardware vs software detection.
     """
     desc_lower = description.lower()
 
-    # Check keywords
-    if any(
-        kw in desc_lower for kw in ["saas", "subscription", "cloud", "365", "workspace"]
-    ):
-        return "saas_subscription"
-    elif any(
-        kw in desc_lower
-        for kw in ["consulting", "professional services", "advisory", "hours"]
-    ):
-        return "professional_services"
-    elif any(
-        kw in desc_lower
-        for kw in ["ec2", "vm", "virtual machine", "infrastructure", "iaas"]
-    ):
+    # Comprehensive hardware keywords
+    HARDWARE_KEYWORDS = [
+        # Network equipment
+        "server", "switch", "router", "firewall", "modem", "gateway",
+        "access point", "wireless", "ethernet", "nic", "network card",
+        # Telecom equipment
+        "radio", "antenna", "transceiver", "amplifier", "baseband",
+        "cell site", "tower", "microwave", "rf ", "lte", "5g equipment",
+        # Computing hardware
+        "laptop", "desktop", "workstation", "computer", "pc ",
+        "monitor", "display", "keyboard", "mouse", "headset",
+        "printer", "scanner", "projector", "camera",
+        # Storage/components
+        "storage", "disk", "drive", "ssd", "hdd", "tape",
+        "memory", "ram", "dimm", "cpu", "processor", "blade",
+        "chassis", "enclosure", "rack", "cabinet",
+        # Power/infrastructure
+        "ups", "battery", "power supply", "pdu", "generator",
+        "cooling", "hvac", "air conditioning",
+        # Cables/accessories
+        "cable", "fiber", "connector", "adapter", "converter",
+        "mount", "bracket", "tray", "shelf",
+        # General hardware terms
+        "hardware", "equipment", "device", "appliance", "unit",
+        "physical", "tangible",
+    ]
+
+    # Software/digital keywords
+    SOFTWARE_KEYWORDS = [
+        # Software licenses
+        "license", "software", "perpetual", "subscription",
+        # Specific vendors/products
+        "vmware", "microsoft 365", "office 365", "adobe", "oracle",
+        "sap", "salesforce", "servicenow", "workday", "splunk",
+        "citrix", "red hat", "linux", "windows server",
+        # Cloud/SaaS
+        "saas", "cloud", "azure", "aws", "google cloud", "gcp",
+        "workspace", "online", "hosted", "web-based",
+        # Security software
+        "antivirus", "endpoint protection", "security suite",
+        "firewall software", "vpn software",
+        # Digital goods
+        "digital", "electronic delivery", "download",
+    ]
+
+    # Professional services keywords
+    SERVICES_KEYWORDS = [
+        "consulting", "professional services", "advisory", "hours",
+        "labor", "installation", "configuration", "implementation",
+        "support", "maintenance", "training", "assessment",
+    ]
+
+    # Cloud infrastructure keywords
+    CLOUD_INFRA_KEYWORDS = [
+        "ec2", "vm", "virtual machine", "iaas", "paas",
+        "compute instance", "cloud server", "virtual server",
+    ]
+
+    # Check in order: software first (MPU potential), then hardware, then services
+    if any(kw in desc_lower for kw in SOFTWARE_KEYWORDS):
+        # Double-check it's not hardware with "software" in name
+        if not any(hw in desc_lower for hw in ["hardware", "server", "switch", "router", "printer"]):
+            return "software_license"
+
+    if any(kw in desc_lower for kw in CLOUD_INFRA_KEYWORDS):
         return "iaas_paas"
-    elif any(kw in desc_lower for kw in ["license", "software license"]):
-        return "software_license"
-    elif any(kw in desc_lower for kw in ["hardware", "equipment", "device"]):
+
+    if any(kw in desc_lower for kw in ["saas", "subscription", "365", "workspace", "cloud service"]):
+        return "saas_subscription"
+
+    if any(kw in desc_lower for kw in SERVICES_KEYWORDS):
+        return "professional_services"
+
+    if any(kw in desc_lower for kw in HARDWARE_KEYWORDS):
         return "tangible_personal_property"
-    else:
-        return "other"
+
+    # Default to "other" - but the AI prompt now has rules to handle this
+    return "other"
 
 
 def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
@@ -375,25 +770,32 @@ def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
         category_queries = {
             "saas_subscription": (
                 "Washington tax law cloud services SaaS "
-                "multi-point use digital products"
+                "multi-point use digital products WAC 458-20-15502"
             ),
             "professional_services": (
                 "Washington tax law professional services "
-                "primarily human effort consulting"
+                "primarily human effort consulting exemption"
             ),
             "iaas_paas": (
                 "Washington tax law cloud infrastructure "
-                "IaaS PaaS allocation"
+                "IaaS PaaS virtual machine allocation"
             ),
             "software_license": (
-                "Washington tax law software licenses prewritten custom"
+                "Washington tax law software licenses prewritten custom "
+                "multiple points of use MPU WAC 458-20-15503"
             ),
             "tangible_personal_property": (
-                "Washington tax tangible personal property exemptions"
+                "Washington tax tangible personal property hardware "
+                "equipment taxable no exemption"
+            ),
+            # Handle "other" with general tax queries
+            "other": (
+                "Washington sales tax exemptions tangible personal property "
+                "hardware software services taxability"
             ),
         }
 
-        query_text = category_queries.get(category, f"Washington tax law {category}")
+        query_text = category_queries.get(category, category_queries["other"])
 
         # Use Agentic RAG: Intelligently decides whether/how to retrieve
         # - Checks for cached results (high confidence) → USE_CACHED (10ms, $0)
@@ -427,8 +829,75 @@ def search_legal_docs(category: str, state: str = "WA") -> List[Dict]:
         return []
 
 
+def repair_json(text: str) -> str:
+    """
+    Attempt to repair common JSON errors from LLM output.
+    Handles: single quotes, trailing commas, unquoted keys, truncated responses.
+    """
+    import re
+
+    # Replace single quotes with double quotes (careful not to break contractions)
+    # Only replace single quotes that look like JSON delimiters
+    text = re.sub(r"(?<=[{,:\[])\s*'([^']+)'\s*(?=[},:}\]])", r'"\1"', text)
+
+    # Remove trailing commas before } or ]
+    text = re.sub(r',\s*([}\]])', r'\1', text)
+
+    # Try to find valid JSON object
+    start = text.find('{')
+    if start != -1:
+        # Find matching closing brace
+        brace_count = 0
+        for i, c in enumerate(text[start:], start):
+            if c == '{':
+                brace_count += 1
+            elif c == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    return text[start:i+1]
+
+    return text
+
+
+# Structured Output Schema - guarantees valid JSON from OpenAI
+ANALYSIS_RESPONSE_SCHEMA = {
+    "type": "json_schema",
+    "json_schema": {
+        "name": "tax_analysis_response",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "analyses": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "transaction_id": {"type": "integer"},
+                            "product_classification": {"type": "string"},
+                            "refund_basis": {"type": "string"},
+                            "legal_citations": {"type": "array", "items": {"type": "string"}},
+                            "confidence_score": {"type": "integer"},
+                            "estimated_refund_amount": {"type": "number"},
+                            "explanation": {"type": "string"}
+                        },
+                        "required": ["transaction_id", "product_classification", "refund_basis",
+                                    "legal_citations", "confidence_score", "estimated_refund_amount",
+                                    "explanation"],
+                        "additionalProperties": False
+                    }
+                }
+            },
+            "required": ["analyses"],
+            "additionalProperties": False
+        }
+    }
+}
+
+
 def analyze_batch(
-    items: List[Dict], legal_context: Dict[str, List], state: str = "WA", tax_type: str = "sales_tax"
+    items: List[Dict], legal_context: Dict[str, List], state: str = "WA", tax_type: str = "sales_tax",
+    is_retry: bool = False
 ) -> List[Dict]:
     """
     Batch analyze multiple line items at once
@@ -449,22 +918,56 @@ def analyze_batch(
 
     # Build prompt for batch analysis
     items_text = ""
+    vendor_reasoning = {}  # Store reasoning per item index for AI_Reasoning column
     for i, item in enumerate(items, 1):
         vendor_info = item.get("vendor_info", {})
         line_item = item.get("line_item", {})
         category = item.get("category", "other")
         vendor_name = item['vendor']
 
+        # Use excel_description if available (more reliable), fallback to line_item
+        product_desc = item.get("excel_description") or line_item.get('description', 'Unknown')
+
         items_text += f"\n{i}. Vendor: {vendor_name}\n"
-        items_text += f"   Product: {line_item.get('description', 'Unknown')}\n"
-        items_text += f"   Amount: ${item['amount']:,.2f}\n"
-        items_text += f"   Tax Charged: ${item['tax']:,.2f}\n"
+        # [INVOICE DATA] section - data extracted from invoice document
+        items_text += f"   [INVOICE DATA] Product: {product_desc}\n"
+        items_text += f"   [INVOICE DATA] Amount: ${item['amount']:,.2f}\n"
+        items_text += f"   [INVOICE DATA] Tax Charged: ${item['tax']:,.2f}\n"
         items_text += f"   Category: {category}\n"
+
+        # Location and rate info (for Wrong Rate detection)
+        ship_city = item.get("ship_to_city", "")
+        ship_state = item.get("ship_to_state", "")
+        ship_zip = item.get("ship_to_zip", "")
+        inv_date = item.get("invoice_date", "")
+        rate_charged = item.get("tax_rate_charged", 0)
+        correct_rate = item.get("correct_rate")
+        rate_diff = item.get("rate_difference")
+        if ship_city or ship_state:
+            items_text += f"   [INVOICE DATA] Ship-To: {ship_city}, {ship_state} {ship_zip}\n"
+            items_text += f"   [INVOICE DATA] Invoice Date: {inv_date}\n"
+            items_text += f"   [INVOICE DATA] Tax Rate Charged: {rate_charged}%\n"
+            if correct_rate:
+                items_text += f"   [WA DOR RATE] Official Rate for {ship_city}: {correct_rate}%\n"
+                if rate_diff and rate_diff > 0.1:
+                    items_text += f"   [WA DOR RATE] *** OVERCHARGE: {rate_diff}% above official rate ***\n"
+                elif rate_diff and rate_diff < -0.1:
+                    items_text += f"   [WA DOR RATE] (Undercharge: {abs(rate_diff)}% below official rate)\n"
+
+        # Add PO context if available
+        po_content = item.get("po_content", {})
+        if po_content and not po_content.get("error"):
+            po_desc = ""
+            po_line_items = po_content.get("line_items", [])
+            if po_line_items:
+                po_desc = ", ".join([li.get("description", "") for li in po_line_items[:3] if li.get("description")])
+            if po_desc:
+                items_text += f"   [PO DATA] Line Items: {po_desc[:200]}\n"
 
         # Add vendor pattern info if available
         if vendor_name in vendor_patterns:
             vp = vendor_patterns[vendor_name]
-            items_text += f"   📊 Historical Pattern: {vp.get('historical_sample_count', 0)} transactions, "
+            items_text += f"   Historical Pattern: {vp.get('historical_sample_count', 0)} transactions, "
             items_text += f"typical refund: {vp.get('typical_refund_basis', 'Unknown')}\n"
 
         if vendor_info:
@@ -472,15 +975,52 @@ def analyze_batch(
                 f"   Vendor Type: {vendor_info.get('business_model', 'Unknown')}\n"
             )
 
-    # Build legal context
+        # Check for ambiguous descriptions and research vendor if needed
+        if is_description_ambiguous(product_desc):
+            items_text += f"   [AMBIGUOUS] *** DESCRIPTION IS VAGUE - REQUIRES DEEPER ANALYSIS ***\n"
+            # Research vendor for context - pass amount for stakes-based model selection
+            vendor_research = research_vendor_for_ambiguous(vendor_name, product_desc, tax_type, amount=item['amount'])
+            if vendor_research.get("business_type") and vendor_research["business_type"] != "Unknown":
+                items_text += f"   [VENDOR RESEARCH] Business Type: {vendor_research['business_type']}\n"
+                if vendor_research.get("context"):
+                    items_text += f"   [VENDOR RESEARCH] Context: {vendor_research['context']}\n"
+                if vendor_research.get("tax_implications"):
+                    items_text += f"   [VENDOR RESEARCH] Tax Notes: {vendor_research['tax_implications']}\n"
+                items_text += f"   [VENDOR RESEARCH] Source: {vendor_research.get('source', 'unknown')}\n"
+                # Include web search sources if available
+                if vendor_research.get("sources"):
+                    items_text += f"   [VENDOR RESEARCH] URLs: {', '.join(vendor_research['sources'][:3])}\n"
+                # Store full analysis for AI_Reasoning column
+                if vendor_research.get("full_analysis"):
+                    vendor_reasoning[i] = vendor_research["full_analysis"]
+
+    # Build legal context - INCLUDE ACTUAL DOCUMENT CONTENT
     legal_text = ""
     for category, docs in legal_context.items():
         if docs:
-            legal_text += f"\n{category.upper()} - Relevant Laws:\n"
+            legal_text += f"\n[LEGAL CONTEXT] {category.upper()} - Relevant Laws:\n"
             for doc in docs[:3]:  # Top 3 per category
                 doc_title = doc.get('document_title', 'Unknown')
                 doc_citation = doc.get('citation', 'N/A')
-                legal_text += f"  - {doc_title} ({doc_citation})\n"
+                # Get the actual document content - check multiple possible field names
+                doc_content = doc.get('content') or doc.get('text') or doc.get('chunk_text') or doc.get('page_content') or ""
+
+                legal_text += f"\n  [LEGAL CONTEXT] === {doc_title} ({doc_citation}) ===\n"
+                if doc_content:
+                    # Limit to 2000 chars per doc to avoid token overflow
+                    content_preview = doc_content[:2000]
+                    if len(doc_content) > 2000:
+                        content_preview += "... [truncated]"
+                    legal_text += f"  [LEGAL CONTEXT] {content_preview}\n"
+                else:
+                    legal_text += f"  [LEGAL CONTEXT] [No content available]\n"
+
+    # Debug: Show content status
+    docs_with_content = sum(1 for cat, docs in legal_context.items()
+                            for doc in docs[:3]
+                            if doc.get('content') or doc.get('text') or doc.get('chunk_text') or doc.get('page_content'))
+    docs_total = sum(min(len(docs), 3) for docs in legal_context.values() if docs)
+    print(f"  📄 Legal docs: {docs_with_content}/{docs_total} have content")
 
     # Build pattern context
     pattern_text = ""
@@ -492,6 +1032,18 @@ def analyze_batch(
             percentage = pattern.get('percentage', 0)
             pattern_text += f"  - {refund_basis}: {usage_count} uses ({percentage:.1f}%)\n"
 
+    # Get human corrections from feedback system
+    human_corrections = get_human_corrections(limit=15)
+    corrections_text = ""
+    if human_corrections:
+        corrections_text = "\nHUMAN REVIEWER CORRECTIONS (apply these learnings):\n"
+        for correction in human_corrections[:10]:
+            query = correction.get("query", "")
+            answer = correction.get("suggested_answer", "")
+            comment = correction.get("feedback_comment", "")
+            if query and answer:
+                corrections_text += f"  - {query}: Correct answer is '{answer}'\n"
+
     prompt = f"""You are a Washington State tax refund expert analyzing {tax_type.replace('_', ' ')} transactions.
 
 Analyze these {len(items)} transactions for refund eligibility.
@@ -501,7 +1053,7 @@ PRIMARY SOURCE - WASHINGTON TAX LAW (80-90% weight):
 
 SECONDARY SOURCE - HISTORICAL PATTERNS (10-20% weight):
 {pattern_text}
-
+{corrections_text}
 DECISION HIERARCHY:
 1. Base recommendations primarily on Washington State tax law (WAC/RCW)
 2. Use historical patterns to:
@@ -511,17 +1063,78 @@ DECISION HIERARCHY:
 3. If law and patterns conflict, law takes precedence (but note the discrepancy)
 4. Always cite legal authority (WAC/RCW) when available
 
+CRITICAL - REFUND BASIS RULES:
+
+MPU (Multiple Points of Use) - ONLY applies to:
+  - Software licenses (VMware, Microsoft Office, Adobe, SAP, Oracle)
+  - Digital goods delivered electronically
+  - SaaS/cloud software subscriptions
+  - Remotely accessed services/software
+
+MPU does NOT apply to:
+  - Hardware (servers, printers, switches, routers, radios, phones, antennas)
+  - Tangible personal property (anything physical you can touch)
+  - Installation/labor services
+  - Consulting/professional services
+
+DECISION TREE:
+1. Is it SOFTWARE/DIGITAL? -> Consider "MPU" if used at multiple locations
+2. Is it HARDWARE/PHYSICAL? -> "No Refund" (taxable TPP in Washington)
+3. Is it SERVICES? -> Check if "primarily human effort" for potential exemption
+
+LOCATION-BASED REFUND OPPORTUNITIES:
+
+Out-of-State (OOS):
+  - If ship_to_state is NOT "WA", the sale may qualify for OOS refund
+  - Hardware shipped out of state is not subject to WA sales tax
+  - Use refund_basis: "OOS" for out-of-state shipments
+
+Wrong Rate (Overcharge):
+  - WA tax rates vary by location (city/county/ZIP)
+  - We lookup official WA DOR rates for each location - look for "Correct WA Rate" in transaction data
+  - If "*** OVERCHARGE ***" is shown, the vendor charged MORE than the official WA rate
+  - Use refund_basis: "Wrong Rate" for any transaction with a verified overcharge
+  - The difference shown is the recoverable tax overpayment
+
+IMPORTANT - BE DECISIVE:
+
+You MUST make a clear classification and decision for each transaction. Do NOT use:
+- "Ambiguous"
+- "Requires Review"
+- "Unknown"
+- "Insufficient Information"
+
+Instead, use the available information to make the BEST classification:
+1. Look at the EXTRACTED invoice/PO data first - these have actual product descriptions
+2. Use vendor research to understand what the company sells
+3. Apply Washington tax law to classify the product/service
+4. Make a decision and calculate the refund
+
+If description is vague but vendor type is clear (e.g., software company):
+- Classify based on vendor's typical products
+- Set confidence to 60-70% (reasonable confidence)
+- Explain your reasoning
+
+If truly unclear, default to the MOST LIKELY classification based on:
+- Vendor name and industry
+- Amount (large amounts suggest software licenses, small amounts suggest services)
+- Any keywords in description
+
 TRANSACTIONS:
 {items_text}
 
 For EACH transaction, analyze:
-1. Product classification
+1. Product classification - Be SPECIFIC (e.g., "Software License - Enterprise", "SaaS Subscription", "Hardware - Server")
 2. Is it taxable in Washington?
-3. Refund basis (MPU, Non-taxable, OOS Services, No Refund, etc.)
+3. Refund basis (MPU, Non-taxable, OOS, Wrong Rate, No Refund)
 4. Legal citations
-5. Confidence (0-100%)
-6. Estimated refund amount
-7. Brief explanation
+5. Confidence (0-100%) - Use 70%+ for clear cases, 50-70% for reasonable inferences
+6. Estimated refund amount - CALCULATE THIS:
+   - For MPU: refund = tax_amount * 0.80 (80% of tax)
+   - For Non-taxable services: refund = tax_amount * 1.00 (100% of tax)
+   - For Wrong Rate: refund = difference between charged and correct rate
+   - For No Refund: refund = 0
+7. Explanation with sources
 
 Return JSON array:
 {{
@@ -530,7 +1143,7 @@ Return JSON array:
       "transaction_id": 1,
       "product_classification": "...",
       "is_taxable_in_wa": true/false,
-      "refund_basis": "MPU" | "Non-taxable" | "OOS Services" | "No Refund",
+      "refund_basis": "<basis>",  // Common: MPU, Non-taxable, OOS, Wrong Rate, No Refund. Use any appropriate legal basis.
       "legal_citations": ["WAC 458-20-15502"],
       "confidence_score": 85,
       "estimated_refund_amount": 4250.00,
@@ -564,23 +1177,81 @@ Provide accurate analysis with legal citations and confidence scores."""
         # Calculate stakes for this batch (sum of tax amounts)
         batch_stakes = sum(item.get('tax', 0) for item in items)
 
-        # Use router for analysis task (routes to Claude Sonnet 4.5 for legal reasoning)
-        # Claude excels at careful, methodical reasoning through complex tax rules
-        # For high-stakes batches ($25k+), router automatically escalates to Claude Opus 4.5
+        # Use router for analysis task with structured outputs (guarantees valid JSON)
+        # For high-stakes batches ($25k+), router automatically escalates to premium models
         result = router.execute(
             task="analysis",
             prompt=prompt,
             system_prompt=system_msg,
             stakes=batch_stakes,
             temperature=0.2,
+            response_format=ANALYSIS_RESPONSE_SCHEMA,  # Guarantees valid JSON
         )
 
-        parsed = json.loads(result["content"])
+        # Strip markdown code fences if present (Claude often wraps JSON in ```json...```)
+        content = result["content"].strip()
+        if content.startswith("```"):
+            # Remove opening fence (```json or ```)
+            first_newline = content.find("\n")
+            if first_newline != -1:
+                content = content[first_newline + 1:]
+            # Remove closing fence
+            if content.endswith("```"):
+                content = content[:-3].strip()
+
+        # Extract just the JSON object (AI sometimes adds explanatory text after)
+        # Find the first { and the matching closing }
+        start_idx = content.find("{")
+        if start_idx != -1:
+            # Count braces to find matching close
+            brace_count = 0
+            end_idx = start_idx
+            for i, char in enumerate(content[start_idx:], start_idx):
+                if char == "{":
+                    brace_count += 1
+                elif char == "}":
+                    brace_count -= 1
+                    if brace_count == 0:
+                        end_idx = i
+                        break
+            content = content[start_idx:end_idx + 1]
+
+        # Try to parse JSON with repair and retry on failure
+        try:
+            parsed = json.loads(content)
+        except json.JSONDecodeError as json_err:
+            # Try to repair the JSON
+            print(f"  ⚠️  JSON parse error: {json_err}")
+            print(f"  🔧 Attempting JSON repair...")
+            repaired = repair_json(content)
+            try:
+                parsed = json.loads(repaired)
+                print(f"  ✓ JSON repair successful")
+            except json.JSONDecodeError:
+                # Repair failed - retry the batch if this is first attempt
+                if not is_retry:
+                    print(f"  🔄 Retrying batch...")
+                    return analyze_batch(items, legal_context, state, tax_type, is_retry=True)
+                else:
+                    print(f"  ❌ JSON repair failed, skipping batch")
+                    raise
+
         print(f"    📊 Model used: {result['model']} (stakes: ${batch_stakes:,.0f})")
-        return parsed.get("analyses", [])
+
+        # Add vendor research reasoning to each analysis (for AI_Reasoning column)
+        analyses = parsed.get("analyses", [])
+        for analysis in analyses:
+            tid = analysis.get("transaction_id")
+            if tid and tid in vendor_reasoning:
+                analysis["ai_reasoning"] = vendor_reasoning[tid]
+        return analyses
 
     except Exception as e:
         print(f"  ❌ Batch analysis error: {e}")
+        # Log the problematic content for debugging
+        if 'content' in dir():
+            print(f"  📄 Response preview: {content[:200]}..." if len(content) > 200 else f"  📄 Response: {content}")
+        # Return empty list so we can continue with other batches
         return []
 
 
@@ -602,6 +1273,10 @@ def get_rows_with_input_changes(file_id: str, hours_lookback: int = 24) -> set:
         Set of row indices that have INPUT column changes
     """
     from datetime import datetime, timedelta
+
+    # Skip if Supabase is not configured
+    if supabase is None:
+        return set()
 
     try:
         # Calculate cutoff time
@@ -673,7 +1348,14 @@ def main():
 
     # Load Excel
     print("\n📂 Loading Excel...")
-    df = pd.read_excel(args.excel)
+    try:
+        df = pd.read_excel(args.excel)
+    except FileNotFoundError:
+        print(f"❌ Excel file not found: {args.excel}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Failed to load Excel file: {e}")
+        sys.exit(1)
     original_row_count = len(df)
 
     # Initialize ExcelFileWatcher for intelligent row tracking
@@ -735,17 +1417,115 @@ def main():
 
     print(f"✓ Analyzing {len(df)} rows")
 
-    # Get unique invoices
-    invoice_files = df["Inv_1_File"].dropna().unique()
-    print(f"\n📄 Found {len(invoice_files)} unique invoices")
+    # Column name mapping (Excel columns may vary)
+    # Try multiple possible column names for flexibility
+    def get_col(row, names, default=None):
+        """Get value from row, trying multiple possible column names"""
+        for name in names if isinstance(names, list) else [names]:
+            if name in row.index and pd.notna(row.get(name)):
+                return row.get(name)
+        return default
 
-    # Extract invoices
-    print("\n📄 Extracting invoices...")
+    def safe_float(value, default=0.0):
+        """
+        Safely convert value to float, handling Excel quirks like:
+        - Numbers stored as text (green triangle)
+        - Currency formatting ($1,234.56)
+        - Commas as thousands separators
+        - Empty strings or None
+        """
+        if value is None or value == "":
+            return default
+        if isinstance(value, (int, float)):
+            return float(value)
+        if isinstance(value, str):
+            # Remove currency symbols, commas, spaces
+            cleaned = value.replace("$", "").replace(",", "").replace(" ", "").strip()
+            try:
+                return float(cleaned)
+            except ValueError:
+                return default
+        try:
+            return float(value)
+        except (ValueError, TypeError):
+            return default
+
+    INV_COL_NAMES = ["Inv-1 FileName", "Inv_1_File", "Invoice_File_Name_1"]
+    PO_COL_NAMES = ["PO_FileName", "PO_File", "Purchase_Order_File_Name"]
+    AMOUNT_COL_NAMES = ["Initial Amount", "Amount", "Total_Amount"]
+    TAX_COL_NAMES = ["Tax Paid", "Tax Remitted", "Tax", "Tax_Amount"]
+    DESC_COL_NAMES = ["Description", "Line_Item_Description", "Product_Description"]
+
+    # Get unique invoices - try multiple column names
+    inv_col = next((c for c in INV_COL_NAMES if c in df.columns), None)
+    po_col = next((c for c in PO_COL_NAMES if c in df.columns), None)
+
+    if inv_col:
+        invoice_files = df[inv_col].dropna().unique()
+        print(f"\n📄 Found {len(invoice_files)} unique invoices (column: {inv_col})")
+    else:
+        invoice_files = []
+        print("\n⚠️ No invoice column found")
+
+    # Get unique POs
+    if po_col:
+        po_files = df[po_col].dropna().unique()
+        print(f"📋 Found {len(po_files)} unique POs (column: {po_col})")
+    else:
+        po_files = []
+        print("⚠️ No PO column found")
+
+    # Helper function to resolve file paths
+    def resolve_file_path(filename: str, search_paths: list) -> Optional[str]:
+        """Find file in multiple possible locations"""
+        for base_path in search_paths:
+            file_path = Path(base_path) / filename
+            if file_path.exists():
+                return str(file_path)
+        return None
+
+    # Helper function for parallel extraction
+    def extract_file(args):
+        """Extract a single file (for parallel processing)"""
+        filename, search_paths = args
+        file_path = resolve_file_path(filename, search_paths)
+        if file_path:
+            return filename, extract_invoice_with_vision(file_path)
+        return filename, {"error": "File not found"}
+
+    # Extract invoices (PARALLEL - 10x faster)
+    print("\n📄 Extracting invoices (parallel)...")
+    invoice_search_paths = [
+        "test_data/synthetic",
+        "test_data/sales_tax/invoices",
+        "test_data/invoices",
+        "client_documents/invoices",
+    ]
     invoice_data = {}
-    for inv_file in tqdm(invoice_files, desc="Extracting"):
-        file_path = Path("client_documents/invoices") / inv_file
-        if file_path.exists():
-            invoice_data[inv_file] = extract_invoice_with_vision(str(file_path))
+    if len(invoice_files) > 0:
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            invoice_args = [(f, invoice_search_paths) for f in invoice_files]
+            futures = {executor.submit(extract_file, args): args[0] for args in invoice_args}
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting invoices"):
+                filename, result = future.result()
+                invoice_data[filename] = result
+
+    # Extract POs (PARALLEL - 10x faster)
+    print("\n📋 Extracting Purchase Orders (parallel)...")
+    po_search_paths = [
+        "test_data/synthetic",
+        "test_data/sales_tax/purchase_orders",
+        "test_data/purchase_orders",
+        "client_documents/purchase_orders",
+    ]
+    po_data = {}
+    if len(po_files) > 0:
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            po_args = [(f, po_search_paths) for f in po_files]
+            futures = {executor.submit(extract_file, args): args[0] for args in po_args}
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting POs"):
+                filename, result = future.result()
+                po_data[filename] = result
 
     # Prepare analysis queue with skip tracking
     print("\n🔍 Matching line items...")
@@ -757,52 +1537,117 @@ def main():
     }
 
     for idx, row in df.iterrows():
-        inv_file = row.get("Inv_1_File")
-        if pd.isna(inv_file):
-            skipped_rows["no_invoice_file"].append(idx)
-            continue
+        # Get invoice file using flexible column names
+        inv_file = get_col(row, INV_COL_NAMES)
+        po_file = get_col(row, PO_COL_NAMES)
 
-        if inv_file not in invoice_data:
-            skipped_rows["no_invoice_file"].append(idx)
-            continue
+        # Try invoice first, fall back to PO if no invoice
+        inv_data = None
+        if inv_file and inv_file in invoice_data:
+            inv_data = invoice_data[inv_file]
+            if "error" in inv_data:
+                inv_data = None  # Try PO instead
 
-        inv_data = invoice_data[inv_file]
-        if "error" in inv_data:
-            skipped_rows["extraction_failed"].append(
-                (idx, inv_data.get("error", "Unknown error"))
-            )
-            continue
+        # Fall back to PO if no valid invoice
+        if not inv_data and po_file:
+            # Extract PO filename from path if needed
+            po_filename = Path(po_file).name if "/" in str(po_file) else po_file
+            if po_filename in po_data and "error" not in po_data.get(po_filename, {}):
+                inv_data = po_data[po_filename]
+                inv_data["_source"] = "PO"  # Mark as PO-sourced
+
+        # If no document available, create placeholder from Excel data
+        if not inv_data:
+            excel_desc = get_col(row, DESC_COL_NAMES, "")
+            if not excel_desc:
+                # No description to analyze - truly skip
+                skipped_rows["no_invoice_file"].append(idx)
+                continue
+            # Create minimal data from Excel
+            inv_data = {
+                "line_items": [{
+                    "description": excel_desc,
+                    "amount": safe_float(get_col(row, AMOUNT_COL_NAMES, 0)),
+                }],
+                "_source": "Excel"  # Mark as Excel-only
+            }
+
+        # Get amount using flexible column names (safe_float handles text-as-number, $, commas)
+        amount = safe_float(get_col(row, AMOUNT_COL_NAMES, 0))
+        tax = safe_float(get_col(row, TAX_COL_NAMES, 0))
+
+        # Get product description from Excel (more reliable than invoice extraction)
+        excel_description = get_col(row, DESC_COL_NAMES, "")
 
         # Match line item by amount
-        amount = row.get("Amount", 0)
         line_items = inv_data.get("line_items", [])
-
         matched_item = None
         for item in line_items:
-            if abs(item.get("amount", 0) - amount) < 1.0:
+            item_amount = safe_float(item.get("amount", 0))
+            if abs(item_amount - amount) < 1.0:
                 matched_item = item
                 break
 
-        if matched_item:
-            vendor = row.get("Vendor", "Unknown")
-            vendor_info = cache.get_vendor_info(vendor)
-            category = categorize_product(
-                matched_item.get("description", ""), vendor_info
-            )
+        # If no exact match, use first line item or create placeholder
+        if not matched_item and line_items:
+            matched_item = line_items[0]
+        elif not matched_item:
+            matched_item = {"description": excel_description, "amount": amount}
 
-            analysis_queue.append(
-                {
-                    "excel_row_idx": idx,
-                    "vendor": vendor,
-                    "vendor_info": vendor_info or {},
-                    "line_item": matched_item,
-                    "amount": amount,
-                    "tax": row.get("Tax", 0),
-                    "category": category,
-                }
-            )
-        else:
-            skipped_rows["no_line_item_match"].append((idx, amount))
+        # Use Excel description if available (often more reliable)
+        description = excel_description if excel_description else matched_item.get("description", "Unknown")
+
+        vendor = row.get("Vendor", "Unknown")
+        vendor_info = cache.get_vendor_info(vendor)
+
+        # Use description for categorization
+        category = categorize_product(description, vendor_info)
+
+        # Get PO data if available (po_file already retrieved above)
+        po_filename = Path(po_file).name if po_file and "/" in str(po_file) else po_file
+        po_content = po_data.get(po_filename, {}) if po_file else {}
+
+        # Extract location data from invoice (for Wrong Rate detection)
+        ship_to_city = inv_data.get("ship_to_city", "")
+        ship_to_state = inv_data.get("ship_to_state", "")
+        ship_to_zip = inv_data.get("ship_to_zip", "")
+        invoice_date = inv_data.get("date", row.get("Date", ""))
+
+        # Calculate tax rate from invoice data
+        subtotal = inv_data.get("subtotal", 0)
+        inv_tax = inv_data.get("tax", tax)
+        tax_rate_charged = (inv_tax / subtotal * 100) if subtotal and subtotal > 0 else 0
+
+        # Look up correct WA tax rate (if we have location)
+        correct_rate = None
+        rate_difference = None
+        if ship_to_city and ship_to_state == "WA":
+            correct_rate = get_correct_rate(ship_to_city, ship_to_zip)
+            if correct_rate and tax_rate_charged > 0:
+                rate_difference = round(tax_rate_charged - correct_rate, 2)
+
+        analysis_queue.append(
+            {
+                "excel_row_idx": idx,
+                "vendor": vendor,
+                "vendor_info": vendor_info or {},
+                "line_item": matched_item,
+                "excel_description": description,  # Description from Excel
+                "po_content": po_content,  # PO data
+                "amount": amount,
+                "tax": tax,
+                "category": category,
+                # Location data for Wrong Rate detection
+                "ship_to_city": ship_to_city,
+                "ship_to_state": ship_to_state,
+                "ship_to_zip": ship_to_zip,
+                "invoice_date": str(invoice_date)[:10] if invoice_date else "",
+                "tax_rate_charged": round(tax_rate_charged, 2),
+                # WA DOR official rate lookup
+                "correct_rate": correct_rate,
+                "rate_difference": rate_difference,
+            }
+        )
 
     # Report matching results
     total_rows = len(df)
@@ -866,7 +1711,7 @@ def main():
 
     # Batch analysis
     print(f"\n🤖 Analyzing {len(analysis_queue)} items...")
-    batch_size = 20
+    batch_size = 5  # Smaller batches for more reliable JSON output
     all_analyses = []
 
     for i in range(0, len(analysis_queue), batch_size):
@@ -875,7 +1720,15 @@ def main():
         total_batches = (len(analysis_queue) - 1) // batch_size + 1
         print(f"  Batch {batch_num}/{total_batches}")
 
+        # No delay needed for GPT-4o (higher rate limits than Claude)
         analyses = analyze_batch(batch, legal_context, args.state.upper(), args.tax_type)
+
+        # Re-number transaction IDs with global offset (batches return 1-N but we need global IDs)
+        batch_offset = i
+        for analysis in analyses:
+            if "transaction_id" in analysis:
+                analysis["transaction_id"] = analysis["transaction_id"] + batch_offset
+
         all_analyses.extend(analyses)
 
     # Write results back to DataFrame
@@ -921,10 +1774,47 @@ def main():
         df.loc[idx, "Refund_Basis"] = analysis.get("refund_basis", "")
         df.loc[idx, "Citation"] = ", ".join(analysis.get("legal_citations", []))
         df.loc[idx, "Confidence"] = f"{analysis.get('confidence_score', 0)}%"
-        df.loc[idx, "Estimated_Refund"] = (
-            f"${analysis.get('estimated_refund_amount', 0):,.2f}"
-        )
+        refund_amount = analysis.get('estimated_refund_amount') or 0
+
+        # Rate difference fallback: if AI says no refund but there's a rate difference, use that
+        if refund_amount == 0 and "Rate_Difference_Refund" in df.columns:
+            rate_diff_refund = df.loc[idx, "Rate_Difference_Refund"]
+            if pd.notna(rate_diff_refund) and float(rate_diff_refund) > 0:
+                refund_amount = float(rate_diff_refund)
+                df.loc[idx, "Refund_Basis"] = "Rate Difference"
+
+        # Non-taxable fallback: if item is non-taxable and they paid tax, refund full tax amount
+        refund_basis = df.loc[idx, "Refund_Basis"]
+        if refund_amount == 0 and "non-taxable" in str(refund_basis).lower():
+            # For use tax, check Tax Remitted column (note: space, not underscore)
+            if "Tax Remitted" in df.columns:
+                tax_remitted = df.loc[idx, "Tax Remitted"]
+                if pd.notna(tax_remitted) and float(tax_remitted) > 0:
+                    refund_amount = float(tax_remitted)
+            # For sales tax, check Tax Paid column
+            elif "Tax Paid" in df.columns:
+                tax_paid = df.loc[idx, "Tax Paid"]
+                if pd.notna(tax_paid) and float(tax_paid) > 0:
+                    refund_amount = float(tax_paid)
+
+        # MPU fallback: if item qualifies for MPU and refund is $0, calculate 80% refund
+        if refund_amount == 0 and "mpu" in str(refund_basis).lower():
+            # For use tax, check Tax Remitted column
+            if "Tax Remitted" in df.columns:
+                tax_remitted = df.loc[idx, "Tax Remitted"]
+                if pd.notna(tax_remitted) and float(tax_remitted) > 0:
+                    refund_amount = float(tax_remitted) * 0.80  # 80% exempt for MPU
+            # For sales tax, check Tax Paid column
+            elif "Tax Paid" in df.columns:
+                tax_paid = df.loc[idx, "Tax Paid"]
+                if pd.notna(tax_paid) and float(tax_paid) > 0:
+                    refund_amount = float(tax_paid) * 0.80  # 80% exempt for MPU
+
+        df.loc[idx, "Estimated_Refund"] = f"${refund_amount:,.2f}"
         df.loc[idx, "Explanation"] = analysis.get("explanation", "")
+        # AI_Reasoning captures vendor research reasoning for audit trail
+        if analysis.get("ai_reasoning"):
+            df.loc[idx, "AI_Reasoning"] = analysis.get("ai_reasoning", "")
         matched_count += 1
 
     if matched_count < len(analysis_queue):
@@ -939,12 +1829,31 @@ def main():
         base_name = Path(args.excel).stem
         args.output = str(Path(args.excel).parent / f"{base_name} - Analyzed.xlsx")
 
-    df.to_excel(args.output, index=False)
+    # Replace NaN with empty strings so Excel shows blank cells, not "nan"
+    df = df.fillna('')
+
+    try:
+        df.to_excel(args.output, index=False)
+        print(f"\n✅ Results saved to {args.output}")
+    except PermissionError:
+        # File might be open in another program - try backup location
+        backup_path = args.output.replace(".xlsx", "_backup.xlsx")
+        print(f"⚠️ Cannot write to {args.output} (file may be open)")
+        try:
+            df.to_excel(backup_path, index=False)
+            print(f"✅ Results saved to backup: {backup_path}")
+        except Exception as e:
+            print(f"❌ CRITICAL: Failed to save results: {e}")
+            print("   Data may be lost! Check disk space and permissions.")
+            sys.exit(1)
+    except Exception as e:
+        print(f"❌ Failed to save results: {e}")
+        sys.exit(1)
 
     # Update tracking database if not in test mode
     if not args.limit:
         print("\n📊 Updating tracking database...")
-        watcher.update_file_tracking(args.excel)
+        watcher.update_file_tracking(args.excel, len(df))
 
         # Update row tracking for successfully analyzed rows
         for i, queue_item in enumerate(analysis_queue):

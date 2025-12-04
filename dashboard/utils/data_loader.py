@@ -441,3 +441,179 @@ def get_tax_rules() -> List[Dict]:
             "summary": "Effective Oct 1, 2025. Expands B&O and retail sales tax to certain services.",
         },
     ]
+
+
+# =============================================================================
+# PROJECT MANAGEMENT FUNCTIONS
+# =============================================================================
+
+def create_project(
+    name: str,
+    tax_type: str,
+    client_name: str = "",
+    tax_year: int = None,
+    description: str = ""
+) -> Optional[str]:
+    """
+    Create a new project in the database.
+
+    Args:
+        name: Unique project name
+        tax_type: 'sales_tax' or 'use_tax'
+        client_name: Client name (optional)
+        tax_year: Tax year (optional)
+        description: Project description (optional)
+
+    Returns:
+        Project ID (UUID string) if successful, None otherwise
+    """
+    if not SUPABASE_AVAILABLE:
+        print("Supabase not available")
+        return None
+
+    try:
+        supabase = get_supabase_client()
+
+        project_data = {
+            "name": name,
+            "tax_type": tax_type,
+            "client_name": client_name or None,
+            "tax_year": tax_year,
+            "description": description or None,
+            "status": "active",
+            "state_code": "WA",
+        }
+
+        response = supabase.table("projects").insert(project_data).execute()
+
+        if response.data:
+            return response.data[0]["id"]
+        return None
+
+    except Exception as e:
+        print(f"Error creating project: {e}")
+        return None
+
+
+def save_analysis_results(project_id: str, df: pd.DataFrame) -> bool:
+    """
+    Save analysis results DataFrame to database for a project.
+
+    Args:
+        project_id: UUID of the project
+        df: DataFrame with analysis results
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if not SUPABASE_AVAILABLE:
+        print("Supabase not available")
+        return False
+
+    try:
+        supabase = get_supabase_client()
+
+        # First, delete any existing results for this project
+        supabase.table("project_analysis_results").delete().eq("project_id", project_id).execute()
+
+        # Prepare records for insertion
+        records = []
+        for idx, row in df.iterrows():
+            record = {
+                "project_id": project_id,
+                "row_index": int(idx),
+                "vendor_id": str(row.get("Vendor ID", "")) or None,
+                "vendor_name": str(row.get("Vendor", row.get("Vendor_Name", ""))) or None,
+                "invoice_filename": str(row.get("Inv-1 FileName", row.get("Invoice_File", ""))) or None,
+                "invoice_filename_2": str(row.get("Inv-2 FileName", "")) or None,
+                "po_filename": str(row.get("PO_FileName", row.get("PO_File", ""))) or None,
+                "invoice_number": str(row.get("Inv No", row.get("Invoice_Number", ""))) or None,
+                "po_number": str(row.get("PO No", row.get("PO_Number", ""))) or None,
+                "initial_amount": float(row.get("Initial Amount", row.get("Amount", 0)) or 0),
+                "tax_paid": float(row.get("Tax Paid", row.get("Tax", 0)) or 0),
+                "total_amount": float(row.get("Total Amount", row.get("Total", 0)) or 0),
+                "tax_rate": float(row.get("Tax Rate", 0) or 0),
+                "description": str(row.get("Description", "")) or None,
+                "ai_confidence": float(row.get("AI_Confidence", 0) or 0),
+                "taxability": str(row.get("Taxability", "")) or None,
+                "refund_basis": str(row.get("Refund_Basis", "")) or None,
+                "refund_eligible": str(row.get("Refund_Eligible", "")) or None,
+                "legal_citation": str(row.get("Legal_Citation", "")) or None,
+                "explanation": str(row.get("Explanation", "")) or None,
+            }
+            records.append(record)
+
+        # Insert in batches of 100
+        batch_size = 100
+        for i in range(0, len(records), batch_size):
+            batch = records[i:i + batch_size]
+            supabase.table("project_analysis_results").insert(batch).execute()
+
+        return True
+
+    except Exception as e:
+        print(f"Error saving analysis results: {e}")
+        return False
+
+
+def load_project_analysis(project_id: str) -> pd.DataFrame:
+    """
+    Load analysis results from database for a project.
+
+    Args:
+        project_id: UUID of the project
+
+    Returns:
+        DataFrame with analysis results, or empty DataFrame if not found
+    """
+    if not SUPABASE_AVAILABLE:
+        return pd.DataFrame()
+
+    try:
+        supabase = get_supabase_client()
+
+        response = supabase.table("project_analysis_results") \
+            .select("*") \
+            .eq("project_id", project_id) \
+            .order("row_index") \
+            .execute()
+
+        if not response.data:
+            return pd.DataFrame()
+
+        # Convert to DataFrame
+        df = pd.DataFrame(response.data)
+
+        # Rename columns back to expected format
+        column_mapping = {
+            "vendor_id": "Vendor ID",
+            "vendor_name": "Vendor",
+            "invoice_filename": "Inv-1 FileName",
+            "invoice_filename_2": "Inv-2 FileName",
+            "po_filename": "PO_FileName",
+            "invoice_number": "Inv No",
+            "po_number": "PO No",
+            "initial_amount": "Initial Amount",
+            "tax_paid": "Tax Paid",
+            "total_amount": "Total Amount",
+            "tax_rate": "Tax Rate",
+            "description": "Description",
+            "ai_confidence": "AI_Confidence",
+            "taxability": "Taxability",
+            "refund_basis": "Refund_Basis",
+            "refund_eligible": "Refund_Eligible",
+            "legal_citation": "Legal_Citation",
+            "explanation": "Explanation",
+        }
+
+        df = df.rename(columns=column_mapping)
+
+        # Drop database metadata columns
+        cols_to_drop = ["id", "project_id", "row_index", "created_at", "updated_at"]
+        df = df.drop(columns=[c for c in cols_to_drop if c in df.columns], errors="ignore")
+
+        return df
+
+    except Exception as e:
+        print(f"Error loading project analysis: {e}")
+        return pd.DataFrame()

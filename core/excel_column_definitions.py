@@ -70,6 +70,7 @@ OUTPUT_COLUMNS = [
 
     # Confidence/Metadata
     "AI_Confidence",
+    "AI_Reasoning",  # Extended thinking output - audit trail for complex decisions
     "Anomalies_Detected",
     "Patterns_Applied",
 ]

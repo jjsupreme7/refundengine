@@ -336,6 +336,7 @@ class ExcelVersionManager:
                                         ),
                                         "change_type": "modified",
                                         "changed_by": user_email,
+                                        "change_reason": None,  # Can be populated via manual correction flow
                                     }
                                 )
 
@@ -437,6 +438,38 @@ class ExcelVersionManager:
             .execute()
         )
 
+        return result.data
+
+    def get_cell_changes(
+        self,
+        file_id: str,
+        row_index: Optional[int] = None,
+        column_name: Optional[str] = None,
+    ) -> List[Dict]:
+        """Get cell-level change history (audit trail)
+
+        Args:
+            file_id: UUID of file
+            row_index: Optional - filter by specific row
+            column_name: Optional - filter by specific column
+
+        Returns:
+            List of cell change records with timestamp, old/new values, who changed
+        """
+        query = (
+            self.supabase.table("excel_cell_changes")
+            .select("*")
+            .eq("file_id", file_id)
+            .order("changed_at", desc=True)
+        )
+
+        if row_index is not None:
+            query = query.eq("row_index", row_index)
+
+        if column_name:
+            query = query.eq("column_name", column_name)
+
+        result = query.execute()
         return result.data
 
     def download_version(

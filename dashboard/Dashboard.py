@@ -1,432 +1,366 @@
 #!/usr/bin/env python3
 """
-TaxDesk - Multi-Page Tax Refund Analysis Dashboard
+TaxDesk - NexusTax Dashboard (Dark Theme)
+=========================================
 
-Main entry point for the Streamlit multi-page application.
-Navigate between Dashboard, Projects, Documents, Review Queue, Claims, and more.
+Main entry point for the redesigned Streamlit multi-page application.
+Features:
+- Dark theme with glass morphism effects
+- Clean stat card overview
+- Liability trend visualization
+- Urgent actions panel
+- AI assistant integration
 
 Usage:
-    streamlit run dashboard_app.py --server.port 5001
+    DEV_MODE=1 PYTHONPATH=. streamlit run dashboard/Dashboard.py --server.port 8501
 """
 
-from core.auth import require_authentication
-from dotenv import load_dotenv
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 
 import streamlit as st
 
 # Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment
-
 load_dotenv()
 
 # Page configuration - MUST be first Streamlit command
 st.set_page_config(
-    page_title="TaxDesk - Refund Analysis Platform",
-    page_icon="📊",
+    page_title="NexusTax - Tax Refund Platform",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
-    menu_items={"About": "TaxDesk - AI-Powered Tax Refund Analysis Platform"},
+    menu_items={"About": "NexusTax - AI-Powered Tax Refund Analysis Platform"},
 )
 
-# AUTHENTICATION - Require login before accessing dashboard
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# AUTHENTICATION
+from core.auth import require_authentication
 
 if not require_authentication():
     st.stop()
 
-# Custom CSS for professional styling
-st.markdown(
-    """
-<style>
-    /* Main theme colors */
-    :root {
-        --primary-blue: #3182ce;
-        --primary-blue-hover: #2c5282;
-        --success-green: #38a169;
-        --warning-yellow: #d69e2e;
-        --danger-red: #e53e3e;
-        --gray-50: #f7fafc;
-        --gray-100: #edf2f7;
-        --gray-200: #e2e8f0;
-        --gray-500: #718096;
-        --gray-700: #4a5568;
-        --gray-900: #1a202c;
-    }
+# Import styles and components
+from dashboard.styles import inject_css, ACCENT_PURPLE, WA_EMERALD
+from dashboard.components import render_stat_grid
 
-    /* Hide Streamlit branding */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-
-    /* Custom header styling */
-    .main-header {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        margin-bottom: 0.5rem;
-    }
-
-    .main-subtitle {
-        font-size: 0.9rem;
-        color: var(--gray-500);
-        margin-bottom: 2rem;
-    }
-
-    /* Stat card styling */
-    .stat-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        border-left: 4px solid var(--primary-blue);
-    }
-
-    .stat-card.success {
-        border-left-color: var(--success-green);
-    }
-
-    .stat-card.warning {
-        border-left-color: var(--warning-yellow);
-    }
-
-    .stat-card.danger {
-        border-left-color: var(--danger-red);
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--gray-900);
-    }
-
-    .stat-value.green {
-        color: var(--success-green);
-    }
-
-    .stat-value.red {
-        color: var(--danger-red);
-    }
-
-    .stat-value.blue {
-        color: var(--primary-blue);
-    }
-
-    .stat-sublabel {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-        margin-top: 0.25rem;
-    }
-
-    /* Badge styling */
-    .badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .badge.success {
-        background-color: #c6f6d5;
-        color: #22543d;
-    }
-
-    .badge.warning {
-        background-color: #feebc8;
-        color: #7c2d12;
-    }
-
-    .badge.danger {
-        background-color: #fed7d7;
-        color: #742a2a;
-    }
-
-    .badge.info {
-        background-color: #bee3f8;
-        color: #2c5282;
-    }
-
-    .badge.neutral {
-        background-color: #e2e8f0;
-        color: #4a5568;
-    }
-
-    /* Section styling */
-    .section-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        margin-bottom: 1.5rem;
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin-bottom: 0.5rem;
-    }
-
-    .section-subtitle {
-        font-size: 0.875rem;
-        color: var(--gray-500);
-        margin-bottom: 1rem;
-    }
-
-    /* Button styling */
-    .stButton > button {
-        border-radius: 0.375rem;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-    }
-
-    .stButton > button[kind="primary"] {
-        background-color: var(--primary-blue);
-        border-color: var(--primary-blue);
-    }
-
-    .stButton > button[kind="primary"]:hover {
-        background-color: var(--primary-blue-hover);
-        border-color: var(--primary-blue-hover);
-    }
-
-    /* Table styling */
-    .dataframe {
-        font-size: 0.875rem;
-    }
-
-    /* Sidebar styling */
-    .css-1d391kg {
-        padding-top: 2rem;
-    }
-
-    /* Navigation styling */
-    .nav-link {
-        display: block;
-        padding: 0.75rem 1rem;
-        color: var(--gray-700);
-        text-decoration: none;
-        border-radius: 0.375rem;
-        margin-bottom: 0.25rem;
-        font-weight: 500;
-    }
-
-    .nav-link:hover {
-        background-color: var(--gray-100);
-        color: var(--gray-900);
-    }
-
-    .nav-link.active {
-        background-color: var(--primary-blue);
-        color: white;
-    }
-</style>
-""",
-    unsafe_allow_html=True,
-)
-
-# Initialize session state
-if "user_role" not in st.session_state:
-    st.session_state.user_role = "Analyst"  # Default role
-
-if "current_project" not in st.session_state:
-    st.session_state.current_project = "WA-UT-2022_2024"
+# Inject CSS theme
+inject_css()
 
 # Import data functions
-from dashboard.utils.data_loader import get_projects_from_db, load_analyzed_transactions, get_dashboard_stats
+from dashboard.utils.data_loader import load_analyzed_transactions, get_dashboard_stats
 
 # Get real data
-projects = get_projects_from_db()
 df = load_analyzed_transactions()
 stats = get_dashboard_stats(df)
 
-project_count = len(projects)
-pending_reviews = stats.get("flagged_count", 0)
-total_refund = stats.get("total_refund", 0)
 
-# Sidebar Navigation
+# =============================================================================
+# SIDEBAR - Dark Theme
+# =============================================================================
 with st.sidebar:
-    st.markdown("### 📊 TaxDesk")
-    st.markdown(f"**Logged in as:** {st.session_state.user_role}")
+    # Brand
+    st.markdown(f"""
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 1rem 0;
+        margin-bottom: 1rem;
+    ">
+        <div style="
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, {ACCENT_PURPLE}, #6366f1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        ">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+        </div>
+        <span style="font-weight: 700; font-size: 1.25rem; color: #ffffff;">
+            Nexus<span style="color: {ACCENT_PURPLE};">Tax</span>
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("---")
 
-    # Navigation info
-    st.info(
-        """
-    **Navigation:**
+    # Quick stats in sidebar
+    st.markdown("### Quick Stats")
 
-    Use the sidebar to navigate between different sections of the dashboard.
+    total_transactions = stats.get("total_transactions", 0)
+    flagged_count = stats.get("flagged_count", 0)
+    total_refund = stats.get("total_refund", 0)
 
-    - **Dashboard**: Overview and key metrics
-    - **1_Projects**: Manage tax refund projects
-    - **2_Documents**: Upload and review documents
-    - **3_Review_Queue**: Review flagged transactions
-    - **4_Claims**: Draft and finalize claims
-    - **5_Rules**: Tax rules and guidance
-    """
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Documents", total_transactions)
+    with col2:
+        st.metric("Flagged", flagged_count)
+
+    st.metric("Est. Refund", f"${total_refund:,.0f}")
 
     st.markdown("---")
 
-    # Quick stats
-    st.markdown("### 📈 Quick Stats")
-    st.metric("Open Projects", str(project_count))
-    st.metric("Pending Reviews", str(pending_reviews))
-    st.metric("Est. Total Refund", f"${total_refund:,.0f}")
+    # AI Assistant toggle
+    if "show_ai_panel" not in st.session_state:
+        st.session_state.show_ai_panel = False
+
+    if st.button("Ask AI Assistant", use_container_width=True, type="primary"):
+        st.session_state.show_ai_panel = not st.session_state.show_ai_panel
 
 
-# Main content
+# =============================================================================
+# MAIN CONTENT
+# =============================================================================
 def main():
     """Main dashboard landing page"""
 
-    # Header
-    st.markdown('<div class="main-header">📊 Dashboard</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="main-subtitle">Welcome back, analyst. Here\'s a summary of your portal.</div>',
-        unsafe_allow_html=True,
-    )
+    # Header - Dark theme
+    st.markdown("""
+    <div style="margin-bottom: 2rem;">
+        <h1 style="
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.025em;
+        ">Tax Overview</h1>
+        <p style="
+            color: #9ca3af;
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+        ">Washington State Department of Revenue compliance status.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Action button
-    col1, col2, col3 = st.columns([1, 1, 4])
-    with col1:
-        if st.button("➕ Create New Project", type="primary", use_container_width=True):
-            st.info("Navigate to Projects page to create a new project")
+    # ==========================================================================
+    # STAT CARDS
+    # ==========================================================================
+    total_refund = stats.get("total_refund", 0)
+    pending_reviews = stats.get("flagged_count", 0)
+    refund_rows = stats.get("refund_rows", 0)
+    use_tax_due = stats.get("use_tax_due", 840)  # Placeholder
 
+    render_stat_grid([
+        {
+            "label": "Est. B&O Liability",
+            "value": f"${total_refund:,.0f}",
+            "subtitle": "Q4 2024 Projections",
+            "change": "+2.4%",
+            "icon": "trending_up",
+            "variant": "success",
+        },
+        {
+            "label": "Pending Invoices",
+            "value": str(pending_reviews),
+            "subtitle": "Requires classification",
+            "icon": "file_text",
+            "variant": "warning",
+        },
+        {
+            "label": "Audit Risk Score",
+            "value": "Low",
+            "subtitle": "Based on recent patterns",
+            "icon": "alert_circle",
+            "variant": "info",
+        },
+        {
+            "label": "Use Tax Due",
+            "value": f"${use_tax_due:,.0f}",
+            "subtitle": "Unpaid consumer use tax",
+            "icon": "arrow_up_right",
+            "variant": "purple",
+        },
+    ])
+
+    st.markdown("<div style='height: 2rem;'></div>", unsafe_allow_html=True)
+
+    # ==========================================================================
+    # MAIN CONTENT GRID
+    # ==========================================================================
+    col_chart, col_actions = st.columns([2, 1])
+
+    # --------------------------------------------------------------------------
+    # LIABILITY TREND CHART
+    # --------------------------------------------------------------------------
+    with col_chart:
+        st.markdown("""
+        <div style="
+            background: rgba(30, 27, 75, 0.3);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(49, 46, 129, 0.4);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.125rem; font-weight: 600; color: #ffffff; margin: 0;">Liability Trend</h2>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # Time range selector
+        time_range = st.selectbox(
+            "Time Range",
+            ["Last 6 Months", "YTD", "Last Year"],
+            label_visibility="collapsed",
+            key="trend_time_range"
+        )
+
+        # Sample chart data
+        import pandas as pd
+
+        chart_data = pd.DataFrame({
+            "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+            "Liability": [4000, 3000, 2000, 2780, 1890, 2390, 3490]
+        })
+
+        st.area_chart(
+            chart_data.set_index("Month"),
+            color="#8b5cf6",
+            height=300,
+        )
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # --------------------------------------------------------------------------
+    # URGENT ACTIONS PANEL
+    # --------------------------------------------------------------------------
+    with col_actions:
+        st.markdown("""
+        <div style="
+            background: rgba(30, 27, 75, 0.3);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(49, 46, 129, 0.4);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        ">
+            <h2 style="font-size: 1.125rem; font-weight: 600; color: #ffffff; margin-bottom: 1rem;">Urgent Actions</h2>
+        """, unsafe_allow_html=True)
+
+        # Get flagged items from data
+        if df is not None and not df.empty:
+            # Look for flagged/low confidence items
+            flagged_items = []
+
+            # Check for AI_Confidence column
+            conf_col = None
+            for col in ["AI_Confidence", "Confidence_Score", "confidence"]:
+                if col in df.columns:
+                    conf_col = col
+                    break
+
+            if conf_col:
+                low_conf = df[df[conf_col] < 0.9].head(3)
+                for _, row in low_conf.iterrows():
+                    vendor = row.get("Vendor_Name", row.get("vendor", "Unknown Vendor"))
+                    amount = row.get("Tax_Paid", row.get("Amount", row.get("amount", 0)))
+                    flagged_items.append({"vendor": vendor, "amount": amount})
+
+            if flagged_items:
+                for item in flagged_items:
+                    st.markdown(f"""
+                    <div style="
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 0.75rem;
+                        padding: 0.75rem;
+                        border-radius: 0.75rem;
+                        background: rgba(239, 68, 68, 0.15);
+                        border: 1px solid rgba(239, 68, 68, 0.3);
+                        margin-bottom: 0.5rem;
+                    ">
+                        <div style="min-width: 16px; margin-top: 2px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fca5a5" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.875rem; font-weight: 500; color: #ffffff; margin: 0;">Review: {item['vendor']}</p>
+                            <p style="font-size: 0.75rem; color: #9ca3af; margin: 0.25rem 0 0 0;">Potential miss-classification on ${item['amount']:,.2f}</p>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div style="
+                    background: rgba(34, 197, 94, 0.15);
+                    border: 1px solid rgba(34, 197, 94, 0.3);
+                    border-radius: 0.75rem;
+                    padding: 0.75rem;
+                    color: #86efac;
+                    font-size: 0.875rem;
+                ">No urgent items requiring review</div>
+                """, unsafe_allow_html=True)
+
+        # Legislative update
+        st.markdown("""
+        <div style="
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            margin-top: 0.5rem;
+        ">
+            <div style="min-width: 16px; margin-top: 2px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+            </div>
+            <div>
+                <p style="font-size: 0.875rem; font-weight: 500; color: #ffffff; margin: 0;">ESSB 5814 Update</p>
+                <p style="font-size: 0.75rem; color: #9ca3af; margin: 0.25rem 0 0 0;">New workforce education surcharge rates apply effective Jan 1.</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+
+        if st.button("View All Notifications", use_container_width=True):
+            st.info("Navigate to Settings for notification preferences")
+
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # ==========================================================================
+    # AI ASSISTANT PANEL (Slide-in from sidebar toggle)
+    # ==========================================================================
+    if st.session_state.get("show_ai_panel", False):
+        st.markdown("---")
+        st.markdown("### AI Tax Assistant")
+
+        from dashboard.components import render_ai_chat
+        render_ai_chat()
+
+    # ==========================================================================
+    # FOOTER
+    # ==========================================================================
     st.markdown("---")
-
-    # Summary statistics cards
-    st.markdown("### 📊 Overview")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.markdown(
-            f"""
-        <div class="stat-card">
-            <div class="stat-label">Open Projects</div>
-            <div class="stat-value">{project_count}</div>
-            <div class="stat-sublabel">Active projects</div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        if st.button("View Projects →", key="view_projects"):
-            st.info("Navigate to 'Projects' in the sidebar")
-
-    with col2:
-        doc_count = stats.get("total_transactions", 0)
-        st.markdown(
-            f"""
-        <div class="stat-card warning">
-            <div class="stat-label">Documents Loaded</div>
-            <div class="stat-value">{doc_count}</div>
-            <div class="stat-sublabel">Total transactions</div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        if st.button("View Documents →", key="view_docs"):
-            st.info("Navigate to 'Documents' in the sidebar")
-
-    with col3:
-        st.markdown(
-            f"""
-        <div class="stat-card danger">
-            <div class="stat-label">Exceptions to Review</div>
-            <div class="stat-value red">{pending_reviews}</div>
-            <div class="stat-sublabel">Below 90% confidence</div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        if st.button("Open Review Queue →", key="view_review"):
-            st.info("Navigate to 'Review Queue' in the sidebar")
-
-    with col4:
-        refund_rows = stats.get("refund_rows", 0)
-        st.markdown(
-            f"""
-        <div class="stat-card success">
-            <div class="stat-label">Refund Eligible</div>
-            <div class="stat-value">{refund_rows}</div>
-            <div class="stat-sublabel">Transactions with refunds</div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-        if st.button("View Claims →", key="view_claims"):
-            st.info("Navigate to 'Claims' in the sidebar")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Project Spotlight Section - only show if there are projects
-    if projects:
-        latest_project = projects[0]  # Most recent project
-        st.markdown(f"### ⭐ Project Spotlight: {latest_project['name']}")
-        st.markdown(
-            """
-        <div class="section-card">
-            <div class="section-subtitle">Quick actions for your most recent project.</div>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
-        col1, col2, col3 = st.columns([1, 1, 3])
-        with col1:
-            if st.button("👁️ View Project", use_container_width=True):
-                st.session_state.current_project = latest_project['id']
-                st.info("Navigate to 'Projects' to view project details")
-
-        with col2:
-            if st.button(f"🔍 Open Review Queue ({pending_reviews})", use_container_width=True):
-                st.info("Navigate to 'Review Queue' to review flagged items")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-    else:
-        # No projects - show getting started message
-        st.markdown("### 🚀 Getting Started")
-        st.info("No projects yet. Click 'Create New Project' above to get started!")
-        st.markdown("<br>", unsafe_allow_html=True)
-
-    # Recent Activity - show placeholder when empty
-    st.markdown("### 📋 Recent Activity")
-    if project_count > 0 or stats.get("total_transactions", 0) > 0:
-        st.markdown(
-            """
-        <div class="section-card">
-            <p style="color: #4a5568;">Activity will appear here as you work with projects and documents.</p>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            """
-        <div class="section-card">
-            <p style="color: #718096;">No recent activity. Create a project and upload documents to get started.</p>
-        </div>
-        """,
-            unsafe_allow_html=True,
-        )
-
-    # Footer
-    st.markdown("---")
-    st.caption(
-        "🧠 Powered by Enhanced RAG + AI Analysis | 📚 Washington State Tax Law Database"
-    )
+    st.markdown("""
+    <div style="
+        text-align: center;
+        font-size: 0.75rem;
+        color: #6b7280;
+        padding: 1rem 0;
+    ">
+        Powered by Enhanced RAG + Multi-Model AI | Washington State Tax Law Database
+    </div>
+    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":

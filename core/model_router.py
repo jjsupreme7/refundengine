@@ -37,9 +37,14 @@ from typing import Optional, Literal, Any
 from dataclasses import dataclass
 from enum import Enum
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # API clients
 import openai
 import anthropic
+import time
 
 
 class TaskType(Enum):
@@ -74,8 +79,8 @@ class ModelConfig:
 # Model definitions
 MODELS = {
     # OpenAI models
-    "gpt-5": ModelConfig(Provider.OPENAI, "gpt-5", 4096, 0.1, "Latest OpenAI flagship", "premium"),
-    "gpt-4o": ModelConfig(Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "standard"),
+    "gpt-4o": ModelConfig(Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "premium"),
+    "gpt-4o-standard": ModelConfig(Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "standard"),
     "gpt-4o-mini": ModelConfig(Provider.OPENAI, "gpt-4o-mini", 4096, 0.1, "Fast and cost-effective", "budget"),
 
     # Anthropic models
@@ -89,35 +94,36 @@ MODELS = {
 
 
 # Task-to-model routing configuration
+# COST-OPTIMIZED: Using GPT-4o for all tasks (cheaper than Claude, still excellent)
 TASK_ROUTING = {
     TaskType.EXTRACTION: {
-        "default": "gpt-5",
-        "fallback": "gpt-4o",
-        "high_stakes": "gpt-5",
+        "default": "gpt-4o",
+        "fallback": "gpt-4o-mini",
+        "high_stakes": "gpt-4o",
     },
     TaskType.STRUCTURED_PARSING: {
-        "default": "gpt-5",
-        "fallback": "gpt-4o",
-        "high_stakes": "gpt-5",
+        "default": "gpt-4o",
+        "fallback": "gpt-4o-mini",
+        "high_stakes": "gpt-4o",
     },
     TaskType.TAX_ANALYSIS: {
-        "default": "claude-sonnet-4.5",
-        "fallback": "gpt-5",
-        "high_stakes": "claude-opus-4.5",
+        "default": "gpt-4o",  # Changed from claude-sonnet-4.5
+        "fallback": "gpt-4o-mini",
+        "high_stakes": "gpt-4o",  # Changed from claude-opus-4.5
     },
     TaskType.LEGAL_CITATION: {
-        "default": "claude-sonnet-4.5",
-        "fallback": "gpt-5",
-        "high_stakes": "claude-opus-4.5",
+        "default": "gpt-4o",  # Changed from claude-sonnet-4.5
+        "fallback": "gpt-4o-mini",
+        "high_stakes": "gpt-4o",  # Changed from claude-opus-4.5
     },
     TaskType.FINAL_DECISION: {
-        "default": "claude-sonnet-4.5",
-        "fallback": "gpt-5",
-        "high_stakes": "claude-opus-4.5",
+        "default": "gpt-4o",  # Changed from claude-sonnet-4.5
+        "fallback": "gpt-4o-mini",
+        "high_stakes": "gpt-4o",  # Changed from claude-opus-4.5
     },
     TaskType.VALIDATION: {
         "default": "gpt-4o-mini",
-        "fallback": "claude-haiku",
+        "fallback": "gpt-4o-mini",
         "high_stakes": "gpt-4o",
     },
     TaskType.EMBEDDING: {
@@ -336,6 +342,7 @@ class ModelRouter:
         max_tokens: Optional[int] = None,
         temperature: Optional[float] = None,
         images: Optional[list[str]] = None,  # Base64-encoded images for vision tasks
+        response_format: Optional[dict] = None,  # OpenAI structured outputs schema
     ) -> dict[str, Any]:
         """
         Execute a task with automatic model selection.
@@ -374,7 +381,8 @@ class ModelRouter:
         # Execute based on provider
         if model_config.provider == Provider.OPENAI:
             return self._execute_openai(
-                model_config, prompt, system_prompt, final_max_tokens, final_temperature, images
+                model_config, prompt, system_prompt, final_max_tokens, final_temperature, images,
+                response_format
             )
         elif model_config.provider == Provider.ANTHROPIC:
             return self._execute_anthropic(
@@ -391,6 +399,7 @@ class ModelRouter:
         max_tokens: int,
         temperature: float,
         images: Optional[list[str]],
+        response_format: Optional[dict] = None,
     ) -> dict[str, Any]:
         """Execute request using OpenAI API."""
         messages = []
@@ -411,12 +420,19 @@ class ModelRouter:
         else:
             messages.append({"role": "user", "content": prompt})
 
-        response = self.openai_client.chat.completions.create(
-            model=config.model_id,
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-        )
+        # Build API call kwargs
+        api_kwargs = {
+            "model": config.model_id,
+            "messages": messages,
+            "max_completion_tokens": max_tokens,
+            "temperature": temperature,
+        }
+
+        # Add structured outputs if provided (guarantees valid JSON)
+        if response_format:
+            api_kwargs["response_format"] = response_format
+
+        response = self.openai_client.chat.completions.create(**api_kwargs)
 
         return {
             "content": response.choices[0].message.content,
@@ -466,19 +482,377 @@ class ModelRouter:
         if system_prompt:
             kwargs["system"] = system_prompt
 
-        response = self.anthropic_client.messages.create(**kwargs)
+        # Retry with exponential backoff for rate limits
+        max_retries = 3
+        base_delay = 30  # seconds
 
-        return {
-            "content": response.content[0].text,
-            "model": config.model_id,
-            "provider": "anthropic",
-            "reason": config.reason,
-            "usage": {
-                "prompt_tokens": response.usage.input_tokens,
-                "completion_tokens": response.usage.output_tokens,
-                "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
-            }
+        for attempt in range(max_retries):
+            try:
+                response = self.anthropic_client.messages.create(**kwargs)
+                return {
+                    "content": response.content[0].text,
+                    "model": config.model_id,
+                    "provider": "anthropic",
+                    "reason": config.reason,
+                    "usage": {
+                        "prompt_tokens": response.usage.input_tokens,
+                        "completion_tokens": response.usage.output_tokens,
+                        "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+                    }
+                }
+            except anthropic.RateLimitError as e:
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2 ** attempt)  # 30s, 60s, 120s
+                    print(f"  ⏳ Rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}...")
+                    time.sleep(delay)
+                else:
+                    raise e
+
+    def execute_with_web_search(
+        self,
+        prompt: str,
+        stakes: float = 0,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 4096,
+    ) -> dict[str, Any]:
+        """
+        Execute a research task using Claude with web search enabled.
+
+        This performs ACTUAL web searches, not just AI inference from training data.
+        Use this for vendor research, legal citation lookups, and fact-checking.
+
+        Args:
+            prompt: The research prompt
+            stakes: Dollar amount at stake (determines model quality)
+            system_prompt: Optional system prompt for context
+            max_tokens: Maximum tokens for response
+
+        Returns:
+            Dict with:
+                - content: The model's response with research findings
+                - sources: List of sources/URLs found
+                - model: Model ID used
+                - provider: Provider used
+        """
+        # Use best Claude model for research tasks
+        if stakes >= STAKES_THRESHOLD_HIGH:
+            model_id = "claude-opus-4-5-20251101"
+        else:
+            model_id = "claude-sonnet-4-5-20250929"
+
+        # Default system prompt for tax research
+        if not system_prompt:
+            system_prompt = """You are a tax research specialist for Washington State tax law.
+When researching vendors or tax questions:
+1. Search for authoritative sources (WA DOR, RCW, WAC)
+2. Look up the vendor's actual business type and services
+3. Find relevant tax classifications and exemptions
+4. Cite your sources with URLs when available
+5. Be thorough but concise in your analysis"""
+
+        # Build the request with web search tool enabled
+        kwargs = {
+            "model": model_id,
+            "max_tokens": max_tokens,
+            "temperature": 0.1,
+            "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+            "messages": [{"role": "user", "content": prompt}],
         }
+
+        if system_prompt:
+            kwargs["system"] = system_prompt
+
+        # Retry with exponential backoff for rate limits
+        max_retries = 3
+        base_delay = 30  # seconds
+
+        for attempt in range(max_retries):
+            try:
+                # Use beta header for web search
+                response = self.anthropic_client.beta.messages.create(
+                    betas=["web-search-2025-03-05"],
+                    **kwargs
+                )
+
+                # Extract text content and any sources from the response
+                text_content = ""
+                sources = []
+
+                for block in response.content:
+                    if hasattr(block, 'text') and block.text:
+                        text_content += block.text
+                    # Web search results may include citations
+                    if hasattr(block, 'type') and block.type == 'web_search_tool_result':
+                        if hasattr(block, 'url'):
+                            sources.append(block.url)
+
+                return {
+                    "content": text_content,
+                    "sources": sources,
+                    "model": model_id,
+                    "provider": "anthropic",
+                    "usage": {
+                        "prompt_tokens": response.usage.input_tokens,
+                        "completion_tokens": response.usage.output_tokens,
+                        "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+                    }
+                }
+
+            except anthropic.RateLimitError as e:
+                if attempt < max_retries - 1:
+                    delay = base_delay * (2 ** attempt)  # 30s, 60s, 120s
+                    print(f"  ⏳ Web search rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}...")
+                    time.sleep(delay)
+                else:
+                    raise e
+
+            except Exception as e:
+                # Fallback to regular execution without web search if tool not available
+                print(f"  ⚠️  Web search unavailable, falling back to standard research: {e}")
+                return self.execute(
+                    task="analysis",
+                    prompt=prompt,
+                    stakes=stakes,
+                    system_prompt=system_prompt,
+                    max_tokens=max_tokens,
+                )
+
+    def execute_with_thinking(
+        self,
+        prompt: str,
+        stakes: float = 0,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 16000,
+        thinking_budget: int = 10000,
+    ) -> dict[str, Any]:
+        """
+        Execute with extended thinking for complex reasoning tasks.
+
+        This enables Claude's "thinking" mode where it reasons step-by-step
+        before providing a final answer. Great for complex tax analysis.
+
+        Args:
+            prompt: The analysis prompt
+            stakes: Dollar amount at stake (higher = more thinking budget)
+            system_prompt: Optional system prompt
+            max_tokens: Maximum tokens for final response
+            thinking_budget: Token budget for thinking (default 10k)
+
+        Returns:
+            Dict with:
+                - content: The final answer
+                - thinking: The reasoning process (if available)
+                - model: Model ID used
+                - provider: Provider used
+                - usage: Token usage info
+
+        Example:
+            >>> result = router.execute_with_thinking(
+            ...     prompt="Should this $50k software purchase be exempt?",
+            ...     stakes=50000,
+            ...     thinking_budget=15000
+            ... )
+            >>> print(result["thinking"])  # See reasoning
+            >>> print(result["content"])   # Final answer
+        """
+        # Scale thinking budget based on stakes
+        if stakes >= STAKES_THRESHOLD_HIGH:
+            model_id = "claude-opus-4-5-20251101"
+            # More thinking for higher stakes
+            thinking_budget = max(thinking_budget, 15000)
+        else:
+            model_id = "claude-sonnet-4-5-20250929"
+
+        # Build request with thinking enabled
+        kwargs = {
+            "model": model_id,
+            "max_tokens": max_tokens,
+            "thinking": {
+                "type": "enabled",
+                "budget_tokens": thinking_budget,
+            },
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        if system_prompt:
+            kwargs["system"] = system_prompt
+
+        try:
+            response = self.anthropic_client.messages.create(**kwargs)
+
+            # Extract thinking and content from response
+            thinking_text = ""
+            content_text = ""
+
+            for block in response.content:
+                if hasattr(block, 'type'):
+                    if block.type == "thinking":
+                        thinking_text = block.thinking
+                    elif block.type == "text":
+                        content_text = block.text
+
+            return {
+                "content": content_text,
+                "thinking": thinking_text,
+                "model": model_id,
+                "provider": "anthropic",
+                "thinking_budget_used": thinking_budget,
+                "usage": {
+                    "prompt_tokens": response.usage.input_tokens,
+                    "completion_tokens": response.usage.output_tokens,
+                    "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
+                }
+            }
+
+        except Exception as e:
+            # Fallback to regular execution if thinking not supported
+            print(f"  ⚠️  Extended thinking unavailable, falling back to standard: {e}")
+            return self.execute(
+                task="analysis",
+                prompt=prompt,
+                stakes=stakes,
+                system_prompt=system_prompt,
+                max_tokens=max_tokens,
+            )
+
+    def execute_smart(
+        self,
+        prompt: str,
+        task_type: str = "analysis",
+        stakes: float = 0,
+        vendor_name: Optional[str] = None,
+        ai_confidence: Optional[float] = None,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 4096,
+    ) -> dict[str, Any]:
+        """
+        Automatically selects the best execution method based on context.
+
+        Decision logic:
+        1. Unknown vendor → Web Search (need to find what they sell)
+        2. Stakes > $25k → Extended Thinking (too important to rush)
+        3. AI confidence < 70% → Extended Thinking (needs more reasoning)
+        4. Complex task types → Extended Thinking (legal, exemption analysis)
+        5. Otherwise → Standard fast execution
+
+        Args:
+            prompt: The analysis prompt
+            task_type: Type of task (analysis, legal, decision, etc.)
+            stakes: Dollar amount at stake
+            vendor_name: Optional vendor to check against DB
+            ai_confidence: Optional confidence score from previous analysis
+            system_prompt: Optional system prompt
+            max_tokens: Maximum tokens for response
+
+        Returns:
+            Dict with content, model, provider, method_used, and usage
+
+        Example:
+            >>> result = router.execute_smart(
+            ...     prompt="Analyze this purchase...",
+            ...     task_type="analysis",
+            ...     stakes=50000,
+            ...     vendor_name="Acme Corp"
+            ... )
+            >>> print(result["method_used"])  # "thinking", "web_search", or "standard"
+        """
+        method_used = "standard"
+        reason = ""
+
+        # 1. VENDOR RESEARCH - unknown vendors get web search + extended thinking
+        if vendor_name and self._is_unknown_vendor(vendor_name):
+            print(f"  🔍 Unknown vendor '{vendor_name}' - using web search + extended thinking")
+
+            # Step 1: Web search to find out what this vendor sells
+            research_prompt = f"""Research this vendor: {vendor_name}
+
+Find out:
+1. What products/services do they sell?
+2. Are they a software company, hardware, consulting, etc.?
+3. What is their primary business?
+
+Be thorough - this info will be used for WA State tax analysis."""
+
+            research_result = self.execute_with_web_search(
+                research_prompt, stakes, system_prompt, max_tokens
+            )
+
+            # Step 2: Extended thinking to analyze tax implications
+            analysis_prompt = f"""Based on this vendor research:
+
+VENDOR: {vendor_name}
+RESEARCH FINDINGS:
+{research_result['content']}
+
+ORIGINAL QUESTION:
+{prompt}
+
+Analyze the Washington State sales/use tax implications. Consider:
+- Is this tangible personal property or a service?
+- Are there any applicable exemptions (RCW 82.08, WAC 458-20)?
+- What is your confidence level and why?"""
+
+            result = self.execute_with_thinking(
+                analysis_prompt, stakes, system_prompt, max_tokens
+            )
+
+            result["method_used"] = "web_search+thinking"
+            result["routing_reason"] = f"Unknown vendor '{vendor_name}' - researched then analyzed"
+            result["research"] = research_result["content"]
+            result["sources"] = research_result.get("sources", [])
+            return result
+
+        # 2. HIGH STAKES - use extended thinking
+        if stakes >= STAKES_THRESHOLD_HIGH:
+            print(f"  🧠 High stakes (${stakes:,.0f}) - using extended thinking")
+            result = self.execute_with_thinking(prompt, stakes, system_prompt, max_tokens)
+            result["method_used"] = "thinking"
+            result["routing_reason"] = f"High stakes (${stakes:,.0f}) - used extended reasoning"
+            return result
+
+        # 3. LOW CONFIDENCE - needs deeper reasoning
+        if ai_confidence is not None and ai_confidence < 0.7:
+            print(f"  🧠 Low confidence ({ai_confidence:.0%}) - using extended thinking")
+            result = self.execute_with_thinking(prompt, stakes, system_prompt, max_tokens)
+            result["method_used"] = "thinking"
+            result["routing_reason"] = f"Low confidence ({ai_confidence:.0%}) - used extended reasoning"
+            return result
+
+        # 4. COMPLEX TASK TYPES - use extended thinking
+        complex_tasks = ["legal", "decision", "exemption_analysis", "citation"]
+        if task_type.lower() in complex_tasks:
+            print(f"  🧠 Complex task '{task_type}' - using extended thinking")
+            result = self.execute_with_thinking(prompt, stakes, system_prompt, max_tokens)
+            result["method_used"] = "thinking"
+            result["routing_reason"] = f"Complex task type '{task_type}'"
+            return result
+
+        # 5. DEFAULT - standard fast execution
+        result = self.execute(task_type, prompt, stakes, system_prompt, max_tokens)
+        result["method_used"] = "standard"
+        result["routing_reason"] = "Standard analysis - no special requirements"
+        return result
+
+    def _is_unknown_vendor(self, vendor_name: str) -> bool:
+        """
+        Check if vendor exists in our database.
+
+        Returns True if vendor is unknown (not in vendor_products table).
+        """
+        try:
+            # Import here to avoid circular imports
+            from core.database import get_supabase_client
+            supabase = get_supabase_client()
+
+            # Check vendor_products table
+            result = supabase.table("vendor_products").select("id").ilike(
+                "vendor_name", f"%{vendor_name}%"
+            ).limit(1).execute()
+
+            return len(result.data) == 0
+        except Exception:
+            # If DB check fails, assume unknown to be safe
+            return True
 
     def get_embedding(self, text: str) -> list[float]:
         """
@@ -511,5 +885,7 @@ __all__ = [
     "Provider",
     "MODELS",
     "TASK_ROUTING",
+    "STAKES_THRESHOLD_HIGH",
+    "STAKES_THRESHOLD_MEDIUM",
     "get_router",
 ]

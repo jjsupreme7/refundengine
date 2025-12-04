@@ -1,0 +1,34 @@
+Content-Type: multipart/mixed; boundary="===============3745382362973408538=="
+MIME-Version: 1.0
+From: Lisa Jackson <lisa.jackson@lake.com>
+To: Accounts Payable <ap@northstartech.com>
+Subject: PO Request: IT Equipment Purchase
+Date: Fri, 23 Feb 2024 00:00:00 +0000
+
+--===============3745382362973408538==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Dear Accounts Payable Team,
+
+Please find below the purchase order request for approval:
+
+Vendor: Lake Systems Group
+PO Number: PO-4900596750
+Requested By: Carla Gray
+
+Items:
+  - Workstation - High Performance: 5 x $4,770.00 = $23,850.00
+  - Network Switch - 48 Port: 4 x $3,222.00 = $12,888.00
+  - UPS Battery Backup System: 3 x $7,042.00 = $21,126.00
+
+Subtotal: $57,864.00
+Tax: $3,471.84
+Total: $61,335.84
+
+Best regards,
+Lisa Jackson
+Lake Systems Group
+
+--===============3745382362973408538==--
