@@ -54,12 +54,28 @@ class ExcelFileWatcher:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
+    # Output columns added by analysis - exclude from hash
+    OUTPUT_COLUMNS = {
+        'Product_Desc', 'Product_Type', 'Refund_Basis', 'Citation',
+        'Confidence', 'Estimated_Refund', 'Explanation',
+        # Standard names from excel_column_definitions
+        'Analysis_Notes', 'Final_Decision', 'Tax_Category', 'Additional_Info',
+        'Legal_Citation', 'AI_Confidence', 'AI_Reasoning',
+        'Anomalies_Detected', 'Patterns_Applied'
+    }
+
     def get_row_hash(self, row: pd.Series) -> str:
         """
-        Compute hash of a single row to detect row-level changes
+        Compute hash of a single row to detect row-level changes.
+        Only hashes INPUT columns - excludes OUTPUT columns so that
+        analysis results don't trigger re-analysis.
         """
-        # Convert row to string representation
-        row_str = "|".join([str(v) for v in row.values])
+        # Filter to only input columns (exclude output columns)
+        input_values = [
+            str(v) for k, v in row.items()
+            if k not in self.OUTPUT_COLUMNS
+        ]
+        row_str = "|".join(input_values)
         return hashlib.md5(row_str.encode()).hexdigest()
 
     def is_file_modified(self, file_path: str) -> Tuple[bool, Optional[dict]]:

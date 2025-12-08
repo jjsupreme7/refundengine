@@ -33,6 +33,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -77,6 +78,38 @@ except ValueError:
 #   - GPT-4o-mini for validation tasks
 router = ModelRouter()
 
+# Known AI hallucination corrections (repealed/invalid → valid)
+CITATION_CORRECTIONS = {
+    "WAC 458-20-155": "WAC 458-20-15502",  # Repealed 2013 → current software rule
+}
+
+
+def validate_citation(citation: str) -> str:
+    """Validate citation format and correct known errors.
+
+    Accepts any properly formatted WAC/RCW citation (including rare ones).
+    Corrects known hallucinations. Rejects invalid formats.
+    """
+    citation = citation.strip()
+
+    # Check if it's a known correction
+    if citation in CITATION_CORRECTIONS:
+        return CITATION_CORRECTIONS[citation]
+
+    # Validate format: WAC xxx-xx-xxxxx with optional subsections like (3)(a)
+    wac_pattern = r'^WAC \d{3}-\d{1,2}-\d{3,5}(\([a-zA-Z0-9]+\))*$'
+    if re.match(wac_pattern, citation, re.IGNORECASE):
+        return citation
+
+    # Validate format: RCW xx.xx.xxx with optional subsections
+    rcw_pattern = r'^RCW \d{2}\.\d{2}\.\d{3}(\([a-zA-Z0-9]+\))*$'
+    if re.match(rcw_pattern, citation, re.IGNORECASE):
+        return citation
+
+    # Invalid format - filter out
+    return ""
+
+
 # Initialize cache
 cache = SmartCache()
 
@@ -99,6 +132,8 @@ def get_vendor_pattern(vendor_name: str, tax_type: str) -> Optional[Dict]:
             .eq("tax_type", tax_type) \
             .maybe_single() \
             .execute()
+        if result is None:
+            return None
         return result.data
     except Exception as e:
         print(f"  ⚠️  Vendor pattern lookup failed for {vendor_name}: {e}")
@@ -116,6 +151,8 @@ def get_refund_basis_patterns(tax_type: str, limit: int = 10) -> List[Dict]:
             .order("usage_count", desc=True) \
             .limit(limit) \
             .execute()
+        if result is None or result.data is None:
+            return []
         return result.data
     except Exception as e:
         print(f"  ⚠️  Refund basis pattern lookup failed: {e}")
@@ -131,6 +168,9 @@ def get_keyword_patterns(tax_type: str) -> Dict[str, List[str]]:
             .select("*") \
             .eq("tax_type", tax_type) \
             .execute()
+
+        if result is None or result.data is None:
+            return {}
 
         # Convert to dict: {"tax_categories": [...], "product_types": [...]}
         return {
@@ -156,7 +196,9 @@ def get_human_corrections(limit: int = 20) -> List[Dict]:
             .order("created_at", desc=True) \
             .limit(limit) \
             .execute()
-        return result.data or []
+        if result is None or result.data is None:
+            return []
+        return result.data
     except Exception as e:
         print(f"  ⚠️  Human corrections lookup failed: {e}")
         return []
@@ -954,6 +996,24 @@ def analyze_batch(
                 elif rate_diff and rate_diff < -0.1:
                     items_text += f"   [WA DOR RATE] (Undercharge: {abs(rate_diff)}% below official rate)\n"
 
+        # Add all Excel columns (especially important for use tax with Tax_Remitted)
+        excel_row_data = item.get("excel_row_data", {})
+        if excel_row_data:
+            # Show key Excel columns that might not be in invoice
+            key_cols = ["Tax_Remitted", "Tax_Rate", "Tax_Rate_Charged", "Account", "GL_Code", "Notes"]
+            shown_cols = []
+            for col in key_cols:
+                for excel_col, val in excel_row_data.items():
+                    if col.lower() in excel_col.lower() and val:
+                        items_text += f"   [EXCEL DATA] {excel_col}: {val}\n"
+                        shown_cols.append(excel_col)
+            # Show any other columns not already displayed
+            for col, val in excel_row_data.items():
+                if col not in shown_cols and col not in ["Vendor", "Description", "Amount", "Tax_Amount", "Tax_Paid"]:
+                    # Skip columns we already show elsewhere
+                    if val and len(str(val)) < 100:  # Skip very long values
+                        items_text += f"   [EXCEL DATA] {col}: {val}\n"
+
         # Add PO context if available
         po_content = item.get("po_content", {})
         if po_content and not po_content.get("error"):
@@ -1162,6 +1222,23 @@ YOUR ANALYSIS MUST:
 3. **Prioritize legal correctness** over historical precedent
 4. **Flag discrepancies** when your analysis differs from typical patterns
 
+CRITICAL - LEGAL CITATIONS REQUIRED:
+Every tax decision MUST cite the specific applicable law. Do NOT guess or make up citations.
+Think carefully: What WAC or RCW section governs this type of transaction?
+- For software/digital products: WAC 458-20-15501, 15502, 15503
+- For services: WAC 458-20-224
+- For sourcing/location: WAC 458-20-145
+- For use tax: WAC 458-20-178, RCW 82.12.020
+- For retail sales: RCW 82.08.020
+
+If you're unsure which law applies, reason through it step by step:
+1. What type of product/service is this?
+2. Is it tangible or intangible?
+3. Is it software, a service, or a digital good?
+4. What does Washington law say about that category?
+
+Never skip the citation - every tax determination has a legal basis.
+
 KNOWLEDGE SOURCES:
 - Tax Law Context: Legal citations and rules (PRIMARY - 80-90% weight)
 - Historical Patterns: Vendor behavior, refund basis precedent (SECONDARY - 10-20% weight)
@@ -1366,13 +1443,24 @@ def main():
     try:
         # Check if this file is tracked in the versioning system
         abs_path = str(Path(args.excel).resolve())
+        file_name = Path(args.excel).name
+
+        # Try by file_path first
         result = supabase.table('excel_file_tracking')\
             .select('id')\
-            .or_(f'file_path.eq.{abs_path},file_name.eq.{Path(args.excel).name}')\
+            .eq('file_path', abs_path)\
             .limit(1)\
             .execute()
 
-        if result.data:
+        # If not found, try by file_name
+        if not result or not result.data:
+            result = supabase.table('excel_file_tracking')\
+                .select('id')\
+                .eq('file_name', file_name)\
+                .limit(1)\
+                .execute()
+
+        if result and result.data:
             file_id = result.data[0]['id']
             print(f"  ✓ Found file in versioning system (ID: {file_id[:8]}...)")
     except Exception as e:
@@ -1455,10 +1543,14 @@ def main():
     AMOUNT_COL_NAMES = ["Initial Amount", "Amount", "Total_Amount"]
     TAX_COL_NAMES = ["Tax Paid", "Tax Remitted", "Tax", "Tax_Amount"]
     DESC_COL_NAMES = ["Description", "Line_Item_Description", "Product_Description"]
+    INV_FOLDER_COL_NAMES = ["Invoice_Folder", "Inv_Folder", "Invoice_Path"]
+    PO_FOLDER_COL_NAMES = ["PO_Folder", "Purchase_Order_Folder", "PO_Path"]
 
     # Get unique invoices - try multiple column names
     inv_col = next((c for c in INV_COL_NAMES if c in df.columns), None)
     po_col = next((c for c in PO_COL_NAMES if c in df.columns), None)
+    inv_folder_col = next((c for c in INV_FOLDER_COL_NAMES if c in df.columns), None)
+    po_folder_col = next((c for c in PO_FOLDER_COL_NAMES if c in df.columns), None)
 
     if inv_col:
         invoice_files = df[inv_col].dropna().unique()
@@ -1476,19 +1568,45 @@ def main():
         print("⚠️ No PO column found")
 
     # Helper function to resolve file paths
-    def resolve_file_path(filename: str, search_paths: list) -> Optional[str]:
-        """Find file in multiple possible locations"""
+    def resolve_file_path(filename: str, search_paths: list, folder_override: str = None) -> Optional[str]:
+        """Find file in multiple possible locations. folder_override is checked first."""
+        if not filename or pd.isna(filename):
+            return None
+        # Check folder override first (from Excel column)
+        if folder_override and not pd.isna(folder_override):
+            override_path = Path(folder_override) / filename
+            if override_path.exists():
+                return str(override_path)
+        # Then check default search paths
         for base_path in search_paths:
             file_path = Path(base_path) / filename
             if file_path.exists():
                 return str(file_path)
         return None
 
+    # Build folder override mappings from Excel columns
+    inv_folder_map = {}
+    po_folder_map = {}
+    if inv_folder_col:
+        for _, row in df.iterrows():
+            fname = get_col(row, INV_COL_NAMES)
+            folder = row.get(inv_folder_col)
+            if fname and folder and not pd.isna(folder):
+                inv_folder_map[fname] = folder
+        print(f"📁 Using Invoice_Folder column: {inv_folder_col}")
+    if po_folder_col:
+        for _, row in df.iterrows():
+            fname = get_col(row, PO_COL_NAMES)
+            folder = row.get(po_folder_col)
+            if fname and folder and not pd.isna(folder):
+                po_folder_map[fname] = folder
+        print(f"📁 Using PO_Folder column: {po_folder_col}")
+
     # Helper function for parallel extraction
     def extract_file(args):
         """Extract a single file (for parallel processing)"""
-        filename, search_paths = args
-        file_path = resolve_file_path(filename, search_paths)
+        filename, search_paths, folder_override = args
+        file_path = resolve_file_path(filename, search_paths, folder_override)
         if file_path:
             return filename, extract_invoice_with_vision(file_path)
         return filename, {"error": "File not found"}
@@ -1504,7 +1622,7 @@ def main():
     invoice_data = {}
     if len(invoice_files) > 0:
         with ThreadPoolExecutor(max_workers=10) as executor:
-            invoice_args = [(f, invoice_search_paths) for f in invoice_files]
+            invoice_args = [(f, invoice_search_paths, inv_folder_map.get(f)) for f in invoice_files]
             futures = {executor.submit(extract_file, args): args[0] for args in invoice_args}
             for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting invoices"):
                 filename, result = future.result()
@@ -1521,7 +1639,7 @@ def main():
     po_data = {}
     if len(po_files) > 0:
         with ThreadPoolExecutor(max_workers=10) as executor:
-            po_args = [(f, po_search_paths) for f in po_files]
+            po_args = [(f, po_search_paths, po_folder_map.get(f)) for f in po_files]
             futures = {executor.submit(extract_file, args): args[0] for args in po_args}
             for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting POs"):
                 filename, result = future.result()
@@ -1626,6 +1744,12 @@ def main():
             if correct_rate and tax_rate_charged > 0:
                 rate_difference = round(tax_rate_charged - correct_rate, 2)
 
+        # Capture all Excel columns for AI context (especially useful for use tax)
+        excel_row_data = {
+            str(k): str(v) for k, v in row.to_dict().items()
+            if pd.notna(v) and str(v).strip()
+        }
+
         analysis_queue.append(
             {
                 "excel_row_idx": idx,
@@ -1646,6 +1770,8 @@ def main():
                 # WA DOR official rate lookup
                 "correct_rate": correct_rate,
                 "rate_difference": rate_difference,
+                # All Excel columns for AI context
+                "excel_row_data": excel_row_data,
             }
         )
 
@@ -1772,7 +1898,14 @@ def main():
         df.loc[idx, "Product_Desc"] = line_item.get("description", "")
         df.loc[idx, "Product_Type"] = analysis.get("product_classification", "")
         df.loc[idx, "Refund_Basis"] = analysis.get("refund_basis", "")
-        df.loc[idx, "Citation"] = ", ".join(analysis.get("legal_citations", []))
+        # Validate citations before saving (filters hallucinations, corrects known errors)
+        raw_citations = analysis.get("legal_citations", [])
+        valid_citations = [validate_citation(c) for c in raw_citations]
+        valid_citations = [c for c in valid_citations if c]  # Remove empty/invalid
+        # Fallback if all citations were filtered out
+        if not valid_citations:
+            valid_citations = ["CITATION NEEDED - Review Required"]
+        df.loc[idx, "Citation"] = ", ".join(valid_citations)
         df.loc[idx, "Confidence"] = f"{analysis.get('confidence_score', 0)}%"
         refund_amount = analysis.get('estimated_refund_amount') or 0
 
@@ -1855,13 +1988,17 @@ def main():
         print("\n📊 Updating tracking database...")
         watcher.update_file_tracking(args.excel, len(df))
 
+        # Re-read original file to compute consistent hashes (without output columns)
+        original_df = pd.read_excel(args.excel)
+
         # Update row tracking for successfully analyzed rows
         for i, queue_item in enumerate(analysis_queue):
             if i < matched_count:  # Only update successfully analyzed rows
                 idx = queue_item["excel_row_idx"]
-                if idx in df.index:
-                    row_data = df.loc[idx].to_dict()
-                    watcher.update_row_tracking(args.excel, idx, row_data)
+                if idx in original_df.index:
+                    row_series = original_df.loc[idx]
+                    row_hash = watcher.get_row_hash(row_series)
+                    watcher.update_row_tracking(args.excel, idx, row_hash)
 
         print("✓ Tracking database updated")
 
