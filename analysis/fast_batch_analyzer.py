@@ -386,9 +386,13 @@ def is_description_ambiguous(description: str) -> bool:
     return False
 
 
-def _extract_pdf_text(file_path: str) -> str:
+def _extract_pdf_text(file_path: str, max_pages: int = None) -> str:
     """
-    Extract text from ALL pages of PDF (fast, no API call needed).
+    Extract text from PDF pages (fast, no API call needed).
+
+    Args:
+        file_path: Path to PDF file
+        max_pages: If specified, only extract first N pages (for early-stopping)
 
     This is the preferred method for machine-generated PDFs which have
     embedded text. Falls back to vision API only for scanned documents.
@@ -400,8 +404,9 @@ def _extract_pdf_text(file_path: str) -> str:
             if len(pdf.pages) == 0:
                 return ""
 
+            pages_to_read = pdf.pages[:max_pages] if max_pages else pdf.pages
             all_text = []
-            for i, page in enumerate(pdf.pages):
+            for i, page in enumerate(pages_to_read):
                 text = page.extract_text() or ""
                 if text.strip():
                     all_text.append(f"[Page {i+1}]\n{text}")
@@ -410,6 +415,32 @@ def _extract_pdf_text(file_path: str) -> str:
     except Exception as e:
         print(f"  ⚠️ PDF text extraction failed: {e}")
         return ""
+
+
+def _has_sufficient_invoice_data(extracted_data: dict) -> bool:
+    """
+    Check if we have enough invoice data to skip remaining pages.
+
+    Used for early-stopping optimization - if first 2 pages have the key
+    data, no need to read pages 3-10 of a long contract.
+
+    Required: vendor_name, invoice_number
+    Nice to have: total_amount OR line_items (need at least one)
+    """
+    if not extracted_data or "error" in extracted_data:
+        return False
+
+    # Must have vendor and invoice number
+    vendor = extracted_data.get('vendor_name')
+    invoice_num = extracted_data.get('invoice_number')
+    if not vendor or vendor == "Unknown" or not invoice_num or invoice_num == "Unknown":
+        return False
+
+    # Should have at least one of: total or line items
+    has_total = extracted_data.get('total_amount') and extracted_data.get('total_amount') > 0
+    has_items = extracted_data.get('line_items') and len(extracted_data.get('line_items', [])) > 0
+
+    return has_total or has_items
 
 
 def _extract_pdf_all_pages_images(file_path: str, max_pages: int = 5) -> list:
@@ -603,16 +634,17 @@ def extract_invoice_with_vision(file_path: str) -> Dict[str, Any]:
         elif file_ext == '.docx':
             return _extract_word_invoice(file_path)
 
-        # For PDFs: Try text extraction first (fast, ALL pages)
-        # Falls back to vision only for scanned documents
+        # For PDFs: Try text extraction first (fast)
+        # Uses early-stopping: read first 2 pages, only get more if needed
         if file_ext == '.pdf':
-            pdf_text = _extract_pdf_text(file_path)
-            if len(pdf_text) > 100:
-                # Good text extraction - use AI to parse text (no vision needed)
+            # EARLY STOPPING: Try first 2 pages first
+            pdf_text_partial = _extract_pdf_text(file_path, max_pages=2)
+            if len(pdf_text_partial) > 100:
+                # Good text extraction - try parsing first 2 pages
                 prompt = f"""Extract invoice data from this document text and return JSON:
 
 DOCUMENT TEXT:
-{pdf_text[:8000]}  # Limit to 8k chars for API
+{pdf_text_partial[:8000]}
 
 Return this JSON format:
 {{
@@ -630,6 +662,51 @@ Return this JSON format:
                     prompt=prompt,
                     stakes=0,
                 )
+
+                # Check if we got sufficient data from first 2 pages
+                try:
+                    content = result["content"].strip()
+                    if content.startswith("```"):
+                        first_newline = content.find("\n")
+                        if first_newline != -1:
+                            content = content[first_newline + 1:]
+                        if content.endswith("```"):
+                            content = content[:-3].strip()
+                    partial_data = json.loads(content)
+
+                    if _has_sufficient_invoice_data(partial_data):
+                        # Early stop - we have enough data!
+                        print(f"    (early stop: found key data in first 2 pages)")
+                        cache.set_invoice_data(file_path, partial_data)
+                        return partial_data
+                except (json.JSONDecodeError, KeyError):
+                    pass  # Failed to parse, will try full document
+
+                # Need more data - extract ALL pages
+                pdf_text_full = _extract_pdf_text(file_path)
+                if len(pdf_text_full) > len(pdf_text_partial):
+                    print(f"    (reading full document for more data)")
+                    prompt = f"""Extract invoice data from this document text and return JSON:
+
+DOCUMENT TEXT:
+{pdf_text_full[:8000]}
+
+Return this JSON format:
+{{
+  "vendor_name": "Company Name",
+  "invoice_number": "INV-123",
+  "invoice_date": "2024-01-15",
+  "total_amount": 100.00,
+  "tax_amount": 10.00,
+  "line_items": [
+    {{"description": "Product/service description", "amount": 100.00, "tax": 10.00}}
+  ]
+}}"""
+                    result = router.execute(
+                        task="extraction",
+                        prompt=prompt,
+                        stakes=0,
+                    )
             else:
                 # Scanned PDF - use vision with ALL pages (up to 5)
                 print(f"    (scanned PDF, using vision for {Path(file_path).name})")
