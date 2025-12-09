@@ -73,6 +73,10 @@ OUTPUT_COLUMNS = [
     "AI_Reasoning",  # Extended thinking output - audit trail for complex decisions
     "Anomalies_Detected",
     "Patterns_Applied",
+
+    # Human Review Flags
+    "Needs_Review",        # Boolean - flag for human attention when uncertain
+    "Follow_Up_Questions", # Specific questions to investigate
 ]
 
 # ============================================================================

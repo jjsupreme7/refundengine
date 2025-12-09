@@ -998,11 +998,13 @@ ANALYSIS_RESPONSE_SCHEMA = {
                             "legal_citations": {"type": "array", "items": {"type": "string"}},
                             "confidence_score": {"type": "integer"},
                             "estimated_refund_amount": {"type": "number"},
-                            "explanation": {"type": "string"}
+                            "explanation": {"type": "string"},
+                            "needs_review": {"type": "boolean"},
+                            "follow_up_questions": {"type": "array", "items": {"type": "string"}}
                         },
                         "required": ["transaction_id", "product_classification", "refund_basis",
                                     "legal_citations", "confidence_score", "estimated_refund_amount",
-                                    "explanation"],
+                                    "explanation", "needs_review", "follow_up_questions"],
                         "additionalProperties": False
                     }
                 }
@@ -1272,6 +1274,26 @@ For EACH transaction, analyze:
    - For Wrong Rate: refund = difference between charged and correct rate
    - For No Refund: refund = 0
 7. Explanation with sources
+8. Flag for human review if uncertain
+9. Provide specific follow-up questions when flagged
+
+UNCERTAINTY FLAGGING:
+Even when making your best determination, flag transactions that need human review.
+
+Set needs_review: true when:
+- Confidence is below 70%
+- Description is vague (e.g., "Professional Services" with no detail)
+- Classification could change based on missing information
+- Amount seems unusual for the product type
+
+Provide follow_up_questions when flagging:
+- Be SPECIFIC about what information would change the answer
+- Examples: "Is this a perpetual license or a maintenance renewal?"
+- Examples: "Was this equipment installed out-of-state?"
+- Examples: "Is this a SaaS subscription or on-premise software?"
+- Use empty array [] when needs_review is false
+
+Always make your best determination AND flag what to verify.
 
 Return JSON array:
 {{
@@ -1285,7 +1307,9 @@ Return JSON array:
       "confidence_score": 85,
       "estimated_refund_amount": 4250.00,
       "refund_percentage": 85,
-      "explanation": "..."
+      "explanation": "...",
+      "needs_review": false,
+      "follow_up_questions": []
     }}
   ]
 }}"""
@@ -2025,6 +2049,10 @@ def main():
         # AI_Reasoning captures vendor research reasoning for audit trail
         if analysis.get("ai_reasoning"):
             df.loc[idx, "AI_Reasoning"] = analysis.get("ai_reasoning", "")
+        # Uncertainty flagging for human review
+        df.loc[idx, "Needs_Review"] = "Yes" if analysis.get("needs_review", False) else ""
+        follow_up = analysis.get("follow_up_questions", [])
+        df.loc[idx, "Follow_Up_Questions"] = "; ".join(follow_up) if follow_up else ""
         matched_count += 1
 
     if matched_count < len(analysis_queue):
