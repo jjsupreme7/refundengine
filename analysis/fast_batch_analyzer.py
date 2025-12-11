@@ -56,6 +56,8 @@ from core.excel_file_watcher import ExcelFileWatcher  # noqa: E402
 from core.excel_column_definitions import INPUT_COLUMNS, is_input_column  # noqa: E402
 from core.model_router import ModelRouter  # noqa: E402
 from scripts.utils.smart_cache import SmartCache  # noqa: E402
+from core.site_id_lookup import SiteIDLookup  # noqa: E402
+from core.historical_rates import HistoricalRateDB  # noqa: E402
 
 # Load environment
 load_dotenv()
@@ -653,6 +655,7 @@ Return this JSON format:
   "invoice_date": "2024-01-15",
   "total_amount": 100.00,
   "tax_amount": 10.00,
+  "site_id": "Site/location ID if present (patterns like SE01403, 9ME080A, SA03261A, LIB3401A)",
   "line_items": [
     {{"description": "Product/service description", "amount": 100.00, "tax": 10.00}}
   ]
@@ -698,6 +701,7 @@ Return this JSON format:
   "invoice_date": "2024-01-15",
   "total_amount": 100.00,
   "tax_amount": 10.00,
+  "site_id": "Site/location ID if present (patterns like SE01403, 9ME080A, SA03261A, LIB3401A)",
   "line_items": [
     {{"description": "Product/service description", "amount": 100.00, "tax": 10.00}}
   ]
@@ -721,6 +725,7 @@ Return this JSON format:
   "invoice_date": "2024-01-15",
   "total_amount": 100.00,
   "tax_amount": 10.00,
+  "site_id": "Site/location ID if present (patterns like SE01403, 9ME080A, SA03261A, LIB3401A)",
   "line_items": [
     {"description": "Product/service description", "amount": 100.00, "tax": 10.00}
   ]
@@ -744,6 +749,7 @@ Return this JSON format:
   "invoice_date": "2024-01-15",
   "total_amount": 100.00,
   "tax_amount": 10.00,
+  "site_id": "Site/location ID if present (patterns like SE01403, 9ME080A, SA03261A, LIB3401A)",
   "line_items": [
     {"description": "Product/service description", "amount": 100.00, "tax": 10.00}
   ]
@@ -1514,6 +1520,9 @@ def main():
     )
     parser.add_argument("--limit", type=int, help="Limit to first N rows (testing)")
     parser.add_argument("--output", help="Output file path")
+    parser.add_argument("--site-master", help="Path to site ID master sheet (Excel)")
+    parser.add_argument("--site-sheet", help="Sheet name in site master (default: first sheet)")
+    parser.add_argument("--rates-folder", help="Path to folder with historical rate files")
 
     args = parser.parse_args()
 
@@ -1535,6 +1544,24 @@ def main():
         print(f"❌ Failed to load Excel file: {e}")
         sys.exit(1)
     original_row_count = len(df)
+
+    # Load Site ID master sheet (optional)
+    site_lookup = None
+    if args.site_master:
+        try:
+            print(f"\n📍 Loading site ID master sheet...")
+            site_lookup = SiteIDLookup(args.site_master, sheet_name=args.site_sheet)
+        except Exception as e:
+            print(f"  ⚠️  Failed to load site master: {e}")
+
+    # Load historical tax rates (optional)
+    historical_rates = None
+    if args.rates_folder:
+        try:
+            print(f"\n📊 Loading historical tax rates...")
+            historical_rates = HistoricalRateDB(args.rates_folder)
+        except Exception as e:
+            print(f"  ⚠️  Failed to load historical rates: {e}")
 
     # Initialize ExcelFileWatcher for intelligent row tracking
     print("\n🔍 Checking for changes...")
@@ -1646,11 +1673,15 @@ def main():
     DESC_COL_NAMES = ["Description", "Line_Item_Description", "Product_Description"]
     INV_FOLDER_COL_NAMES = ["Invoice_Folder", "Inv_Folder", "Invoice_Path"]
     PO_FOLDER_COL_NAMES = ["PO_Folder", "Purchase_Order_Folder", "PO_Path"]
+    SITE_ID_COL_NAMES = ["Site_ID", "SiteID", "Site ID", "Location_ID", "LocationID"]
 
     # Get unique invoices - try multiple column names
     inv_col = next((c for c in INV_COL_NAMES if c in df.columns), None)
     po_col = next((c for c in PO_COL_NAMES if c in df.columns), None)
     inv_folder_col = next((c for c in INV_FOLDER_COL_NAMES if c in df.columns), None)
+    site_id_col = next((c for c in SITE_ID_COL_NAMES if c in df.columns), None)
+    if site_id_col and site_lookup:
+        print(f"📍 Using Site_ID column: {site_id_col}")
     po_folder_col = next((c for c in PO_FOLDER_COL_NAMES if c in df.columns), None)
 
     if inv_col:
@@ -1830,7 +1861,27 @@ def main():
         ship_to_city = inv_data.get("ship_to_city", "")
         ship_to_state = inv_data.get("ship_to_state", "")
         ship_to_zip = inv_data.get("ship_to_zip", "")
+        ship_to_county = ""
         invoice_date = inv_data.get("date", row.get("Date", ""))
+
+        # Get Site ID from Excel column OR extracted from invoice PDF
+        site_id = get_col(row, SITE_ID_COL_NAMES) if site_id_col else None
+        if not site_id and inv_data:
+            # Fall back to Site ID extracted from invoice PDF
+            site_id = inv_data.get("site_id")
+        is_out_of_state = False
+        if site_id and site_lookup:
+            location = site_lookup.lookup(site_id)
+            if location:
+                # Override with master sheet data
+                ship_to_city = location.get("city", ship_to_city)
+                ship_to_state = location.get("state", ship_to_state)
+                ship_to_zip = location.get("zip", ship_to_zip)
+                ship_to_county = location.get("county", "")
+                # Check if out-of-state
+                state_upper = (ship_to_state or "").upper().strip()
+                if state_upper and state_upper not in ("WA", "WASHINGTON"):
+                    is_out_of_state = True
 
         # Calculate tax rate from invoice data
         subtotal = inv_data.get("subtotal", 0)
@@ -1840,8 +1891,62 @@ def main():
         # Look up correct WA tax rate (if we have location)
         correct_rate = None
         rate_difference = None
-        if ship_to_city and ship_to_state == "WA":
-            correct_rate = get_correct_rate(ship_to_city, ship_to_zip)
+        rate_source = None
+
+        # Parse invoice date for historical lookup
+        invoice_date_obj = None
+        if invoice_date:
+            try:
+                from datetime import datetime
+                date_str = str(invoice_date)[:10]
+                invoice_date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                pass
+
+        # Look up correct WA tax rate for Wrong Rate detection
+        # Skip if out-of-state (no WA tax applies)
+        state_upper = (ship_to_state or "").upper().strip()
+        is_wa = state_upper in ("WA", "WASHINGTON", "")  # Empty state assumed WA
+        if ship_to_city and is_wa and not is_out_of_state:
+            # Determine if invoice is "current" (within last 6 months)
+            from datetime import date, timedelta
+            is_recent_invoice = False
+            if invoice_date_obj:
+                days_old = (date.today() - invoice_date_obj).days
+                is_recent_invoice = days_old < 180  # Within 6 months
+
+            # Get address for API fallback (if site lookup was used)
+            ship_to_address = ""
+            if site_id and site_lookup:
+                loc = site_lookup.lookup(site_id)
+                if loc:
+                    ship_to_address = loc.get("address", "")
+
+            # Try historical rates first (if loaded and invoice has date)
+            # Now includes API fallback for location code
+            if historical_rates and invoice_date_obj:
+                correct_rate = historical_rates.get_rate(
+                    city=ship_to_city,
+                    county=ship_to_county,
+                    zip_code=ship_to_zip,
+                    invoice_date=invoice_date_obj,
+                    address=ship_to_address
+                )
+                if correct_rate:
+                    rate_source = "historical"
+
+            # Only fall back to current API if:
+            # 1. No historical rates loaded, OR
+            # 2. Invoice is recent (rates unlikely to have changed much)
+            if not correct_rate and (not historical_rates or is_recent_invoice):
+                correct_rate = get_correct_rate(ship_to_city, ship_to_zip)
+                if correct_rate:
+                    rate_source = "current"
+
+            # If old invoice and no historical rate found, skip rate comparison
+            if not correct_rate and invoice_date_obj and not is_recent_invoice:
+                rate_source = "unavailable"  # Flag that we couldn't get accurate rate
+
             if correct_rate and tax_rate_charged > 0:
                 rate_difference = round(tax_rate_charged - correct_rate, 2)
 
@@ -1863,14 +1968,18 @@ def main():
                 "tax": tax,
                 "category": category,
                 # Location data for Wrong Rate detection
+                "site_id": site_id or "",
                 "ship_to_city": ship_to_city,
                 "ship_to_state": ship_to_state,
                 "ship_to_zip": ship_to_zip,
+                "ship_to_county": ship_to_county,
+                "is_out_of_state": is_out_of_state,
                 "invoice_date": str(invoice_date)[:10] if invoice_date else "",
                 "tax_rate_charged": round(tax_rate_charged, 2),
                 # WA DOR official rate lookup
                 "correct_rate": correct_rate,
                 "rate_difference": rate_difference,
+                "rate_source": rate_source or "",  # "historical" or "current"
                 # All Excel columns for AI context
                 "excel_row_data": excel_row_data,
             }
@@ -2053,6 +2162,12 @@ def main():
         df.loc[idx, "Needs_Review"] = "Yes" if analysis.get("needs_review", False) else ""
         follow_up = analysis.get("follow_up_questions", [])
         df.loc[idx, "Follow_Up_Questions"] = "; ".join(follow_up) if follow_up else ""
+        # Rate lookup info (from queue_item, not analysis)
+        df.loc[idx, "Resolved_City"] = queue_item.get("ship_to_city", "")
+        df.loc[idx, "Resolved_County"] = queue_item.get("ship_to_county", "")
+        correct_rate = queue_item.get("correct_rate")
+        df.loc[idx, "Correct_Rate"] = f"{correct_rate}%" if correct_rate else ""
+        df.loc[idx, "Rate_Source"] = queue_item.get("rate_source", "")
         matched_count += 1
 
     if matched_count < len(analysis_queue):

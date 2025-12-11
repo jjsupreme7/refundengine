@@ -77,6 +77,12 @@ OUTPUT_COLUMNS = [
     # Human Review Flags
     "Needs_Review",        # Boolean - flag for human attention when uncertain
     "Follow_Up_Questions", # Specific questions to investigate
+
+    # Rate Lookup Info (for Wrong Rate detection)
+    "Resolved_City",       # City from Site ID lookup or invoice
+    "Resolved_County",     # County from Site ID lookup
+    "Correct_Rate",        # Official WA rate for location + date
+    "Rate_Source",         # "historical" or "current"
 ]
 
 # ============================================================================

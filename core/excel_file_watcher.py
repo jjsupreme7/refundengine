@@ -63,7 +63,9 @@ class ExcelFileWatcher:
         'Legal_Citation', 'AI_Confidence', 'AI_Reasoning',
         'Anomalies_Detected', 'Patterns_Applied',
         # Human review flags
-        'Needs_Review', 'Follow_Up_Questions'
+        'Needs_Review', 'Follow_Up_Questions',
+        # Rate lookup info
+        'Resolved_City', 'Resolved_County', 'Correct_Rate', 'Rate_Source'
     }
 
     def get_row_hash(self, row: pd.Series) -> str:
