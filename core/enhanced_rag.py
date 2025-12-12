@@ -804,6 +804,9 @@ Return JSON array of indices in order of MOST to LEAST relevant:
             print(f"   Searching with variation {i + 1}: {q[:80]}...")
             chunks = self.basic_search(q, top_k=3)
 
+            # Count unique before adding to seen_ids
+            unique_count = len([c for c in chunks if c.get("id") not in seen_ids])
+
             for chunk in chunks:
                 chunk_id = chunk.get("id")
                 if chunk_id not in seen_ids:
@@ -812,8 +815,7 @@ Return JSON array of indices in order of MOST to LEAST relevant:
                     all_chunks.append(chunk)
                     seen_ids.add(chunk_id)
 
-            print(f"      Found {len(chunks)} chunks ({
-                len([c for c in chunks if c.get('id') not in seen_ids])} unique)")
+            print(f"      Found {len(chunks)} chunks ({unique_count} unique)")
 
         # Step 3: Rerank combined results
         print(f"   Reranking {len(all_chunks)} total chunks...")
@@ -896,7 +898,7 @@ Return JSON:
             response = (
                 self.supabase.table("tax_law_chunks")  # Updated to new schema table
                 .select("*")
-                .textSearch("chunk_text", query)
+                .text_search("chunk_text", query)
                 .limit(top_k)
                 .execute()
             )
@@ -1033,6 +1035,9 @@ Return JSON:
                               } vector + {len(keyword_results)} keyword chunks\n")
 
         print(f"📊 Total candidates: {len(all_candidates)}\n")
+
+        # Sort candidates by similarity score before validation
+        all_candidates.sort(key=lambda x: x.get("similarity", 0), reverse=True)
 
         # Step 3: Corrective validation
         print(f"🔍 Corrective RAG: Validating {len(all_candidates)} candidates...")

@@ -47,7 +47,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Imports
 from dotenv import load_dotenv  # noqa: E402
-from openai import OpenAI  # noqa: E402
 
 from core.database import get_supabase_client  # noqa: E402
 from core.wa_tax_rate_lookup import compare_rate, get_correct_rate  # noqa: E402
@@ -61,9 +60,6 @@ from core.historical_rates import HistoricalRateDB  # noqa: E402
 
 # Load environment
 load_dotenv()
-
-# Initialize clients
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize Supabase (optional - will work without it)
 try:
@@ -1565,6 +1561,7 @@ def main():
 
     # Initialize ExcelFileWatcher for intelligent row tracking
     print("\n🔍 Checking for changes...")
+    watcher = ExcelFileWatcher()
 
     # Try to find file_id from versioning system first
     file_id = None
@@ -1615,7 +1612,6 @@ def main():
         # Option 2: Fallback to row-level hash checking (less intelligent)
         else:
             print(f"  🔍 Checking row-level changes (hash-based)...")
-            watcher = ExcelFileWatcher()
             changed_rows = watcher.get_changed_rows(args.excel, df)
 
             if changed_rows:
@@ -1885,7 +1881,7 @@ def main():
 
         # Calculate tax rate from invoice data
         subtotal = inv_data.get("subtotal", 0)
-        inv_tax = inv_data.get("tax", tax)
+        inv_tax = inv_data.get("tax_amount", inv_data.get("tax", tax))
         tax_rate_charged = (inv_tax / subtotal * 100) if subtotal and subtotal > 0 else 0
 
         # Look up correct WA tax rate (if we have location)
