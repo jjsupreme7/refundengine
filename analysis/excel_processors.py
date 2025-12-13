@@ -37,60 +37,57 @@ class DenodoSalesTaxProcessor:
     - Vendor information
     - Tax codes and jurisdictions
     - Analysis and decision fields
+
+    Enhanced features:
+    - WIP sheet auto-detection
+    - Row ID generation (DEN_1, DEN_2, etc.)
+    - Combined description field
+    - Tax type determination (Sales/Use/Both)
+    - Standardized Tax column
     """
 
-    # Key columns for refund analysis
-    DECISION_COLUMNS = [
-        "Final Decision",
-        "Recon Analysis",
-        "Notes",
-        "Tax Category",
-        "Add'l info",
-        "Refund Basis",
-        "Rate",
-    ]
-
-    FINANCIAL_COLUMNS = [
-        "hwste_tax_amount_lc",  # Tax amount in local currency (CRITICAL)
-        "hwbas_tax_base_lc",  # Tax base in local currency
-        "fwste_tax_amount_dc",  # Tax amount in document currency
-        "fwbas_tax_base_dc",  # Tax base in document currency
-        "sales_tax_line",
-        "sales_tax_tot_inv_bset",
-        "use_tax_line",
-        "use_tax_tot_inv",
-        "total_tax_amount",
-    ]
-
+    # Slimmed down columns for analysis (16 essential columns)
+    # Identification
     IDENTIFICATION_COLUMNS = [
-        "xblnr_invoice_number",
-        "belnr_accounting_document_number",
-        "ebeln_po_number",
-        "ebelp_po_line_item",
-        "vendor",
-        "lifnr_po_vendor",
-        "name1_po_vendor_name",
-        "bukrs_company_code",
-        "bukrs_company_code_desc",
+        "name1_po_vendor_name",      # Vendor name
+        "xblnr_invoice_number",      # Invoice ID
     ]
 
-    DATE_COLUMNS = ["bldat_document_date", "budat_posting_date"]
+    # Financial
+    FINANCIAL_COLUMNS = [
+        "hwste_tax_amount_lc",       # Original tax amount (for reference)
+        "sales_tax_line",            # For tax type determination
+        "use_tax_line",              # For tax type determination
+    ]
 
+    # Decision/Analysis
+    DECISION_COLUMNS = [
+        "Final Decision",            # Skip if already done
+        "Refund Basis",              # Existing determination
+        "Tax Category",              # Classification
+    ]
+
+    # Date
+    DATE_COLUMNS = ["bldat_document_date"]
+
+    # Tax Classification
     TAX_CLASSIFICATION_COLUMNS = [
-        "mwskz_tax_code",
-        "derived_tax_code",
-        "sales_tax_tax_code",
-        "use_tax_tax_code",
-        "tax_jurisdiction_state",
-        "taxjcd_wbs_tax_jurisdiction",
+        "tax_jurisdiction_state",    # Jurisdiction
+        "mwskz_tax_code",            # Tax code
     ]
 
+    # Product (used for Combined_Description)
     PRODUCT_COLUMNS = [
         "txz01_po_description",
         "maktx_material_description",
-        "matk1_po_material_group",
-        "matk1_po_material_group_desc",
         "txt50_account_description",
+    ]
+
+    # Document paths
+    DOCUMENT_COLUMNS = [
+        "Invoice Folder Path",
+        "Inv 1 File Name",
+        "Inv 2 File Name",
     ]
 
     def __init__(self):
@@ -123,17 +120,23 @@ class DenodoSalesTaxProcessor:
 
         # Auto-detect data sheet if not specified
         if sheet_name is None:
-            # Look for sheet with "tax items" or largest sheet
+            # Priority 1: Look for WIP sheet
             for sheet in excel_file.sheet_names:
-                if (
-                    "tax items" in sheet.lower()
-                    or "q1" in sheet.lower()
-                    or "q2" in sheet.lower()
-                ):
+                if "wip" in sheet.lower():
                     sheet_name = sheet
                     break
+            # Priority 2: Look for sheet with "tax items" or quarter
             if sheet_name is None:
-                # Use first sheet
+                for sheet in excel_file.sheet_names:
+                    if (
+                        "tax items" in sheet.lower()
+                        or "q1" in sheet.lower()
+                        or "q2" in sheet.lower()
+                    ):
+                        sheet_name = sheet
+                        break
+            # Priority 3: Use first sheet
+            if sheet_name is None:
                 sheet_name = excel_file.sheet_names[0]
 
         print(f"Loading sheet: {sheet_name}")
@@ -159,6 +162,54 @@ class DenodoSalesTaxProcessor:
                 f"Available columns: {list(df.columns[:10])}..."
             )
 
+    def _combine_descriptions(self, df: pd.DataFrame) -> pd.Series:
+        """Combine PO, Material, and GL descriptions into one field"""
+        col_prefix_map = [
+            ("txz01_po_description", "PO"),
+            ("maktx_material_description", "Material"),
+            ("txt50_account_description", "GL"),
+        ]
+
+        def combine_row(row):
+            parts = []
+            for col, prefix in col_prefix_map:
+                if col in df.columns:
+                    val = row.get(col, "")
+                    if pd.notna(val) and str(val).strip():
+                        parts.append(f"{prefix}: {val}")
+            return " | ".join(parts) if parts else ""
+
+        return df.apply(combine_row, axis=1)
+
+    def _determine_tax_type(self, df: pd.DataFrame) -> pd.Series:
+        """Determine tax type based on sales_tax_line and use_tax_line values"""
+        sales_tax = df.get("sales_tax_line", pd.Series([0] * len(df))).fillna(0)
+        use_tax = df.get("use_tax_line", pd.Series([0] * len(df))).fillna(0)
+
+        def classify(idx):
+            s = float(sales_tax.iloc[idx]) if idx < len(sales_tax) else 0
+            u = float(use_tax.iloc[idx]) if idx < len(use_tax) else 0
+            if s > 0 and u > 0:
+                return "Both"
+            elif s > 0:
+                return "Sales"
+            elif u > 0:
+                return "Use"
+            return "Unknown"
+
+        return pd.Series([classify(i) for i in range(len(df))], index=df.index)
+
+    def _calculate_tax(self, df: pd.DataFrame) -> pd.Series:
+        """Calculate standardized Tax column with priority-based selection"""
+        if "hwste_tax_amount_lc" in df.columns:
+            return df["hwste_tax_amount_lc"].fillna(0)
+        elif "total_tax_amount" in df.columns:
+            return df["total_tax_amount"].fillna(0)
+        else:
+            sales = df.get("sales_tax_line", pd.Series([0] * len(df))).fillna(0)
+            use = df.get("use_tax_line", pd.Series([0] * len(df))).fillna(0)
+            return sales + use
+
     def extract_key_fields(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Extract only the key fields needed for refund analysis
@@ -167,7 +218,11 @@ class DenodoSalesTaxProcessor:
             df: Full Denodo DataFrame
 
         Returns:
-            DataFrame with only key analysis columns
+            DataFrame with key analysis columns plus enhanced fields:
+            - Row_ID: Unique identifier (DEN_1, DEN_2, etc.)
+            - Combined_Description: Merged PO/Material/GL descriptions
+            - Tax_Type: Sales, Use, Both, or Unknown
+            - Tax: Standardized tax amount
         """
         # Combine all key column lists
         key_columns = (
@@ -177,12 +232,21 @@ class DenodoSalesTaxProcessor:
             + self.DATE_COLUMNS
             + self.TAX_CLASSIFICATION_COLUMNS
             + self.PRODUCT_COLUMNS
+            + self.DOCUMENT_COLUMNS
         )
 
         # Filter to only columns that exist in the DataFrame
         available_columns = [col for col in key_columns if col in df.columns]
 
-        return df[available_columns].copy()
+        result = df[available_columns].copy()
+
+        # Add enhanced columns
+        result.insert(0, "Row_ID", [f"DEN_{i+1}" for i in range(len(df))])
+        result["Combined_Description"] = self._combine_descriptions(df)
+        result["Tax_Type"] = self._determine_tax_type(df)
+        result["Tax"] = self._calculate_tax(df)
+
+        return result
 
     def get_summary_stats(self, df: pd.DataFrame) -> Dict:
         """
@@ -253,51 +317,47 @@ class UseTaxProcessor:
     - Tax amounts and rates
     - Research status and analysis
     - Decision and categorization fields
+
+    Enhanced features:
+    - WIP sheet auto-detection
+    - Row ID generation (USE_P3_1, USE_P3_2, etc.)
+    - Standardized Tax column
     """
 
-    # Key columns
+    # Slimmed down columns for analysis (13 essential columns)
+    # Identification
     IDENTIFICATION_COLUMNS = [
-        "Vendor Number",
-        "Vendor Name",
-        "INVNO",
-        "Voucher Number",
-        "PO Number",
-        "Company Code",
+        "Vendor Name",               # Who sold it
+        "INVNO",                     # Invoice ID
     ]
 
+    # Financial
     FINANCIAL_COLUMNS = [
-        "Total Tax",  # CRITICAL - the tax amount
-        "Tax Remit",
-        "Tax Rate Charged",
+        "Total Tax",                 # The money
     ]
 
-    LOCATION_COLUMNS = ["STATE"]
+    # Location
+    LOCATION_COLUMNS = ["STATE"]     # Jurisdiction
 
-    RESEARCH_COLUMNS = [
-        "Invoices to Research",
-        "Status",
-        "R&D Assignment",
-        "Checked for sales tax paid?",
-        "KOM Analysis & Notes",
-    ]
-
+    # Decision/Analysis
     DECISION_COLUMNS = [
-        "Final Decision",
-        "Tax Category",
-        "Add'l Info",
-        "Refund Basis",
-        "Tower vendor invoice description",
-        "Back up argument for SIRC risk",
+        "Final Decision",            # Skip if already done
+        "Refund Basis",              # Existing determination
+        "Tax Category",              # Classification
     ]
 
+    # Classification
     CLASSIFICATION_COLUMNS = [
-        "INDICATOR",
-        "Vertex Category",
-        "Description",
-        "Invoice Line Item",
+        "Vertex Category",           # Product classification
+        "Description",               # What was purchased
     ]
 
-    DOCUMENT_COLUMNS = ["Inv-1PDF", "Inv-2 PDF", "Inv-1 Hyperlink", "Inv-2 Hyperlink"]
+    # Document paths
+    DOCUMENT_COLUMNS = [
+        "Invoice Folder Path",
+        "Inv-1 File Name",
+        "Inv-2 File Name",
+    ]
 
     def __init__(self):
         """Initialize the Use Tax processor"""
@@ -325,11 +385,18 @@ class UseTaxProcessor:
 
         # Auto-detect data sheet if not specified
         if sheet_name is None:
-            # Look for year sheet (e.g., "2023") or use first sheet
+            # Priority 1: Look for WIP sheet
             for sheet in excel_file.sheet_names:
-                if sheet.isdigit():  # Year sheet like "2023"
+                if "wip" in sheet.lower():
                     sheet_name = sheet
                     break
+            # Priority 2: Look for year sheet (e.g., "2023")
+            if sheet_name is None:
+                for sheet in excel_file.sheet_names:
+                    if sheet.isdigit():
+                        sheet_name = sheet
+                        break
+            # Priority 3: Use first sheet
             if sheet_name is None:
                 sheet_name = excel_file.sheet_names[0]
 
@@ -355,24 +422,38 @@ class UseTaxProcessor:
                 f"Available columns: {list(df.columns[:10])}..."
             )
 
+    def _calculate_tax(self, df: pd.DataFrame) -> pd.Series:
+        """Calculate standardized Tax column"""
+        if "Total Tax" in df.columns:
+            return df["Total Tax"].fillna(0)
+        return pd.Series([0] * len(df), index=df.index)
+
     def extract_key_fields(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Extract only the key fields needed for refund analysis
 
         Returns:
-            DataFrame with only key columns
+            DataFrame with key columns plus enhanced fields:
+            - Row_ID: Unique identifier (USE_P3_1, USE_P3_2, etc.)
+            - Tax: Standardized tax amount
         """
         key_columns = (
             self.IDENTIFICATION_COLUMNS
             + self.FINANCIAL_COLUMNS
             + self.LOCATION_COLUMNS
-            + self.RESEARCH_COLUMNS
             + self.DECISION_COLUMNS
             + self.CLASSIFICATION_COLUMNS
+            + self.DOCUMENT_COLUMNS
         )
 
         available_columns = [col for col in key_columns if col in df.columns]
-        return df[available_columns].copy()
+        result = df[available_columns].copy()
+
+        # Add enhanced columns
+        result.insert(0, "Row_ID", [f"USE_P3_{i+1}" for i in range(len(df))])
+        result["Tax"] = self._calculate_tax(df)
+
+        return result
 
     def get_summary_stats(self, df: pd.DataFrame) -> Dict:
         """Get summary statistics for the use tax dataset"""
