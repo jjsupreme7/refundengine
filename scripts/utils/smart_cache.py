@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import sqlite3
+import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -25,12 +26,16 @@ class SmartCache:
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
+        # Thread lock for SQLite operations
+        self._lock = threading.Lock()
+
         # Load vendor database
         self.vendor_db = self._load_vendor_database()
 
         # Initialize SQLite caches
         self.invoice_cache_db = self._init_invoice_cache()
         self.rag_cache_db = self._init_rag_cache()
+        self.analysis_cache_db = self._init_analysis_cache()
 
     def _load_vendor_database(self) -> Dict:
         """Load vendor database from JSON"""
@@ -46,7 +51,7 @@ class SmartCache:
     def _init_invoice_cache(self) -> sqlite3.Connection:
         """Initialize invoice extraction cache (SQLite)"""
         db_path = self.cache_dir / "invoice_cache.db"
-        conn = sqlite3.connect(str(db_path))
+        conn = sqlite3.connect(str(db_path), check_same_thread=False)
 
         conn.execute(
             """
@@ -73,7 +78,7 @@ class SmartCache:
     def _init_rag_cache(self) -> sqlite3.Connection:
         """Initialize RAG results cache (SQLite)"""
         db_path = self.cache_dir / "rag_cache.db"
-        conn = sqlite3.connect(str(db_path))
+        conn = sqlite3.connect(str(db_path), check_same_thread=False)
 
         conn.execute(
             """
@@ -91,6 +96,38 @@ class SmartCache:
             """
             CREATE INDEX IF NOT EXISTS idx_state_category
             ON rag_cache(state_code, category)
+        """
+        )
+
+        conn.commit()
+        return conn
+
+    def _init_analysis_cache(self) -> sqlite3.Connection:
+        """Initialize analysis results cache (vendor+category based)"""
+        db_path = self.cache_dir / "analysis_cache.db"
+        conn = sqlite3.connect(str(db_path), check_same_thread=False)
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS analysis_cache (
+                cache_key TEXT PRIMARY KEY,
+                vendor_name TEXT,
+                category TEXT,
+                state_code TEXT,
+                tax_type TEXT,
+                analysis_result TEXT,
+                confidence REAL,
+                hit_count INTEGER DEFAULT 1,
+                cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP
+            )
+        """
+        )
+
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_vendor_category
+            ON analysis_cache(vendor_name, category, state_code)
         """
         )
 
@@ -141,30 +178,31 @@ class SmartCache:
         """
         file_hash = self._hash_file(file_path)
 
-        cursor = self.invoice_cache_db.execute(
-            """
-            SELECT invoice_data, expires_at
-            FROM invoice_cache
-            WHERE file_hash = ?
-        """,
-            (file_hash,),
-        )
-
-        row = cursor.fetchone()
-        if not row:
-            return None
-
-        invoice_data_json, expires_at_str = row
-
-        # Check if expired
-        expires_at = datetime.fromisoformat(expires_at_str)
-        if datetime.now() > expires_at:
-            # Clean up expired entry
-            self.invoice_cache_db.execute(
-                "DELETE FROM invoice_cache WHERE file_hash = ?", (file_hash,)
+        with self._lock:
+            cursor = self.invoice_cache_db.execute(
+                """
+                SELECT invoice_data, expires_at
+                FROM invoice_cache
+                WHERE file_hash = ?
+            """,
+                (file_hash,),
             )
-            self.invoice_cache_db.commit()
-            return None
+
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            invoice_data_json, expires_at_str = row
+
+            # Check if expired
+            expires_at = datetime.fromisoformat(expires_at_str)
+            if datetime.now() > expires_at:
+                # Clean up expired entry
+                self.invoice_cache_db.execute(
+                    "DELETE FROM invoice_cache WHERE file_hash = ?", (file_hash,)
+                )
+                self.invoice_cache_db.commit()
+                return None
 
         return json.loads(invoice_data_json)
 
@@ -180,16 +218,17 @@ class SmartCache:
         file_hash = self._hash_file(file_path)
         expires_at = datetime.now() + timedelta(days=ttl_days)
 
-        self.invoice_cache_db.execute(
-            """
-            INSERT OR REPLACE INTO invoice_cache
-            (file_hash, file_path, invoice_data, expires_at)
-            VALUES (?, ?, ?, ?)
-        """,
-            (file_hash, file_path, json.dumps(invoice_data), expires_at.isoformat()),
-        )
+        with self._lock:
+            self.invoice_cache_db.execute(
+                """
+                INSERT OR REPLACE INTO invoice_cache
+                (file_hash, file_path, invoice_data, expires_at)
+                VALUES (?, ?, ?, ?)
+            """,
+                (file_hash, file_path, json.dumps(invoice_data), expires_at.isoformat()),
+            )
 
-        self.invoice_cache_db.commit()
+            self.invoice_cache_db.commit()
 
     def get_rag_results(
         self, category: str, state_code: str = "WA"
@@ -204,31 +243,32 @@ class SmartCache:
         Returns:
             Cached RAG results or None
         """
-        cursor = self.rag_cache_db.execute(
-            """
-            SELECT results, expires_at
-            FROM rag_cache
-            WHERE category = ? AND state_code = ?
-        """,
-            (category, state_code),
-        )
-
-        row = cursor.fetchone()
-        if not row:
-            return None
-
-        results_json, expires_at_str = row
-
-        # Check if expired
-        expires_at = datetime.fromisoformat(expires_at_str)
-        if datetime.now() > expires_at:
-            # Clean up expired entry
-            self.rag_cache_db.execute(
-                "DELETE FROM rag_cache WHERE category = ? AND state_code = ?",
+        with self._lock:
+            cursor = self.rag_cache_db.execute(
+                """
+                SELECT results, expires_at
+                FROM rag_cache
+                WHERE category = ? AND state_code = ?
+            """,
                 (category, state_code),
             )
-            self.rag_cache_db.commit()
-            return None
+
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            results_json, expires_at_str = row
+
+            # Check if expired
+            expires_at = datetime.fromisoformat(expires_at_str)
+            if datetime.now() > expires_at:
+                # Clean up expired entry
+                self.rag_cache_db.execute(
+                    "DELETE FROM rag_cache WHERE category = ? AND state_code = ?",
+                    (category, state_code),
+                )
+                self.rag_cache_db.commit()
+                return None
 
         return json.loads(results_json)
 
@@ -250,42 +290,204 @@ class SmartCache:
         """
         expires_at = datetime.now() + timedelta(days=ttl_days)
 
-        self.rag_cache_db.execute(
-            """
-            INSERT OR REPLACE INTO rag_cache
-            (category, state_code, results, expires_at)
-            VALUES (?, ?, ?, ?)
-        """,
-            (category, state_code, json.dumps(results), expires_at.isoformat()),
-        )
+        with self._lock:
+            self.rag_cache_db.execute(
+                """
+                INSERT OR REPLACE INTO rag_cache
+                (category, state_code, results, expires_at)
+                VALUES (?, ?, ?, ?)
+            """,
+                (category, state_code, json.dumps(results), expires_at.isoformat()),
+            )
 
-        self.rag_cache_db.commit()
+            self.rag_cache_db.commit()
+
+    # ========== Analysis Cache (vendor+category based) ==========
+
+    def _make_analysis_key(
+        self,
+        vendor_name: str,
+        category: str,
+        state_code: str = "WA",
+        tax_type: str = "sales_tax"
+    ) -> str:
+        """Generate cache key from vendor+category+state+tax_type"""
+        # Normalize vendor name (lowercase, strip whitespace)
+        vendor_normalized = vendor_name.lower().strip()
+        category_normalized = category.lower().strip()
+        key = f"{vendor_normalized}|{category_normalized}|{state_code}|{tax_type}"
+        return hashlib.md5(key.encode()).hexdigest()
+
+    def get_analysis_result(
+        self,
+        vendor_name: str,
+        category: str,
+        state_code: str = "WA",
+        tax_type: str = "sales_tax"
+    ) -> Optional[Dict]:
+        """
+        Get cached analysis result for vendor+category combination.
+
+        Args:
+            vendor_name: Vendor name (e.g., 'Microsoft')
+            category: Product category (e.g., 'cloud_saas')
+            state_code: State code (default: 'WA')
+            tax_type: Tax type (default: 'sales_tax')
+
+        Returns:
+            Cached analysis dict or None if not found/expired
+        """
+        cache_key = self._make_analysis_key(vendor_name, category, state_code, tax_type)
+
+        with self._lock:
+            cursor = self.analysis_cache_db.execute(
+                """
+                SELECT analysis_result, confidence, expires_at, hit_count
+                FROM analysis_cache
+                WHERE cache_key = ?
+            """,
+                (cache_key,),
+            )
+
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            analysis_json, confidence, expires_at_str, hit_count = row
+
+            # Check if expired
+            expires_at = datetime.fromisoformat(expires_at_str)
+            if datetime.now() > expires_at:
+                self.analysis_cache_db.execute(
+                    "DELETE FROM analysis_cache WHERE cache_key = ?", (cache_key,)
+                )
+                self.analysis_cache_db.commit()
+                return None
+
+            # Increment hit count
+            self.analysis_cache_db.execute(
+                "UPDATE analysis_cache SET hit_count = hit_count + 1 WHERE cache_key = ?",
+                (cache_key,),
+            )
+            self.analysis_cache_db.commit()
+
+        result = json.loads(analysis_json)
+        result["_cache_hit"] = True
+        result["_cache_confidence"] = confidence
+        result["_cache_hits"] = hit_count + 1
+        return result
+
+    def set_analysis_result(
+        self,
+        vendor_name: str,
+        category: str,
+        analysis_result: Dict,
+        confidence: float = 0.0,
+        state_code: str = "WA",
+        tax_type: str = "sales_tax",
+        ttl_days: int = 30,
+    ):
+        """
+        Cache analysis result for vendor+category combination.
+
+        Args:
+            vendor_name: Vendor name
+            category: Product category
+            analysis_result: Analysis result dict
+            confidence: AI confidence score (0-1)
+            state_code: State code
+            tax_type: Tax type
+            ttl_days: Time to live in days (default: 30)
+        """
+        cache_key = self._make_analysis_key(vendor_name, category, state_code, tax_type)
+        expires_at = datetime.now() + timedelta(days=ttl_days)
+
+        # Remove cache metadata before storing
+        result_to_store = {k: v for k, v in analysis_result.items() if not k.startswith("_cache")}
+
+        with self._lock:
+            self.analysis_cache_db.execute(
+                """
+                INSERT OR REPLACE INTO analysis_cache
+                (cache_key, vendor_name, category, state_code, tax_type,
+                 analysis_result, confidence, expires_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    cache_key,
+                    vendor_name.lower().strip(),
+                    category.lower().strip(),
+                    state_code,
+                    tax_type,
+                    json.dumps(result_to_store),
+                    confidence,
+                    expires_at.isoformat(),
+                ),
+            )
+            self.analysis_cache_db.commit()
+
+    def get_analysis_cache_stats(self) -> Dict[str, Any]:
+        """Get analysis cache statistics"""
+        with self._lock:
+            # Overall stats
+            cursor = self.analysis_cache_db.execute(
+                """
+                SELECT
+                    COUNT(*) as total,
+                    SUM(hit_count) as total_hits,
+                    AVG(confidence) as avg_confidence
+                FROM analysis_cache
+                WHERE expires_at > datetime('now')
+            """
+            )
+            stats = cursor.fetchone()
+
+            # Top vendors by cache hits
+            cursor = self.analysis_cache_db.execute(
+                """
+                SELECT vendor_name, SUM(hit_count) as hits
+                FROM analysis_cache
+                WHERE expires_at > datetime('now')
+                GROUP BY vendor_name
+                ORDER BY hits DESC
+                LIMIT 10
+            """
+            )
+            top_vendors = cursor.fetchall()
+
+        return {
+            "total_entries": stats[0] or 0,
+            "total_hits": stats[1] or 0,
+            "avg_confidence": round(stats[2] or 0, 2),
+            "top_vendors": [{"vendor": v[0], "hits": v[1]} for v in top_vendors],
+        }
 
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
-        # Invoice cache stats
-        cursor = self.invoice_cache_db.execute(
+        with self._lock:
+            # Invoice cache stats
+            cursor = self.invoice_cache_db.execute(
+                """
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN expires_at > datetime('now') THEN 1 ELSE 0 END) as valid,
+                    SUM(CASE WHEN expires_at <= datetime('now') THEN 1 ELSE 0 END) as expired
+                FROM invoice_cache
             """
-            SELECT
-                COUNT(*) as total,
-                SUM(CASE WHEN expires_at > datetime('now') THEN 1 ELSE 0 END) as valid,
-                SUM(CASE WHEN expires_at <= datetime('now') THEN 1 ELSE 0 END) as expired
-            FROM invoice_cache
-        """
-        )
-        invoice_stats = cursor.fetchone()
+            )
+            invoice_stats = cursor.fetchone()
 
-        # RAG cache stats
-        cursor = self.rag_cache_db.execute(
+            # RAG cache stats
+            cursor = self.rag_cache_db.execute(
+                """
+                SELECT
+                    COUNT(*) as total,
+                    SUM(CASE WHEN expires_at > datetime('now') THEN 1 ELSE 0 END) as valid,
+                    SUM(CASE WHEN expires_at <= datetime('now') THEN 1 ELSE 0 END) as expired
+                FROM rag_cache
             """
-            SELECT
-                COUNT(*) as total,
-                SUM(CASE WHEN expires_at > datetime('now') THEN 1 ELSE 0 END) as valid,
-                SUM(CASE WHEN expires_at <= datetime('now') THEN 1 ELSE 0 END) as expired
-            FROM rag_cache
-        """
-        )
-        rag_stats = cursor.fetchone()
+            )
+            rag_stats = cursor.fetchone()
 
         return {
             "vendor_database": {"total_vendors": len(self.vendor_db)},
@@ -303,24 +505,34 @@ class SmartCache:
 
     def cleanup_expired(self):
         """Remove expired cache entries"""
-        # Clean invoice cache
-        self.invoice_cache_db.execute(
+        with self._lock:
+            # Clean invoice cache
+            self.invoice_cache_db.execute(
+                """
+                DELETE FROM invoice_cache
+                WHERE expires_at <= datetime('now')
             """
-            DELETE FROM invoice_cache
-            WHERE expires_at <= datetime('now')
-        """
-        )
+            )
 
-        # Clean RAG cache
-        self.rag_cache_db.execute(
+            # Clean RAG cache
+            self.rag_cache_db.execute(
+                """
+                DELETE FROM rag_cache
+                WHERE expires_at <= datetime('now')
             """
-            DELETE FROM rag_cache
-            WHERE expires_at <= datetime('now')
-        """
-        )
+            )
 
-        self.invoice_cache_db.commit()
-        self.rag_cache_db.commit()
+            # Clean analysis cache
+            self.analysis_cache_db.execute(
+                """
+                DELETE FROM analysis_cache
+                WHERE expires_at <= datetime('now')
+            """
+            )
+
+            self.invoice_cache_db.commit()
+            self.rag_cache_db.commit()
+            self.analysis_cache_db.commit()
 
     def _hash_file(self, file_path: str) -> str:
         """Generate hash of file for caching"""
@@ -334,3 +546,4 @@ class SmartCache:
         """Close database connections"""
         self.invoice_cache_db.close()
         self.rag_cache_db.close()
+        self.analysis_cache_db.close()

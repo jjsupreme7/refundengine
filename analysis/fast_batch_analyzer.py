@@ -31,6 +31,7 @@ Usage:
 """
 
 import argparse
+import io
 import json
 import os
 import re
@@ -38,6 +39,11 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 import pandas as pd
 from tqdm import tqdm
@@ -1287,13 +1293,19 @@ Set needs_review: true when:
 - Description is vague (e.g., "Professional Services" with no detail)
 - Classification could change based on missing information
 - Amount seems unusual for the product type
+- You cannot find specific legal text supporting your conclusion
+- The transaction type is unclear (service vs. tangible property)
 
 Provide follow_up_questions when flagging:
 - Be SPECIFIC about what information would change the answer
 - Examples: "Is this a perpetual license or a maintenance renewal?"
 - Examples: "Was this equipment installed out-of-state?"
 - Examples: "Is this a SaaS subscription or on-premise software?"
+- Examples: "Was this installation service performed on real property?"
 - Use empty array [] when needs_review is false
+
+IMPORTANT: It's better to flag for review with specific questions than to provide
+a confident-sounding but uncertain analysis. Users appreciate honest uncertainty.
 
 Always make your best determination AND flag what to verify.
 
@@ -1329,10 +1341,11 @@ CRITICAL - LEGAL CITATIONS REQUIRED:
 Every tax decision MUST cite the specific applicable law. Do NOT guess or make up citations.
 Think carefully: What WAC or RCW section governs this type of transaction?
 - For software/digital products: WAC 458-20-15501, 15502, 15503
-- For services: WAC 458-20-224
+- For services (B&O classification): WAC 458-20-224
 - For sourcing/location: WAC 458-20-145
 - For use tax: WAC 458-20-178, RCW 82.12.020
 - For retail sales: RCW 82.08.020
+- For construction/installation: WAC 458-20-170, WAC 458-20-171
 
 If you're unsure which law applies, reason through it step by step:
 1. What type of product/service is this?
@@ -1341,6 +1354,15 @@ If you're unsure which law applies, reason through it step by step:
 4. What does Washington law say about that category?
 
 Never skip the citation - every tax determination has a legal basis.
+
+ANTI-HALLUCINATION WARNING:
+- ONLY cite what the law actually says - DO NOT fabricate legal language
+- If you cite a WAC/RCW, only describe provisions you're certain exist
+- When uncertain about specific legal language, say: "Based on general WA tax principles..."
+- It's better to say "I'm uncertain about the specific legal provision" than to invent text
+- For services: WAC 458-20-224 covers B&O tax CLASSIFICATION, not sales tax exemptions
+- Installation services on real property are generally taxable as retail sales (WAC 458-20-170)
+- If you cannot find specific legal support in the LEGAL CONTEXT section, flag for review
 
 KNOWLEDGE SOURCES:
 - Tax Law Context: Legal citations and rules (PRIMARY - 80-90% weight)
@@ -1662,23 +1684,92 @@ def main():
         except (ValueError, TypeError):
             return default
 
-    INV_COL_NAMES = ["Inv-1 FileName", "Inv_1_File", "Invoice_File_Name_1"]
-    PO_COL_NAMES = ["PO_FileName", "PO_File", "Purchase_Order_File_Name"]
+    # Column name variants to support different file formats
+    INV_COL_NAMES = [
+        "Inv 1 File Name", "Inv-1 File Name",  # Denodo/Use Tax actual names
+        "Inv-1 FileName", "Inv_1_File", "Invoice_File_Name_1"
+    ]
+    INV2_COL_NAMES = [
+        "Inv 2 File Name", "Inv-2 File Name",  # Denodo/Use Tax actual names
+        "Inv-2 FileName", "Inv_2_File", "Invoice_File_Name_2"
+    ]
+    PO_COL_NAMES = [
+        "PO File Name",  # Denodo/Use Tax actual name
+        "PO_FileName", "PO_File", "Purchase_Order_File_Name"
+    ]
     AMOUNT_COL_NAMES = ["Initial Amount", "Amount", "Total_Amount"]
-    TAX_COL_NAMES = ["Tax Paid", "Tax Remitted", "Tax", "Tax_Amount"]
-    DESC_COL_NAMES = ["Description", "Line_Item_Description", "Product_Description"]
-    INV_FOLDER_COL_NAMES = ["Invoice_Folder", "Inv_Folder", "Invoice_Path"]
-    PO_FOLDER_COL_NAMES = ["PO_Folder", "Purchase_Order_Folder", "PO_Path"]
+    TAX_COL_NAMES = [
+        "hwste_tax_amount_lc", "Total Tax",  # Denodo/Use Tax actual names
+        "Tax Paid", "Tax Remitted", "Tax", "Tax_Amount"
+    ]
+    DESC_COL_NAMES = [
+        "txz01_po_description", "Description",  # Denodo/Use Tax actual names
+        "Line_Item_Description", "Product_Description"
+    ]
+    INV_FOLDER_COL_NAMES = [
+        "Invoice Folder Path",  # Denodo/Use Tax actual name
+        "Invoice_Folder", "Inv_Folder", "Invoice_Path"
+    ]
+    PO_FOLDER_COL_NAMES = [
+        "PO Folder Path",  # Denodo/Use Tax actual name
+        "PO_Folder", "Purchase_Order_Folder", "PO_Path"
+    ]
     SITE_ID_COL_NAMES = ["Site_ID", "SiteID", "Site ID", "Location_ID", "LocationID"]
+    # Tax jurisdiction state columns (for out-of-state detection)
+    TAX_STATE_COL_NAMES = [
+        "tax_jurisdiction_state", "sales_tax_state",  # Denodo actual names
+        "Tax_State", "Jurisdiction_State", "State"
+    ]
+    # KOM analysis/comments columns (skip rows already analyzed)
+    KOM_COMMENTS_COL_NAMES = [
+        "KOM Analysis & Notes",  # Use Tax actual name
+        "Recon Analysis",  # Denodo actual name
+        "KOM_Analysis", "Analysis_Notes", "Comments"
+    ]
+    # Essential output columns (slim output - only keep these from source + AI outputs)
+    ESSENTIAL_OUTPUT_COLS = [
+        # Key identifiers
+        "Vendor", "name1_po_vendor_name",
+        "Inv 1 File Name", "Inv-1 File Name",
+        "Inv 2 File Name", "Inv-2 File Name",
+        "Invoice Folder Path",
+        # Financial
+        "Initial Amount", "Amount",
+        "hwste_tax_amount_lc", "Total Tax", "Tax Paid", "Tax Remitted",
+        # Description
+        "txz01_po_description", "Description",
+        # Location
+        "tax_jurisdiction_state", "sales_tax_state",
+        # AI Analysis outputs (added by this script)
+        "Product_Desc", "Product_Type", "Refund_Basis", "Citation",
+        "Confidence", "Estimated_Refund", "Explanation",
+        "Needs_Review", "Follow_Up_Questions", "AI_Reasoning",
+    ]
 
     # Get unique invoices - try multiple column names
     inv_col = next((c for c in INV_COL_NAMES if c in df.columns), None)
+    inv2_col = next((c for c in INV2_COL_NAMES if c in df.columns), None)
     po_col = next((c for c in PO_COL_NAMES if c in df.columns), None)
     inv_folder_col = next((c for c in INV_FOLDER_COL_NAMES if c in df.columns), None)
     site_id_col = next((c for c in SITE_ID_COL_NAMES if c in df.columns), None)
     if site_id_col and site_lookup:
         print(f"📍 Using Site_ID column: {site_id_col}")
     po_folder_col = next((c for c in PO_FOLDER_COL_NAMES if c in df.columns), None)
+    tax_state_col = next((c for c in TAX_STATE_COL_NAMES if c in df.columns), None)
+    kom_col = next((c for c in KOM_COMMENTS_COL_NAMES if c in df.columns), None)
+
+    if tax_state_col:
+        print(f"📍 Tax jurisdiction column found: {tax_state_col}")
+    if kom_col:
+        print(f"📝 KOM analysis column found: {kom_col}")
+        # Filter to rows without existing KOM analysis (unreviewed rows)
+        has_kom = df[kom_col].notna() & (df[kom_col].astype(str).str.strip() != "")
+        rows_with_kom = has_kom.sum()
+        if rows_with_kom > 0:
+            original_count = len(df)
+            df = df[~has_kom]
+            print(f"   Filtered out {rows_with_kom} rows with existing KOM analysis")
+            print(f"   Remaining: {len(df)} unreviewed rows (from {original_count})")
 
     if inv_col:
         invoice_files = df[inv_col].dropna().unique()
@@ -1686,6 +1777,16 @@ def main():
     else:
         invoice_files = []
         print("\n⚠️ No invoice column found")
+
+    # Get unique Inv 2 files (supplemental invoices)
+    if inv2_col:
+        invoice2_files = df[inv2_col].dropna().unique()
+        # Exclude files already in inv1 list to avoid duplicate extraction
+        invoice2_files = [f for f in invoice2_files if f not in invoice_files]
+        if len(invoice2_files) > 0:
+            print(f"📄 Found {len(invoice2_files)} unique Inv 2 files (column: {inv2_col})")
+    else:
+        invoice2_files = []
 
     # Get unique POs
     if po_col:
@@ -1721,6 +1822,10 @@ def main():
             folder = row.get(inv_folder_col)
             if fname and folder and not pd.isna(folder):
                 inv_folder_map[fname] = folder
+            # Also map inv2 files to the same folder
+            fname2 = get_col(row, INV2_COL_NAMES)
+            if fname2 and folder and not pd.isna(folder):
+                inv_folder_map[fname2] = folder
         print(f"📁 Using Invoice_Folder column: {inv_folder_col}")
     if po_folder_col:
         for _, row in df.iterrows():
@@ -1756,6 +1861,16 @@ def main():
                 filename, result = future.result()
                 invoice_data[filename] = result
 
+    # Extract Inv 2 files (supplemental invoices - same search paths)
+    if len(invoice2_files) > 0:
+        print(f"\n📄 Extracting Inv 2 files (parallel)...")
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            invoice2_args = [(f, invoice_search_paths, inv_folder_map.get(f)) for f in invoice2_files]
+            futures = {executor.submit(extract_file, args): args[0] for args in invoice2_args}
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Extracting Inv 2"):
+                filename, result = future.result()
+                invoice_data[filename] = result  # Add to same dict
+
     # Extract POs (PARALLEL - 10x faster)
     print("\n📋 Extracting Purchase Orders (parallel)...")
     po_search_paths = [
@@ -1776,23 +1891,37 @@ def main():
     # Prepare analysis queue with skip tracking
     print("\n🔍 Matching line items...")
     analysis_queue = []
+    out_of_state_queue = []  # Rows to flag as OOS (not analyzed under WA law)
     skipped_rows = {
         "no_invoice_file": [],
         "extraction_failed": [],
         "no_line_item_match": [],
+        "out_of_state": [],  # Transactions not subject to WA tax
     }
 
     for idx, row in df.iterrows():
         # Get invoice file using flexible column names
         inv_file = get_col(row, INV_COL_NAMES)
+        inv2_file = get_col(row, INV2_COL_NAMES)
         po_file = get_col(row, PO_COL_NAMES)
 
-        # Try invoice first, fall back to PO if no invoice
+        # Try invoice 1 first
         inv_data = None
+        inv2_data = None
         if inv_file and inv_file in invoice_data:
             inv_data = invoice_data[inv_file]
             if "error" in inv_data:
-                inv_data = None  # Try PO instead
+                inv_data = None  # Try inv2 or PO instead
+
+        # Try invoice 2 (supplemental)
+        if inv2_file and inv2_file in invoice_data:
+            inv2_data = invoice_data[inv2_file]
+            if "error" in inv2_data:
+                inv2_data = None
+            elif not inv_data:
+                # Use inv2 as primary if inv1 failed
+                inv_data = inv2_data
+                inv_data["_source"] = "Invoice2"
 
         # Fall back to PO if no valid invoice
         if not inv_data and po_file:
@@ -1843,11 +1972,39 @@ def main():
         # Use Excel description if available (often more reliable)
         description = excel_description if excel_description else matched_item.get("description", "Unknown")
 
+        # Enhance description with Inv 2 data if available (provides additional context)
+        if inv2_data and inv_data != inv2_data:
+            inv2_line_items = inv2_data.get("line_items", [])
+            if inv2_line_items:
+                inv2_desc = inv2_line_items[0].get("description", "")
+                if inv2_desc and inv2_desc not in description:
+                    description = f"{description} | Inv2: {inv2_desc[:200]}"
+
         vendor = row.get("Vendor", "Unknown")
         vendor_info = cache.get_vendor_info(vendor)
 
         # Use description for categorization
         category = categorize_product(description, vendor_info)
+
+        # Check for out-of-state transactions (not subject to WA tax analysis)
+        tax_jurisdiction = get_col(row, TAX_STATE_COL_NAMES, "")
+        if tax_jurisdiction:
+            tax_jurisdiction = str(tax_jurisdiction).strip().upper()
+        # Consider WA if blank (default), "WA", "WASHINGTON", or empty
+        is_wa_transaction = not tax_jurisdiction or tax_jurisdiction in ("WA", "WASHINGTON", "")
+
+        if not is_wa_transaction:
+            # Out-of-state transaction - add to separate queue for flagging
+            out_of_state_queue.append({
+                "excel_row_idx": idx,
+                "tax_jurisdiction": tax_jurisdiction,
+                "vendor": vendor,
+                "description": description,
+                "amount": amount,
+                "tax": tax,
+            })
+            skipped_rows["out_of_state"].append((idx, tax_jurisdiction))
+            continue  # Skip normal WA analysis
 
         # Get PO data if available (po_file already retrieved above)
         po_filename = Path(po_file).name if po_file and "/" in str(po_file) else po_file
@@ -2019,6 +2176,15 @@ def main():
             if no_match_count <= 10:
                 for idx, amount in skipped_rows["no_line_item_match"]:
                     print(f"     Row {idx}: ${amount:,.2f}")
+        if skipped_rows["out_of_state"]:
+            oos_count = len(skipped_rows['out_of_state'])
+            # Count by state
+            state_counts = {}
+            for idx, state in skipped_rows["out_of_state"]:
+                state_counts[state] = state_counts.get(state, 0) + 1
+            print(f"   • Out-of-state (not WA): {oos_count} rows")
+            for state, count in sorted(state_counts.items(), key=lambda x: -x[1])[:5]:
+                print(f"     {state}: {count} rows")
 
     if total_skipped > len(analysis_queue):
         analyzed_count = len(analysis_queue)
@@ -2043,7 +2209,7 @@ def main():
 
     # Batch analysis
     print(f"\n🤖 Analyzing {len(analysis_queue)} items...")
-    batch_size = 5  # Smaller batches for more reliable JSON output
+    batch_size = 15  # Larger batches for cost efficiency (66% fewer API calls)
     all_analyses = []
 
     for i in range(0, len(analysis_queue), batch_size):
@@ -2166,6 +2332,26 @@ def main():
         df.loc[idx, "Rate_Source"] = queue_item.get("rate_source", "")
         matched_count += 1
 
+    # Write results for out-of-state transactions (not analyzed under WA law)
+    for oos_item in out_of_state_queue:
+        idx = oos_item["excel_row_idx"]
+        state = oos_item["tax_jurisdiction"]
+        tax_amount = oos_item["tax"]
+
+        df.loc[idx, "Product_Desc"] = oos_item.get("description", "")
+        df.loc[idx, "Product_Type"] = "Out-of-State Transaction"
+        df.loc[idx, "Refund_Basis"] = f"OOS - {state}"
+        df.loc[idx, "Citation"] = "N/A - Not subject to WA tax"
+        df.loc[idx, "Confidence"] = "100%"
+        # Full refund since WA tax shouldn't have been charged
+        df.loc[idx, "Estimated_Refund"] = f"${tax_amount:,.2f}"
+        df.loc[idx, "Explanation"] = f"Transaction in {state}, not subject to WA sales tax. Tax paid to {state} should be reviewed under {state} tax law."
+        df.loc[idx, "Needs_Review"] = "Yes"
+        df.loc[idx, "Follow_Up_Questions"] = f"Verify tax was paid to {state}, not WA. Review {state} exemption rules."
+
+    if len(out_of_state_queue) > 0:
+        print(f"  📍 Flagged {len(out_of_state_queue)} out-of-state transactions")
+
     if matched_count < len(analysis_queue):
         queue_count = len(analysis_queue)
         print(
@@ -2177,6 +2363,12 @@ def main():
     if not args.output:
         base_name = Path(args.excel).stem
         args.output = str(Path(args.excel).parent / f"{base_name} - Analyzed.xlsx")
+
+    # Slim down columns to essential output only
+    output_cols = [c for c in ESSENTIAL_OUTPUT_COLS if c in df.columns]
+    original_col_count = len(df.columns)
+    df = df[output_cols]
+    print(f"\n📊 Output columns: {len(output_cols)} (from {original_col_count} source columns)")
 
     # Replace NaN with empty strings so Excel shows blank cells, not "nan"
     df = df.fillna('')

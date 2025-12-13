@@ -33,9 +33,12 @@ Usage:
 """
 
 import os
+import json
+import time
 from typing import Optional, Literal, Any
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -44,7 +47,6 @@ load_dotenv()
 # API clients
 import openai
 import anthropic
-import time
 
 
 class TaskType(Enum):
@@ -94,7 +96,7 @@ MODELS = {
 
 
 # Task-to-model routing configuration
-# COST-OPTIMIZED: Using GPT-4o for all tasks (cheaper than Claude, still excellent)
+# Claude for reasoning tasks, GPT for extraction/validation
 TASK_ROUTING = {
     TaskType.EXTRACTION: {
         "default": "gpt-4o",
@@ -107,19 +109,22 @@ TASK_ROUTING = {
         "high_stakes": "gpt-4o",
     },
     TaskType.TAX_ANALYSIS: {
-        "default": "gpt-4o",  # Changed from claude-sonnet-4.5
-        "fallback": "gpt-4o-mini",
-        "high_stakes": "gpt-4o",  # Changed from claude-opus-4.5
+        "default": "claude-sonnet-4.5",
+        "fallback": "gpt-4o",
+        "high_stakes": "claude-opus-4.5",
+        "low_stakes": "claude-haiku",  # $1k-$5k uses budget model
     },
     TaskType.LEGAL_CITATION: {
-        "default": "gpt-4o",  # Changed from claude-sonnet-4.5
-        "fallback": "gpt-4o-mini",
-        "high_stakes": "gpt-4o",  # Changed from claude-opus-4.5
+        "default": "claude-sonnet-4.5",
+        "fallback": "gpt-4o",
+        "high_stakes": "claude-opus-4.5",
+        "low_stakes": "claude-haiku",  # $1k-$5k uses budget model
     },
     TaskType.FINAL_DECISION: {
-        "default": "gpt-4o",  # Changed from claude-sonnet-4.5
-        "fallback": "gpt-4o-mini",
-        "high_stakes": "gpt-4o",  # Changed from claude-opus-4.5
+        "default": "claude-sonnet-4.5",
+        "fallback": "gpt-4o",
+        "high_stakes": "claude-opus-4.5",
+        "low_stakes": "claude-haiku",  # $1k-$5k uses budget model
     },
     TaskType.VALIDATION: {
         "default": "gpt-4o-mini",
@@ -134,8 +139,9 @@ TASK_ROUTING = {
 }
 
 # Stakes thresholds
-STAKES_THRESHOLD_HIGH = 25000      # $25k+ uses premium models
-STAKES_THRESHOLD_MEDIUM = 5000    # $5k-$25k uses standard models
+STAKES_THRESHOLD_HIGH = 25000      # $25k+ uses premium models (Claude Opus)
+STAKES_THRESHOLD_MEDIUM = 5000    # $5k-$25k uses standard models (Claude Sonnet)
+STAKES_THRESHOLD_LOW_MEDIUM = 1000 # $1k-$5k uses budget models (Claude Haiku)
 
 
 class ModelRouter:
@@ -243,8 +249,10 @@ class ModelRouter:
             return "high_stakes"
         elif stakes >= STAKES_THRESHOLD_MEDIUM:
             return "default"
+        elif stakes >= STAKES_THRESHOLD_LOW_MEDIUM:
+            return "low_stakes"  # $1k-$5k uses cheaper models
         else:
-            return "default"  # Could add "low_stakes" for even cheaper models
+            return "low_stakes"  # <$1k uses budget models
 
     def get_model(
         self,
@@ -869,6 +877,204 @@ Analyze the Washington State sales/use tax implications. Consider:
             model="text-embedding-3-small"
         )
         return response.data[0].embedding
+
+    # ========== OpenAI Batch API Methods (50% discount, 24hr turnaround) ==========
+
+    def create_batch_file(
+        self,
+        requests: list[dict],
+        output_path: str = "scripts/cache/batch_requests.jsonl"
+    ) -> str:
+        """
+        Create a JSONL file for OpenAI Batch API.
+
+        Args:
+            requests: List of request dicts with keys: custom_id, prompt, system_prompt, images
+            output_path: Path to save the JSONL file
+
+        Returns:
+            Path to the created file
+        """
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        with open(output_path, "w") as f:
+            for req in requests:
+                # Build messages
+                messages = []
+                if req.get("system_prompt"):
+                    messages.append({"role": "system", "content": req["system_prompt"]})
+
+                # Handle images for vision requests
+                if req.get("images"):
+                    content = [{"type": "text", "text": req["prompt"]}]
+                    for img in req["images"]:
+                        content.append({
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/png;base64,{img}"}
+                        })
+                    messages.append({"role": "user", "content": content})
+                else:
+                    messages.append({"role": "user", "content": req["prompt"]})
+
+                batch_request = {
+                    "custom_id": req["custom_id"],
+                    "method": "POST",
+                    "url": "/v1/chat/completions",
+                    "body": {
+                        "model": req.get("model", "gpt-4o"),
+                        "messages": messages,
+                        "max_tokens": req.get("max_tokens", 4096),
+                        "temperature": req.get("temperature", 0.1),
+                    }
+                }
+                f.write(json.dumps(batch_request) + "\n")
+
+        return output_path
+
+    def submit_batch(
+        self,
+        jsonl_path: str,
+        description: str = "Refund Engine extraction batch"
+    ) -> dict:
+        """
+        Submit a batch job to OpenAI Batch API.
+
+        Args:
+            jsonl_path: Path to the JSONL file with requests
+            description: Description for the batch job
+
+        Returns:
+            Dict with batch_id and status
+        """
+        # Upload the file
+        with open(jsonl_path, "rb") as f:
+            file_response = self.openai_client.files.create(
+                file=f,
+                purpose="batch"
+            )
+
+        # Create the batch
+        batch_response = self.openai_client.batches.create(
+            input_file_id=file_response.id,
+            endpoint="/v1/chat/completions",
+            completion_window="24h",
+            metadata={"description": description}
+        )
+
+        return {
+            "batch_id": batch_response.id,
+            "status": batch_response.status,
+            "input_file_id": file_response.id,
+            "created_at": batch_response.created_at,
+        }
+
+    def check_batch_status(self, batch_id: str) -> dict:
+        """
+        Check the status of a batch job.
+
+        Args:
+            batch_id: The batch ID returned from submit_batch
+
+        Returns:
+            Dict with status, progress, and output_file_id if complete
+        """
+        batch = self.openai_client.batches.retrieve(batch_id)
+
+        result = {
+            "batch_id": batch_id,
+            "status": batch.status,
+            "request_counts": {
+                "total": batch.request_counts.total,
+                "completed": batch.request_counts.completed,
+                "failed": batch.request_counts.failed,
+            }
+        }
+
+        if batch.status == "completed" and batch.output_file_id:
+            result["output_file_id"] = batch.output_file_id
+
+        if batch.status == "failed" and batch.error_file_id:
+            result["error_file_id"] = batch.error_file_id
+
+        return result
+
+    def get_batch_results(
+        self,
+        batch_id: str,
+        output_path: str = "scripts/cache/batch_results.jsonl"
+    ) -> list[dict]:
+        """
+        Download and parse batch results.
+
+        Args:
+            batch_id: The batch ID
+            output_path: Path to save the results
+
+        Returns:
+            List of result dicts with custom_id and content
+        """
+        status = self.check_batch_status(batch_id)
+
+        if status["status"] != "completed":
+            raise ValueError(f"Batch not complete. Status: {status['status']}")
+
+        if "output_file_id" not in status:
+            raise ValueError("No output file available")
+
+        # Download the results
+        file_response = self.openai_client.files.content(status["output_file_id"])
+        content = file_response.text
+
+        # Save to file
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w") as f:
+            f.write(content)
+
+        # Parse results
+        results = []
+        for line in content.strip().split("\n"):
+            if line:
+                data = json.loads(line)
+                result = {
+                    "custom_id": data["custom_id"],
+                    "content": data["response"]["body"]["choices"][0]["message"]["content"],
+                    "usage": data["response"]["body"]["usage"],
+                }
+                results.append(result)
+
+        return results
+
+    def wait_for_batch(
+        self,
+        batch_id: str,
+        poll_interval: int = 60,
+        max_wait: int = 86400  # 24 hours
+    ) -> dict:
+        """
+        Wait for a batch to complete, polling periodically.
+
+        Args:
+            batch_id: The batch ID
+            poll_interval: Seconds between status checks
+            max_wait: Maximum seconds to wait
+
+        Returns:
+            Final status dict
+        """
+        import time
+        start_time = time.time()
+
+        while time.time() - start_time < max_wait:
+            status = self.check_batch_status(batch_id)
+            print(f"  Batch {batch_id[:8]}... status: {status['status']} "
+                  f"({status['request_counts']['completed']}/{status['request_counts']['total']})")
+
+            if status["status"] in ["completed", "failed", "expired", "cancelled"]:
+                return status
+
+            time.sleep(poll_interval)
+
+        raise TimeoutError(f"Batch {batch_id} did not complete within {max_wait}s")
 
 
 # Convenience function for quick access
