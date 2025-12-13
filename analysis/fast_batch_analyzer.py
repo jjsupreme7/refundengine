@@ -2407,6 +2407,13 @@ def main():
     df = df[output_cols]
     print(f"\n📊 Output columns: {len(output_cols)} (from {original_col_count} source columns)")
 
+    # Add blank correction columns for human review
+    review_cols = ["Review_Status", "Corrected_Product_Type", "Corrected_Refund_Basis",
+                   "Corrected_Citation", "Reviewer_Notes"]
+    for col in review_cols:
+        df[col] = ""
+    print(f"📝 Added {len(review_cols)} review columns for corrections")
+
     # Replace NaN with empty strings so Excel shows blank cells, not "nan"
     df = df.fillna('')
 
