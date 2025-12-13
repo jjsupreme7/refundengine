@@ -77,6 +77,17 @@ class FeedbackSystem:
                 }
             )
 
+        # Generate embedding for corrections to enable similarity search
+        if feedback_data.get("feedback_type") == "correction" and query:
+            try:
+                response = client.embeddings.create(
+                    input=query[:8000],  # Limit to avoid token overflow
+                    model="text-embedding-3-small"
+                )
+                feedback_record["query_embedding"] = response.data[0].embedding
+            except Exception as e:
+                print(f"Warning: Could not generate embedding for correction: {e}")
+
         result = self.supabase.table("user_feedback").insert(feedback_record).execute()
 
         if result.data:

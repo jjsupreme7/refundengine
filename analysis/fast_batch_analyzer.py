@@ -186,23 +186,54 @@ def get_keyword_patterns(tax_type: str) -> Dict[str, List[str]]:
         return {}
 
 
-def get_human_corrections(limit: int = 20) -> List[Dict]:
+def get_human_corrections(context: str = None, limit: int = 20) -> List[Dict]:
     """
-    Get recent human corrections from user_feedback table.
-    These are used to improve analysis accuracy based on past reviewer feedback.
+    Get human corrections from user_feedback table.
+    If context is provided, returns corrections similar to the context.
+    Otherwise, falls back to recency-based retrieval.
+
+    Args:
+        context: Invoice context (vendor + description) to find similar corrections
+        limit: Maximum number of corrections to return
     """
     if supabase is None:
         return []
+
     try:
+        # If context provided, use similarity search
+        if context:
+            from openai import OpenAI
+            openai_client = OpenAI()
+
+            # Generate embedding for context
+            response = openai_client.embeddings.create(
+                input=context[:8000],  # Limit to avoid token overflow
+                model="text-embedding-3-small"
+            )
+            query_embedding = response.data[0].embedding
+
+            # Search by similarity using RPC function
+            result = supabase.rpc("search_corrections", {
+                "query_embedding": query_embedding,
+                "match_threshold": 0.5,
+                "match_count": limit
+            }).execute()
+
+            if result and result.data:
+                return result.data
+
+        # Fallback: recency-based (original behavior)
         result = supabase.table("user_feedback") \
             .select("query, suggested_answer, feedback_comment") \
             .eq("feedback_type", "correction") \
             .order("created_at", desc=True) \
             .limit(limit) \
             .execute()
+
         if result is None or result.data is None:
             return []
         return result.data
+
     except Exception as e:
         print(f"  ⚠️  Human corrections lookup failed: {e}")
         return []
@@ -1179,8 +1210,14 @@ def analyze_batch(
             percentage = pattern.get('percentage', 0)
             pattern_text += f"  - {refund_basis}: {usage_count} uses ({percentage:.1f}%)\n"
 
-    # Get human corrections from feedback system
-    human_corrections = get_human_corrections(limit=15)
+    # Build context from items for similarity-based correction search
+    correction_context = "\n".join([
+        f"Vendor: {item.get('vendor_name', '')}, Product: {item.get('description', '')}"
+        for item in items[:5]  # Use first 5 items as representative sample
+    ])
+
+    # Get human corrections similar to current batch (or fallback to recent)
+    human_corrections = get_human_corrections(context=correction_context, limit=15)
     corrections_text = ""
     if human_corrections:
         corrections_text = "\nHUMAN REVIEWER CORRECTIONS (apply these learnings):\n"
