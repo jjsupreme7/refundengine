@@ -284,8 +284,67 @@ class CorrectionImporter:
             except Exception as e:
                 print(f"    ✗ Error updating patterns: {e}")
 
+        # Save to user_feedback so AI can learn from this correction
+        self.save_to_user_feedback(row, corrections)
+
         # Log to audit trail
         self.log_correction(row, corrections)
+
+    def save_to_user_feedback(self, row: pd.Series, corrections: Dict):
+        """
+        Save correction to user_feedback table so AI can learn from it.
+        This feeds into the similarity-based correction retrieval system.
+        """
+        try:
+            from openai import OpenAI
+            client = OpenAI()
+
+            vendor_name = row.get("Vendor", "")
+            description = row.get("Description", row.get("AI_Product_Desc", ""))
+
+            # Build the query (same format used during analysis)
+            query = f"Vendor: {vendor_name}, Product: {description}"
+
+            # Build the suggested answer from corrections
+            answer_parts = []
+            if corrections.get("corrected_refund_basis"):
+                answer_parts.append(f"Refund Basis: {corrections['corrected_refund_basis']}")
+            if corrections.get("corrected_product_type"):
+                answer_parts.append(f"Product Type: {corrections['corrected_product_type']}")
+            if corrections.get("corrected_citation"):
+                answer_parts.append(f"Citation: {corrections['corrected_citation']}")
+
+            if not answer_parts:
+                return  # No corrections to save
+
+            suggested_answer = "; ".join(answer_parts)
+
+            # Get reviewer notes as feedback comment
+            feedback_comment = row.get("Reviewer_Notes") if pd.notna(row.get("Reviewer_Notes")) else None
+
+            # Generate embedding for similarity search
+            response = client.embeddings.create(
+                input=query[:8000],
+                model="text-embedding-3-small"
+            )
+            query_embedding = response.data[0].embedding
+
+            # Save to user_feedback
+            feedback_data = {
+                "query": query,
+                "response_text": f"AI said: {row.get('AI_Refund_Basis', 'Unknown')}",
+                "suggested_answer": suggested_answer,
+                "feedback_comment": feedback_comment,
+                "feedback_type": "correction",
+                "query_embedding": query_embedding,
+                "user_id": self.reviewer_name,
+            }
+
+            supabase.table("user_feedback").insert(feedback_data).execute()
+            print("    ✓ Saved to user_feedback for AI learning")
+
+        except Exception as e:
+            print(f"    ⚠ Could not save to user_feedback: {e}")
 
     def log_correction(self, row: pd.Series, corrections: Dict):
         """Log correction to audit trail"""
