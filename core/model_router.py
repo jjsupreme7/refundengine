@@ -32,36 +32,40 @@ Usage:
     result = router.execute("extraction", prompt, stakes=5000)
 """
 
-import os
 import json
+import os
 import time
-from typing import Optional, Literal, Any
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Any, Literal, Optional
 
 # Load environment variables
 from dotenv import load_dotenv
+
 load_dotenv()
+
+import anthropic
 
 # API clients
 import openai
-import anthropic
 
 
 class TaskType(Enum):
     """Types of tasks that can be routed to different models."""
-    EXTRACTION = "extraction"           # PDF/image scanning, OCR
-    STRUCTURED_PARSING = "parsing"      # Extract structured data from text
-    TAX_ANALYSIS = "analysis"           # Tax categorization, exemption analysis
-    LEGAL_CITATION = "legal"            # Legal citation matching
-    FINAL_DECISION = "decision"         # Final refund decision with reasoning
-    VALIDATION = "validation"           # Format checking, confidence scoring
-    EMBEDDING = "embedding"             # Vector embeddings
+
+    EXTRACTION = "extraction"  # PDF/image scanning, OCR
+    STRUCTURED_PARSING = "parsing"  # Extract structured data from text
+    TAX_ANALYSIS = "analysis"  # Tax categorization, exemption analysis
+    LEGAL_CITATION = "legal"  # Legal citation matching
+    FINAL_DECISION = "decision"  # Final refund decision with reasoning
+    VALIDATION = "validation"  # Format checking, confidence scoring
+    EMBEDDING = "embedding"  # Vector embeddings
 
 
 class Provider(Enum):
     """AI model providers."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
@@ -70,6 +74,7 @@ class Provider(Enum):
 @dataclass
 class ModelConfig:
     """Configuration for a specific model."""
+
     provider: Provider
     model_id: str
     max_tokens: int = 4096
@@ -81,17 +86,49 @@ class ModelConfig:
 # Model definitions
 MODELS = {
     # OpenAI models
-    "gpt-4o": ModelConfig(Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "premium"),
-    "gpt-4o-standard": ModelConfig(Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "standard"),
-    "gpt-4o-mini": ModelConfig(Provider.OPENAI, "gpt-4o-mini", 4096, 0.1, "Fast and cost-effective", "budget"),
-
+    "gpt-4o": ModelConfig(
+        Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "premium"
+    ),
+    "gpt-4o-standard": ModelConfig(
+        Provider.OPENAI, "gpt-4o", 4096, 0.1, "Strong multimodal model", "standard"
+    ),
+    "gpt-4o-mini": ModelConfig(
+        Provider.OPENAI, "gpt-4o-mini", 4096, 0.1, "Fast and cost-effective", "budget"
+    ),
     # Anthropic models
-    "claude-opus-4.5": ModelConfig(Provider.ANTHROPIC, "claude-opus-4-5-20251101", 4096, 0.1, "Highest reasoning capability", "premium"),
-    "claude-sonnet-4.5": ModelConfig(Provider.ANTHROPIC, "claude-sonnet-4-5-20250929", 4096, 0.1, "Best balance of capability and cost", "standard"),
-    "claude-haiku": ModelConfig(Provider.ANTHROPIC, "claude-3-5-haiku-20241022", 4096, 0.1, "Fast and affordable", "budget"),
-
+    "claude-opus-4.5": ModelConfig(
+        Provider.ANTHROPIC,
+        "claude-opus-4-5-20251101",
+        4096,
+        0.1,
+        "Highest reasoning capability",
+        "premium",
+    ),
+    "claude-sonnet-4.5": ModelConfig(
+        Provider.ANTHROPIC,
+        "claude-sonnet-4-5-20250929",
+        4096,
+        0.1,
+        "Best balance of capability and cost",
+        "standard",
+    ),
+    "claude-haiku": ModelConfig(
+        Provider.ANTHROPIC,
+        "claude-3-5-haiku-20241022",
+        4096,
+        0.1,
+        "Fast and affordable",
+        "budget",
+    ),
     # Embeddings
-    "text-embedding-3-small": ModelConfig(Provider.OPENAI, "text-embedding-3-small", 8191, 0.0, "Standard embeddings", "budget"),
+    "text-embedding-3-small": ModelConfig(
+        Provider.OPENAI,
+        "text-embedding-3-small",
+        8191,
+        0.0,
+        "Standard embeddings",
+        "budget",
+    ),
 }
 
 
@@ -139,9 +176,9 @@ TASK_ROUTING = {
 }
 
 # Stakes thresholds
-STAKES_THRESHOLD_HIGH = 25000      # $25k+ uses premium models (Claude Opus)
-STAKES_THRESHOLD_MEDIUM = 5000    # $5k-$25k uses standard models (Claude Sonnet)
-STAKES_THRESHOLD_LOW_MEDIUM = 1000 # $1k-$5k uses budget models (Claude Haiku)
+STAKES_THRESHOLD_HIGH = 10000  # $10k+ uses premium models (Claude Opus)
+STAKES_THRESHOLD_MEDIUM = 5000  # $5k-$25k uses standard models (Claude Sonnet)
+STAKES_THRESHOLD_LOW_MEDIUM = 1000  # $1k-$5k uses budget models (Claude Haiku)
 
 
 class ModelRouter:
@@ -241,7 +278,9 @@ class ModelRouter:
         if task_lower in mapping:
             return mapping[task_lower]
 
-        raise ValueError(f"Unknown task type: {task}. Valid types: {list(mapping.keys())}")
+        raise ValueError(
+            f"Unknown task type: {task}. Valid types: {list(mapping.keys())}"
+        )
 
     def _get_stakes_tier(self, stakes: float) -> str:
         """Determine stakes tier based on dollar amount."""
@@ -298,7 +337,10 @@ class ModelRouter:
         if prefer_provider:
             # Find alternative model from preferred provider
             for key, config in MODELS.items():
-                if config.provider == prefer_provider and config.cost_tier == model_config.cost_tier:
+                if (
+                    config.provider == prefer_provider
+                    and config.cost_tier == model_config.cost_tier
+                ):
                     model_config = config
                     break
 
@@ -384,17 +426,30 @@ class ModelRouter:
 
         # Override settings if provided
         final_max_tokens = max_tokens or model_config.max_tokens
-        final_temperature = temperature if temperature is not None else model_config.temperature
+        final_temperature = (
+            temperature if temperature is not None else model_config.temperature
+        )
 
         # Execute based on provider
         if model_config.provider == Provider.OPENAI:
             return self._execute_openai(
-                model_config, prompt, system_prompt, final_max_tokens, final_temperature, images,
-                response_format
+                model_config,
+                prompt,
+                system_prompt,
+                final_max_tokens,
+                final_temperature,
+                images,
+                response_format,
             )
         elif model_config.provider == Provider.ANTHROPIC:
             return self._execute_anthropic(
-                model_config, prompt, system_prompt, final_max_tokens, final_temperature, images
+                model_config,
+                prompt,
+                system_prompt,
+                final_max_tokens,
+                final_temperature,
+                images,
+                response_format,
             )
         else:
             raise ValueError(f"Unsupported provider: {model_config.provider}")
@@ -420,10 +475,12 @@ class ModelRouter:
             # Vision request
             content = [{"type": "text", "text": prompt}]
             for img in images:
-                content.append({
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{img}"}
-                })
+                content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/png;base64,{img}"},
+                    }
+                )
             messages.append({"role": "user", "content": content})
         else:
             messages.append({"role": "user", "content": prompt})
@@ -451,7 +508,7 @@ class ModelRouter:
                 "prompt_tokens": response.usage.prompt_tokens,
                 "completion_tokens": response.usage.completion_tokens,
                 "total_tokens": response.usage.total_tokens,
-            }
+            },
         }
 
     def _execute_anthropic(
@@ -462,20 +519,38 @@ class ModelRouter:
         max_tokens: int,
         temperature: float,
         images: Optional[list[str]],
+        response_format: Optional[dict] = None,
     ) -> dict[str, Any]:
         """Execute request using Anthropic API."""
+        # If response_format is provided, add JSON instructions to system prompt
+        # Claude doesn't support OpenAI's json_schema natively, so we enforce via prompt
+        if response_format and response_format.get("type") == "json_schema":
+            schema = response_format.get("json_schema", {}).get("schema", {})
+            json_instruction = (
+                "\n\nIMPORTANT: You MUST respond with ONLY valid JSON matching this exact schema. "
+                "Do NOT include any text before or after the JSON. Do NOT wrap in markdown code blocks. "
+                "Start your response with { and end with }.\n\n"
+                f"Required JSON Schema:\n{json.dumps(schema, indent=2)}"
+            )
+            if system_prompt:
+                system_prompt = system_prompt + json_instruction
+            else:
+                system_prompt = json_instruction.strip()
+
         # Build message content
         if images:
             content = []
             for img in images:
-                content.append({
-                    "type": "image",
-                    "source": {
-                        "type": "base64",
-                        "media_type": "image/png",
-                        "data": img,
+                content.append(
+                    {
+                        "type": "image",
+                        "source": {
+                            "type": "base64",
+                            "media_type": "image/png",
+                            "data": img,
+                        },
                     }
-                })
+                )
             content.append({"type": "text", "text": prompt})
         else:
             content = prompt
@@ -505,13 +580,16 @@ class ModelRouter:
                     "usage": {
                         "prompt_tokens": response.usage.input_tokens,
                         "completion_tokens": response.usage.output_tokens,
-                        "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
-                    }
+                        "total_tokens": response.usage.input_tokens
+                        + response.usage.output_tokens,
+                    },
                 }
             except anthropic.RateLimitError as e:
                 if attempt < max_retries - 1:
-                    delay = base_delay * (2 ** attempt)  # 30s, 60s, 120s
-                    print(f"  ⏳ Rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}...")
+                    delay = base_delay * (2**attempt)  # 30s, 60s, 120s
+                    print(
+                        f"  ⏳ Rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}..."
+                    )
                     time.sleep(delay)
                 else:
                     raise e
@@ -578,8 +656,7 @@ When researching vendors or tax questions:
             try:
                 # Use beta header for web search
                 response = self.anthropic_client.beta.messages.create(
-                    betas=["web-search-2025-03-05"],
-                    **kwargs
+                    betas=["web-search-2025-03-05"], **kwargs
                 )
 
                 # Extract text content and any sources from the response
@@ -587,11 +664,14 @@ When researching vendors or tax questions:
                 sources = []
 
                 for block in response.content:
-                    if hasattr(block, 'text') and block.text:
+                    if hasattr(block, "text") and block.text:
                         text_content += block.text
                     # Web search results may include citations
-                    if hasattr(block, 'type') and block.type == 'web_search_tool_result':
-                        if hasattr(block, 'url'):
+                    if (
+                        hasattr(block, "type")
+                        and block.type == "web_search_tool_result"
+                    ):
+                        if hasattr(block, "url"):
                             sources.append(block.url)
 
                 return {
@@ -602,21 +682,26 @@ When researching vendors or tax questions:
                     "usage": {
                         "prompt_tokens": response.usage.input_tokens,
                         "completion_tokens": response.usage.output_tokens,
-                        "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
-                    }
+                        "total_tokens": response.usage.input_tokens
+                        + response.usage.output_tokens,
+                    },
                 }
 
             except anthropic.RateLimitError as e:
                 if attempt < max_retries - 1:
-                    delay = base_delay * (2 ** attempt)  # 30s, 60s, 120s
-                    print(f"  ⏳ Web search rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}...")
+                    delay = base_delay * (2**attempt)  # 30s, 60s, 120s
+                    print(
+                        f"  ⏳ Web search rate limited, waiting {delay}s before retry {attempt + 2}/{max_retries}..."
+                    )
                     time.sleep(delay)
                 else:
                     raise e
 
             except Exception as e:
                 # Fallback to regular execution without web search if tool not available
-                print(f"  ⚠️  Web search unavailable, falling back to standard research: {e}")
+                print(
+                    f"  ⚠️  Web search unavailable, falling back to standard research: {e}"
+                )
                 return self.execute(
                     task="analysis",
                     prompt=prompt,
@@ -693,7 +778,7 @@ When researching vendors or tax questions:
             content_text = ""
 
             for block in response.content:
-                if hasattr(block, 'type'):
+                if hasattr(block, "type"):
                     if block.type == "thinking":
                         thinking_text = block.thinking
                     elif block.type == "text":
@@ -708,8 +793,9 @@ When researching vendors or tax questions:
                 "usage": {
                     "prompt_tokens": response.usage.input_tokens,
                     "completion_tokens": response.usage.output_tokens,
-                    "total_tokens": response.usage.input_tokens + response.usage.output_tokens,
-                }
+                    "total_tokens": response.usage.input_tokens
+                    + response.usage.output_tokens,
+                },
             }
 
         except Exception as e:
@@ -769,7 +855,9 @@ When researching vendors or tax questions:
 
         # 1. VENDOR RESEARCH - unknown vendors get web search + extended thinking
         if vendor_name and self._is_unknown_vendor(vendor_name):
-            print(f"  🔍 Unknown vendor '{vendor_name}' - using web search + extended thinking")
+            print(
+                f"  🔍 Unknown vendor '{vendor_name}' - using web search + extended thinking"
+            )
 
             # Step 1: Web search to find out what this vendor sells
             research_prompt = f"""Research this vendor: {vendor_name}
@@ -805,7 +893,9 @@ Analyze the Washington State sales/use tax implications. Consider:
             )
 
             result["method_used"] = "web_search+thinking"
-            result["routing_reason"] = f"Unknown vendor '{vendor_name}' - researched then analyzed"
+            result["routing_reason"] = (
+                f"Unknown vendor '{vendor_name}' - researched then analyzed"
+            )
             result["research"] = research_result["content"]
             result["sources"] = research_result.get("sources", [])
             return result
@@ -813,24 +903,36 @@ Analyze the Washington State sales/use tax implications. Consider:
         # 2. HIGH STAKES - use extended thinking
         if stakes >= STAKES_THRESHOLD_HIGH:
             print(f"  🧠 High stakes (${stakes:,.0f}) - using extended thinking")
-            result = self.execute_with_thinking(prompt, stakes, system_prompt, max_tokens)
+            result = self.execute_with_thinking(
+                prompt, stakes, system_prompt, max_tokens
+            )
             result["method_used"] = "thinking"
-            result["routing_reason"] = f"High stakes (${stakes:,.0f}) - used extended reasoning"
+            result["routing_reason"] = (
+                f"High stakes (${stakes:,.0f}) - used extended reasoning"
+            )
             return result
 
         # 3. LOW CONFIDENCE - needs deeper reasoning
         if ai_confidence is not None and ai_confidence < 0.7:
-            print(f"  🧠 Low confidence ({ai_confidence:.0%}) - using extended thinking")
-            result = self.execute_with_thinking(prompt, stakes, system_prompt, max_tokens)
+            print(
+                f"  🧠 Low confidence ({ai_confidence:.0%}) - using extended thinking"
+            )
+            result = self.execute_with_thinking(
+                prompt, stakes, system_prompt, max_tokens
+            )
             result["method_used"] = "thinking"
-            result["routing_reason"] = f"Low confidence ({ai_confidence:.0%}) - used extended reasoning"
+            result["routing_reason"] = (
+                f"Low confidence ({ai_confidence:.0%}) - used extended reasoning"
+            )
             return result
 
         # 4. COMPLEX TASK TYPES - use extended thinking
         complex_tasks = ["legal", "decision", "exemption_analysis", "citation"]
         if task_type.lower() in complex_tasks:
             print(f"  🧠 Complex task '{task_type}' - using extended thinking")
-            result = self.execute_with_thinking(prompt, stakes, system_prompt, max_tokens)
+            result = self.execute_with_thinking(
+                prompt, stakes, system_prompt, max_tokens
+            )
             result["method_used"] = "thinking"
             result["routing_reason"] = f"Complex task type '{task_type}'"
             return result
@@ -850,12 +952,17 @@ Analyze the Washington State sales/use tax implications. Consider:
         try:
             # Import here to avoid circular imports
             from core.database import get_supabase_client
+
             supabase = get_supabase_client()
 
             # Check vendor_products table
-            result = supabase.table("vendor_products").select("id").ilike(
-                "vendor_name", f"%{vendor_name}%"
-            ).limit(1).execute()
+            result = (
+                supabase.table("vendor_products")
+                .select("id")
+                .ilike("vendor_name", f"%{vendor_name}%")
+                .limit(1)
+                .execute()
+            )
 
             return len(result.data) == 0
         except Exception:
@@ -873,8 +980,7 @@ Analyze the Washington State sales/use tax implications. Consider:
             List of floats representing the embedding vector
         """
         response = self.openai_client.embeddings.create(
-            input=text,
-            model="text-embedding-3-small"
+            input=text, model="text-embedding-3-small"
         )
         return response.data[0].embedding
 
@@ -883,7 +989,7 @@ Analyze the Washington State sales/use tax implications. Consider:
     def create_batch_file(
         self,
         requests: list[dict],
-        output_path: str = "scripts/cache/batch_requests.jsonl"
+        output_path: str = "scripts/cache/batch_requests.jsonl",
     ) -> str:
         """
         Create a JSONL file for OpenAI Batch API.
@@ -908,10 +1014,12 @@ Analyze the Washington State sales/use tax implications. Consider:
                 if req.get("images"):
                     content = [{"type": "text", "text": req["prompt"]}]
                     for img in req["images"]:
-                        content.append({
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/png;base64,{img}"}
-                        })
+                        content.append(
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/png;base64,{img}"},
+                            }
+                        )
                     messages.append({"role": "user", "content": content})
                 else:
                     messages.append({"role": "user", "content": req["prompt"]})
@@ -925,16 +1033,14 @@ Analyze the Washington State sales/use tax implications. Consider:
                         "messages": messages,
                         "max_tokens": req.get("max_tokens", 4096),
                         "temperature": req.get("temperature", 0.1),
-                    }
+                    },
                 }
                 f.write(json.dumps(batch_request) + "\n")
 
         return output_path
 
     def submit_batch(
-        self,
-        jsonl_path: str,
-        description: str = "Refund Engine extraction batch"
+        self, jsonl_path: str, description: str = "Refund Engine extraction batch"
     ) -> dict:
         """
         Submit a batch job to OpenAI Batch API.
@@ -948,17 +1054,14 @@ Analyze the Washington State sales/use tax implications. Consider:
         """
         # Upload the file
         with open(jsonl_path, "rb") as f:
-            file_response = self.openai_client.files.create(
-                file=f,
-                purpose="batch"
-            )
+            file_response = self.openai_client.files.create(file=f, purpose="batch")
 
         # Create the batch
         batch_response = self.openai_client.batches.create(
             input_file_id=file_response.id,
             endpoint="/v1/chat/completions",
             completion_window="24h",
-            metadata={"description": description}
+            metadata={"description": description},
         )
 
         return {
@@ -987,7 +1090,7 @@ Analyze the Washington State sales/use tax implications. Consider:
                 "total": batch.request_counts.total,
                 "completed": batch.request_counts.completed,
                 "failed": batch.request_counts.failed,
-            }
+            },
         }
 
         if batch.status == "completed" and batch.output_file_id:
@@ -999,9 +1102,7 @@ Analyze the Washington State sales/use tax implications. Consider:
         return result
 
     def get_batch_results(
-        self,
-        batch_id: str,
-        output_path: str = "scripts/cache/batch_results.jsonl"
+        self, batch_id: str, output_path: str = "scripts/cache/batch_results.jsonl"
     ) -> list[dict]:
         """
         Download and parse batch results.
@@ -1037,7 +1138,9 @@ Analyze the Washington State sales/use tax implications. Consider:
                 data = json.loads(line)
                 result = {
                     "custom_id": data["custom_id"],
-                    "content": data["response"]["body"]["choices"][0]["message"]["content"],
+                    "content": data["response"]["body"]["choices"][0]["message"][
+                        "content"
+                    ],
                     "usage": data["response"]["body"]["usage"],
                 }
                 results.append(result)
@@ -1045,10 +1148,7 @@ Analyze the Washington State sales/use tax implications. Consider:
         return results
 
     def wait_for_batch(
-        self,
-        batch_id: str,
-        poll_interval: int = 60,
-        max_wait: int = 86400  # 24 hours
+        self, batch_id: str, poll_interval: int = 60, max_wait: int = 86400  # 24 hours
     ) -> dict:
         """
         Wait for a batch to complete, polling periodically.
@@ -1062,12 +1162,15 @@ Analyze the Washington State sales/use tax implications. Consider:
             Final status dict
         """
         import time
+
         start_time = time.time()
 
         while time.time() - start_time < max_wait:
             status = self.check_batch_status(batch_id)
-            print(f"  Batch {batch_id[:8]}... status: {status['status']} "
-                  f"({status['request_counts']['completed']}/{status['request_counts']['total']})")
+            print(
+                f"  Batch {batch_id[:8]}... status: {status['status']} "
+                f"({status['request_counts']['completed']}/{status['request_counts']['total']})"
+            )
 
             if status["status"] in ["completed", "failed", "expired", "cancelled"]:
                 return status

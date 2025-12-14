@@ -170,12 +170,14 @@ class EnhancedRAG:
             print(
                 f"   Complexity: {complexity} ({
                     complexity_multipliers.get(
-                        complexity, 1.0)}x)")
+                        complexity, 1.0)}x)"
+            )
             print(
                 f"   Client tier: {client_tier} ({
                     tier_multipliers.get(
                         client_tier,
-                        1.0)}x)")
+                        1.0)}x)"
+            )
             print(f"   Final stakes: ${final_stakes:,.0f}")
 
         return int(final_stakes)
@@ -224,8 +226,10 @@ class EnhancedRAG:
             "model": model_config.model_id,
             "reason": model_config.reason or f"Router selected for {router_task} task",
             "stakes": stakes,
-            "cost_estimate": 0.004 if model_config.cost_tier == "standard" else (
-                0.001 if model_config.cost_tier == "budget" else 0.008
+            "cost_estimate": (
+                0.004
+                if model_config.cost_tier == "standard"
+                else (0.001 if model_config.cost_tier == "budget" else 0.008)
             ),
         }
 
@@ -283,8 +287,10 @@ class EnhancedRAG:
         print("🤖 AGENTIC RAG: Making Retrieval Decision")
         print(f"Query: {query}")
         if context:
-            print(f"Context: {', '.join(
-                [f'{k}={v}' for k, v in list(context.items())[:3]])}")
+            print(
+                f"Context: {', '.join(
+                [f'{k}={v}' for k, v in list(context.items())[:3]])}"
+            )
         print(f"{'=' * 80}\n")
 
         # Skip decision if forced retrieval
@@ -571,7 +577,8 @@ class EnhancedRAG:
                 # Medium relevance - try to improve
                 print(
                     f"⚠️  Medium relevance ({
-                        relevance['score']:.2f}), attempting correction...")
+                        relevance['score']:.2f}), attempting correction..."
+                )
                 corrected = self._attempt_correction(query, chunk, relevance["reason"])
                 if corrected:
                     validated.append(corrected)
@@ -585,7 +592,8 @@ class EnhancedRAG:
         if len(validated) < 3:
             print(
                 f"\n⚠️  Only found {
-                    len(validated)} relevant chunks, expanding search...")
+                    len(validated)} relevant chunks, expanding search..."
+            )
             refined_query = self._refine_query_with_ai(query)
             print(f"   Refined query: {refined_query[:100]}...")
 
@@ -610,8 +618,8 @@ class EnhancedRAG:
     def _assess_chunk_relevance(self, query: str, chunk: Dict) -> Dict:
         """Use AI to assess if chunk is truly relevant"""
 
-        citation = chunk.get('citation', 'Unknown')
-        chunk_text = chunk.get('chunk_text', '')[:800]
+        citation = chunk.get("citation", "Unknown")
+        chunk_text = chunk.get("chunk_text", "")[:800]
 
         prompt = f"""Assess the relevance of this legal text to the query.
 
@@ -641,7 +649,16 @@ Return JSON:
                 stakes=0,  # Low stakes for validation
             )
 
-            parsed = json.loads(result["content"])
+            # Strip markdown code blocks if present
+            content = result["content"].strip()
+            if content.startswith("```"):
+                first_newline = content.find("\n")
+                if first_newline != -1:
+                    content = content[first_newline + 1 :]
+                if content.endswith("```"):
+                    content = content[:-3].strip()
+
+            parsed = json.loads(content)
             return {
                 "score": float(parsed.get("score", 0.5)),
                 "reason": parsed.get("reason", "No reason provided"),
@@ -765,7 +782,16 @@ Return JSON array of indices in order of MOST to LEAST relevant:
                 stakes=0,  # Reranking is a support task, not high-stakes
             )
 
-            parsed = json.loads(result["content"])
+            # Strip markdown code blocks if present
+            content = result["content"].strip()
+            if content.startswith("```"):
+                first_newline = content.find("\n")
+                if first_newline != -1:
+                    content = content[first_newline + 1 :]
+                if content.endswith("```"):
+                    content = content[:-3].strip()
+
+            parsed = json.loads(content)
             ranked_indices = parsed.get("ranked_indices", list(range(len(chunks))))
 
             # Reorder chunks based on ranking
@@ -853,7 +879,16 @@ Return JSON:
                 stakes=0,
             )
 
-            parsed = json.loads(result["content"])
+            # Strip markdown code blocks if present
+            content = result["content"].strip()
+            if content.startswith("```"):
+                first_newline = content.find("\n")
+                if first_newline != -1:
+                    content = content[first_newline + 1 :]
+                if content.endswith("```"):
+                    content = content[:-3].strip()
+
+            parsed = json.loads(content)
             expanded_queries = parsed.get("queries", [])
 
             # Always include original query first
@@ -894,11 +929,15 @@ Return JSON:
     def _keyword_search(self, query: str, top_k: int = 5) -> List[Dict]:
         """Keyword-based search using PostgreSQL full-text search"""
         try:
-            # Use PostgreSQL text search (updated to new schema)
+            # Use PostgreSQL text search with ilike fallback
+            # text_search can be unreliable, so use ilike for simple keyword matching
+            search_terms = query.split()[:3]  # Take first 3 words
+            search_pattern = "%".join(search_terms)
+
             response = (
-                self.supabase.table("tax_law_chunks")  # Updated to new schema table
+                self.supabase.table("tax_law_chunks")
                 .select("*")
-                .text_search("chunk_text", query)
+                .ilike("chunk_text", f"%{search_pattern}%")
                 .limit(top_k)
                 .execute()
             )
@@ -1031,8 +1070,10 @@ Return JSON:
                     all_candidates.append(chunk)
                     seen_ids.add(chunk_id)
 
-            print(f"   Found {len(vector_results)
-                              } vector + {len(keyword_results)} keyword chunks\n")
+            print(
+                f"   Found {len(vector_results)
+                              } vector + {len(keyword_results)} keyword chunks\n"
+            )
 
         print(f"📊 Total candidates: {len(all_candidates)}\n")
 
@@ -1069,8 +1110,10 @@ Return JSON:
         print("✅ ENHANCED RAG COMPLETE")
         print(f"   Final results: {len(final_results)} chunks")
         if final_results:
-            print(f"   Average relevance: {
-                sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}")  # noqa: E501
+            print(
+                f"   Average relevance: {
+                sum(r.get('relevance_score', 0) for r in final_results) / len(final_results):.2f}"
+            )  # noqa: E501
         if vendor_context:
             print("   ✅ Vendor background included")
         print(f"{'=' * 80}\n")
