@@ -87,6 +87,110 @@ CITATION_CORRECTIONS = {
     "WAC 458-20-155": "WAC 458-20-15502",  # Repealed 2013 → current software rule
 }
 
+# Module-level cache for vendor HQ locations discovered during analysis
+_vendor_hq_cache: Dict[str, Dict] = {}
+
+
+def load_vendor_locations() -> Dict[str, Dict]:
+    """Load vendor HQ locations from JSON file, indexed by vendor name."""
+    path = Path("knowledge_base/vendors/vendor_locations.json")
+    if path.exists():
+        with open(path, "r") as f:
+            data = json.load(f)
+            return {v["vendor_name"].upper(): v for v in data.get("vendors", [])}
+    return {}
+
+
+def save_vendor_location(
+    vendor_name: str, hq_city: str, hq_state: str, confidence: int
+):
+    """Save a newly researched vendor HQ location to the JSON file."""
+    from datetime import datetime
+
+    path = Path("knowledge_base/vendors/vendor_locations.json")
+    try:
+        # Load existing data
+        if path.exists():
+            with open(path, "r") as f:
+                data = json.load(f)
+        else:
+            data = {
+                "enrichment_date": "",
+                "total_vendors": 0,
+                "statistics": {},
+                "vendors": [],
+            }
+
+        # Check if vendor already exists (avoid duplicates)
+        existing_names = {v["vendor_name"].upper() for v in data.get("vendors", [])}
+        if vendor_name.upper() in existing_names:
+            return  # Already saved
+
+        # Create new vendor entry
+        new_vendor = {
+            "headquarters_city": hq_city,
+            "headquarters_state": hq_state,
+            "headquarters_country": "US",
+            "confidence": confidence,
+            "reasoning": "Auto-discovered during batch analysis via AI inference.",
+            "vendor_name": vendor_name.upper(),
+            "source": "batch_analysis_ai",
+            "research_date": datetime.now().isoformat(),
+        }
+
+        # Append and update counts
+        data["vendors"].append(new_vendor)
+        data["total_vendors"] = len(data["vendors"])
+        data["enrichment_date"] = datetime.now().isoformat()
+
+        # Save back
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+
+    except Exception as e:
+        print(f"  ⚠️  Failed to save vendor location: {e}")
+
+
+def research_vendor_hq(vendor_name: str) -> Optional[Dict]:
+    """Research vendor headquarters location via AI inference.
+
+    Called for unknown vendors not in vendor_locations.json.
+    Results are cached in _vendor_hq_cache.
+    """
+    normalized = vendor_name.upper().strip()
+
+    # Skip if already cached
+    if normalized in _vendor_hq_cache:
+        return _vendor_hq_cache.get(normalized)
+
+    try:
+        prompt = f"""Where is the company "{vendor_name}" headquartered?
+Return brief JSON only:
+{{"headquarters_city": "city or null", "headquarters_state": "2-letter US state code or null"}}"""
+
+        result = router.execute(task="analysis", prompt=prompt, stakes=0)
+        content = result["content"].strip()
+        if content.startswith("```"):
+            content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        info = json.loads(content)
+
+        hq_city = info.get("headquarters_city")
+        hq_state = info.get("headquarters_state")
+
+        if hq_state and hq_state.lower() not in ("null", "unknown", ""):
+            _vendor_hq_cache[normalized] = {
+                "headquarters_city": hq_city or "",
+                "headquarters_state": hq_state.upper(),
+                "confidence": 60,
+            }
+            # Persist to JSON file for future runs
+            save_vendor_location(vendor_name, hq_city or "", hq_state.upper(), 60)
+            return _vendor_hq_cache[normalized]
+    except Exception:
+        pass  # Silently fail - HQ lookup is optional
+
+    return None
+
 
 def validate_citation(citation: str) -> str:
     """Validate citation format and correct known errors.
@@ -280,8 +384,9 @@ def research_vendor_for_ambiguous(
         # Use GPT-4o inference instead of web search (much faster and cheaper)
         try:
             fallback_prompt = f"""Based on the vendor name "{vendor_name}" and description "{description}",
-what type of business is this likely to be? Return brief JSON:
-{{"business_type": "type", "typical_services": "description"}}"""
+what type of business is this likely to be? Where is their headquarters located?
+Return brief JSON:
+{{"business_type": "type", "typical_services": "description", "headquarters_city": "city or null", "headquarters_state": "2-letter state code or null"}}"""
 
             result = router.execute(
                 task="analysis",
@@ -292,10 +397,23 @@ what type of business is this likely to be? Return brief JSON:
             if content.startswith("```"):
                 content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
             vendor_info = json.loads(content)
+
+            # Cache HQ location if found
+            hq_city = vendor_info.get("headquarters_city")
+            hq_state = vendor_info.get("headquarters_state")
+            if hq_state and hq_state.lower() not in ("null", "unknown", ""):
+                _vendor_hq_cache[vendor_name.upper()] = {
+                    "headquarters_city": hq_city or "",
+                    "headquarters_state": hq_state.upper(),
+                    "confidence": 60,  # AI-inferred, lower confidence
+                }
+
             return {
                 "source": "ai_inference",
                 "business_type": vendor_info.get("business_type", "Unknown"),
                 "context": vendor_info.get("typical_services", ""),
+                "headquarters_city": hq_city,
+                "headquarters_state": hq_state,
                 "confident": False,
                 "sources": [],
             }
@@ -321,9 +439,11 @@ Please search for:
 2. How should "{description}" be classified for WA state {tax_type}?
 3. Are there any relevant WA DOR rules, RCW citations, or WAC references?
 4. Is this likely taxable, exempt, or requires more information?
+5. Where is {vendor_name} headquartered (city and state)?
 
 Provide your analysis with:
 - Business type and typical services
+- Headquarters location (city, state)
 - WA tax classification recommendation
 - Key questions that would affect the classification
 - Sources you found (include URLs)
@@ -357,6 +477,30 @@ Be thorough - this affects tax refund decisions."""
         elif "hardware" in content_lower or "equipment" in content_lower:
             business_type = "Hardware/Equipment"
 
+        # Extract headquarters location from response (simple pattern matching)
+        hq_city = None
+        hq_state = None
+        # Look for patterns like "headquartered in City, ST" or "based in City, State"
+        hq_patterns = [
+            r"headquartered in ([A-Za-z\s]+),?\s*([A-Z]{2})",
+            r"based in ([A-Za-z\s]+),?\s*([A-Z]{2})",
+            r"headquarters (?:is |are )?(?:in |located in )?([A-Za-z\s]+),?\s*([A-Z]{2})",
+        ]
+        for pattern in hq_patterns:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                hq_city = match.group(1).strip()
+                hq_state = match.group(2).upper()
+                break
+
+        # Cache HQ location if found
+        if hq_state:
+            _vendor_hq_cache[vendor_name.upper()] = {
+                "headquarters_city": hq_city or "",
+                "headquarters_state": hq_state,
+                "confidence": 75,  # Web search is more confident
+            }
+
         return {
             "source": "web_search",
             "business_type": business_type,
@@ -365,6 +509,8 @@ Be thorough - this affects tax refund decisions."""
             ),  # First 500 chars
             "full_analysis": content,  # Full analysis for detailed review
             "tax_implications": tax_implications,
+            "headquarters_city": hq_city,
+            "headquarters_state": hq_state,
             "sources": sources,
             "confident": True,  # Web search is more confident than AI inference
         }
@@ -374,8 +520,9 @@ Be thorough - this affects tax refund decisions."""
         # Fallback to basic AI inference if web search fails
         try:
             fallback_prompt = f"""Based on the vendor name "{vendor_name}" and description "{description}",
-what type of business is this likely to be? Return brief JSON:
-{{"business_type": "type", "typical_services": "description"}}"""
+what type of business is this likely to be? Where is their headquarters located?
+Return brief JSON:
+{{"business_type": "type", "typical_services": "description", "headquarters_city": "city or null", "headquarters_state": "2-letter state code or null"}}"""
 
             result = router.execute(
                 task="analysis",
@@ -386,10 +533,23 @@ what type of business is this likely to be? Return brief JSON:
             if content.startswith("```"):
                 content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
             vendor_info = json.loads(content)
+
+            # Cache HQ location if found
+            hq_city = vendor_info.get("headquarters_city")
+            hq_state = vendor_info.get("headquarters_state")
+            if hq_state and hq_state.lower() not in ("null", "unknown", ""):
+                _vendor_hq_cache[vendor_name.upper()] = {
+                    "headquarters_city": hq_city or "",
+                    "headquarters_state": hq_state.upper(),
+                    "confidence": 60,
+                }
+
             return {
                 "source": "ai_inference_fallback",
                 "business_type": vendor_info.get("business_type", "Unknown"),
                 "context": vendor_info.get("typical_services", ""),
+                "headquarters_city": hq_city,
+                "headquarters_state": hq_state,
                 "confident": False,
                 "sources": [],
             }
@@ -1639,10 +1799,13 @@ Provide follow_up_questions when flagging:
 - Examples: "Does the Site ID location or Ship-to address determine where services were performed?"
 - Examples: "Is this a lease/rental or an outright purchase?"
 - Examples: "Are the bundled services separately stated on the invoice?"
-- Use empty array [] when needs_review is false
+- REQUIRED: When needs_review is true, you MUST provide at least one specific follow_up_question explaining why
+- Use empty array [] ONLY when needs_review is false
 
-IMPORTANT: It's better to flag for review with specific questions than to provide
-a confident-sounding but uncertain analysis. Users appreciate honest uncertainty.
+IMPORTANT: Never flag needs_review: true with an empty follow_up_questions array.
+If you're uncertain enough to flag for review, you MUST articulate what specific
+information or verification would resolve the uncertainty. Users need actionable
+questions, not just a "needs review" flag with no explanation.
 
 Always make your best determination AND flag what to verify.
 
@@ -1929,6 +2092,11 @@ def main():
             historical_rates = HistoricalRateDB(args.rates_folder)
         except Exception as e:
             print(f"  ⚠️  Failed to load historical rates: {e}")
+
+    # Load vendor HQ locations for out-of-state vendor detection
+    vendor_locations = load_vendor_locations()
+    if vendor_locations:
+        print(f"\n📍 Loaded {len(vendor_locations)} vendor HQ locations")
 
     # Initialize ExcelFileWatcher for intelligent row tracking
     print("\n🔍 Checking for changes...")
@@ -2550,6 +2718,30 @@ def main():
             if pd.notna(v) and str(v).strip()
         }
 
+        # Check for vendor HQ location mismatch (OOS vendor claiming WA work)
+        vendor_hq_mismatch = None
+        normalized_vendor = vendor.upper().strip()
+        # Check pre-loaded locations first, then cached results, then research
+        hq_info = vendor_locations.get(normalized_vendor) or _vendor_hq_cache.get(
+            normalized_vendor
+        )
+        # If unknown vendor, research their HQ via AI
+        if not hq_info:
+            hq_info = research_vendor_hq(vendor)
+        if hq_info:
+            hq_state = (hq_info.get("headquarters_state") or "").upper()
+            hq_city = hq_info.get("headquarters_city", "")
+            ship_state_upper = (ship_to_state or "").upper()
+            confidence = hq_info.get("confidence", 0)
+            # Flag if: HQ outside WA, ship-to in WA (or empty), and confidence >= 60
+            if (
+                hq_state
+                and hq_state != "WA"
+                and ship_state_upper in ("WA", "WASHINGTON", "")
+                and confidence >= 60
+            ):
+                vendor_hq_mismatch = {"hq_city": hq_city, "hq_state": hq_state}
+
         analysis_queue.append(
             {
                 "excel_row_idx": idx,
@@ -2576,6 +2768,8 @@ def main():
                 "rate_source": rate_source or "",  # "historical" or "current"
                 # All Excel columns for AI context
                 "excel_row_data": excel_row_data,
+                # Vendor HQ mismatch for OOS vendor detection
+                "vendor_hq_mismatch": vendor_hq_mismatch,
             }
         )
 
@@ -2762,6 +2956,14 @@ def main():
             "Yes" if analysis.get("needs_review", False) else ""
         )
         follow_up = analysis.get("follow_up_questions", [])
+        # Add vendor HQ mismatch question if applicable
+        hq_mismatch = queue_item.get("vendor_hq_mismatch")
+        if hq_mismatch:
+            follow_up = list(follow_up)  # Make mutable copy
+            follow_up.append(
+                f"Vendor HQ is in {hq_mismatch['hq_city']}, {hq_mismatch['hq_state']}. "
+                "Invoice claims work in WA. Verify where services were actually performed."
+            )
         df.loc[idx, "Follow_Up_Questions"] = "; ".join(follow_up) if follow_up else ""
         # Rate lookup info (from queue_item, not analysis)
         df.loc[idx, "Resolved_City"] = queue_item.get("ship_to_city", "")
