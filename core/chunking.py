@@ -36,6 +36,7 @@ def chunk_legal_document(
     max_words: int = 1500,
     min_words: int = 150,
     preserve_sections: bool = True,
+    overlap_words: int = 50,
 ) -> List[Dict[str, any]]:
     """
     Semantically chunk a legal document while preserving structure.
@@ -48,6 +49,7 @@ def chunk_legal_document(
         max_words: Maximum chunk size before forced split (hard limit)
         min_words: Minimum chunk size (avoid tiny fragments)
         preserve_sections: Whether to preserve legal section boundaries
+        overlap_words: Number of words to overlap between chunks (default 50 ~120 tokens)
 
     Returns:
         List of chunk dictionaries with keys:
@@ -56,6 +58,7 @@ def chunk_legal_document(
         - section_id: Section identifier if detected (e.g., "(1)", "(a)")
         - word_count: Number of words in chunk
         - char_count: Number of characters in chunk
+        - has_overlap: True if chunk starts with overlap text from previous chunk
 
     Example:
         >>> text = "(1) This is section one. (2) This is section two."
@@ -73,22 +76,26 @@ def chunk_legal_document(
 
     if preserve_sections:
         # Use hierarchical semantic chunking
-        chunks = _chunk_by_hierarchy(text, target_words, max_words, min_words)
+        chunks = _chunk_by_hierarchy(text, target_words, max_words, min_words, overlap_words)
     else:
         # Simple paragraph-based chunking
-        chunks = _chunk_by_paragraphs(text, target_words, max_words, min_words)
+        chunks = _chunk_by_paragraphs(text, target_words, max_words, min_words, overlap_words)
 
     # Add metadata to each chunk
     for i, chunk in enumerate(chunks):
         chunk["chunk_index"] = i
         chunk["word_count"] = len(chunk["chunk_text"].split())
         chunk["char_count"] = len(chunk["chunk_text"])
+        chunk["chunk_role"] = classify_chunk_role(chunk["chunk_text"])
+        # has_overlap is set by chunking functions, default to False
+        if "has_overlap" not in chunk:
+            chunk["has_overlap"] = False
 
     return chunks
 
 
 def _chunk_by_hierarchy(
-    text: str, target_words: int, max_words: int, min_words: int
+    text: str, target_words: int, max_words: int, min_words: int, overlap_words: int = 50
 ) -> List[Dict[str, str]]:
     """
     Chunk by legal document hierarchy: (1) → (a) → (i) → paragraphs
@@ -114,7 +121,7 @@ def _chunk_by_hierarchy(
         # If section is too large, split by subsections (a), (b), (c)
         elif word_count > max_words:
             subsection_chunks = _split_large_section_by_subsections(
-                section_marker, section_text, target_words, max_words, min_words
+                section_marker, section_text, target_words, max_words, min_words, overlap_words
             )
             chunks.extend(subsection_chunks)
 
@@ -137,6 +144,7 @@ def _split_large_section_by_subsections(
     target_words: int,
     max_words: int,
     min_words: int,
+    overlap_words: int = 50,
 ) -> List[Dict[str, str]]:
     """
     Split a large section by lettered subsections (a), (b), (c), etc.
@@ -149,6 +157,7 @@ def _split_large_section_by_subsections(
 
     current_chunk_text = section_marker + "\n" if section_marker else ""
     current_word_count = len(current_chunk_text.split())
+    previous_chunk_words = []  # Track words for overlap
 
     for subsection_marker, subsection_text in lettered_subsections:
         subsection_words = len(subsection_text.split())
@@ -163,12 +172,13 @@ def _split_large_section_by_subsections(
                         "section_id": section_marker.strip() if section_marker else "",
                     }
                 )
+                previous_chunk_words = current_chunk_text.strip().split()[-overlap_words:]
                 current_chunk_text = section_marker + "\n" if section_marker else ""
                 current_word_count = len(current_chunk_text.split())
 
             # Split huge subsection by paragraphs
             para_chunks = _chunk_by_paragraphs(
-                subsection_marker + subsection_text, target_words, max_words, min_words
+                subsection_marker + subsection_text, target_words, max_words, min_words, overlap_words
             )
 
             for para_chunk in para_chunks:
@@ -177,13 +187,16 @@ def _split_large_section_by_subsections(
                 )
 
             chunks.extend(para_chunks)
+            # Update previous_chunk_words from last para_chunk
+            if para_chunks:
+                previous_chunk_words = para_chunks[-1]["chunk_text"].split()[-overlap_words:]
 
         # Try to add subsection to current chunk
         elif current_word_count + subsection_words <= max_words:
             current_chunk_text += subsection_marker + subsection_text
             current_word_count += subsection_words
 
-        # Current chunk is full, start new one
+        # Current chunk is full, start new one with overlap
         else:
             if current_chunk_text.strip() and current_word_count >= min_words:
                 chunks.append(
@@ -192,8 +205,13 @@ def _split_large_section_by_subsections(
                         "section_id": section_marker.strip() if section_marker else "",
                     }
                 )
+                previous_chunk_words = current_chunk_text.strip().split()[-overlap_words:]
 
+            # Start new chunk with overlap from previous
+            overlap_text = " ".join(previous_chunk_words) if previous_chunk_words else ""
+            has_overlap = bool(overlap_text)
             current_chunk_text = (
+                (overlap_text + "\n\n" if overlap_text else "") +
                 section_marker + "\n" + subsection_marker + subsection_text
             )
             current_word_count = len(current_chunk_text.split())
@@ -211,10 +229,11 @@ def _split_large_section_by_subsections(
 
 
 def _chunk_by_paragraphs(
-    text: str, target_words: int, max_words: int, min_words: int
+    text: str, target_words: int, max_words: int, min_words: int, overlap_words: int = 50
 ) -> List[Dict[str, str]]:
     """
     Simple paragraph-based chunking for documents without clear section structure.
+    Includes overlap between chunks to preserve context at boundaries.
     """
 
     chunks = []
@@ -222,6 +241,7 @@ def _chunk_by_paragraphs(
 
     current_chunk = ""
     current_word_count = 0
+    previous_chunk_words = []  # Track words for overlap
 
     for para in paragraphs:
         para = para.strip()
@@ -234,39 +254,52 @@ def _chunk_by_paragraphs(
         if para_words > max_words:
             # Save current chunk first
             if current_chunk.strip() and current_word_count >= min_words:
-                chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
+                chunks.append({"chunk_text": current_chunk.strip(), "section_id": "", "has_overlap": bool(previous_chunk_words)})
+                previous_chunk_words = current_chunk.strip().split()[-overlap_words:]
                 current_chunk = ""
                 current_word_count = 0
 
             # Split huge paragraph by sentences
-            sentence_chunks = _split_by_sentences(para, target_words, max_words)
+            sentence_chunks = _split_by_sentences(para, target_words, max_words, overlap_words)
             chunks.extend(sentence_chunks)
+            # Update previous_chunk_words from last sentence chunk
+            if sentence_chunks:
+                previous_chunk_words = sentence_chunks[-1]["chunk_text"].split()[-overlap_words:]
 
         # Try to add paragraph to current chunk
         elif current_word_count + para_words <= max_words:
             current_chunk += "\n\n" + para if current_chunk else para
             current_word_count += para_words
 
-        # Current chunk is full, start new one
+        # Current chunk is full, start new one with overlap
         else:
+            has_overlap = False
             if current_chunk.strip() and current_word_count >= min_words:
-                chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
+                chunks.append({"chunk_text": current_chunk.strip(), "section_id": "", "has_overlap": bool(previous_chunk_words)})
+                previous_chunk_words = current_chunk.strip().split()[-overlap_words:]
 
-            current_chunk = para
-            current_word_count = para_words
+            # Start new chunk with overlap from previous
+            if previous_chunk_words:
+                overlap_text = " ".join(previous_chunk_words)
+                current_chunk = overlap_text + "\n\n" + para
+                has_overlap = True
+            else:
+                current_chunk = para
+            current_word_count = len(current_chunk.split())
 
     # Save final chunk
     if current_chunk.strip() and current_word_count >= min_words:
-        chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
+        chunks.append({"chunk_text": current_chunk.strip(), "section_id": "", "has_overlap": bool(previous_chunk_words) and len(chunks) > 0})
 
     return chunks
 
 
 def _split_by_sentences(
-    text: str, target_words: int, max_words: int
+    text: str, target_words: int, max_words: int, overlap_words: int = 50
 ) -> List[Dict[str, str]]:
     """
     Split text by sentences for very large paragraphs.
+    Includes overlap between chunks to preserve context at boundaries.
     """
 
     chunks = []
@@ -315,6 +348,7 @@ def _split_by_sentences(
 
     current_chunk = ""
     current_word_count = 0
+    previous_chunk_words = []  # Track words for overlap
 
     for sentence in sentences:
         sentence_words = len(sentence.split())
@@ -324,14 +358,20 @@ def _split_by_sentences(
             current_word_count += sentence_words
         else:
             if current_chunk.strip():
-                chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
+                chunks.append({"chunk_text": current_chunk.strip(), "section_id": "", "has_overlap": bool(previous_chunk_words)})
+                previous_chunk_words = current_chunk.strip().split()[-overlap_words:]
 
-            current_chunk = sentence
-            current_word_count = sentence_words
+            # Start new chunk with overlap from previous
+            if previous_chunk_words:
+                overlap_text = " ".join(previous_chunk_words)
+                current_chunk = overlap_text + " " + sentence
+            else:
+                current_chunk = sentence
+            current_word_count = len(current_chunk.split())
 
     # Save final chunk
     if current_chunk.strip():
-        chunks.append({"chunk_text": current_chunk.strip(), "section_id": ""})
+        chunks.append({"chunk_text": current_chunk.strip(), "section_id": "", "has_overlap": bool(previous_chunk_words) and len(chunks) > 0})
 
     return chunks
 
@@ -413,6 +453,79 @@ def get_chunking_stats(chunks: List[Dict]) -> Dict[str, any]:
         "max_words": max(word_counts),
         "total_words": sum(word_counts),
     }
+
+
+def classify_chunk_role(chunk_text: str) -> str:
+    """
+    Classify a chunk's semantic role based on content patterns.
+
+    Roles:
+    - definition: Legal definitions of terms
+    - rule: Legal rules and requirements (default)
+    - example: Examples and illustrations
+    - exception: Exceptions and carve-outs
+    - procedure: Procedures and processes
+
+    Args:
+        chunk_text: The text content of the chunk
+
+    Returns:
+        One of: 'definition', 'rule', 'example', 'exception', 'procedure'
+    """
+    text = chunk_text.lower()
+
+    # Definitions (highest priority)
+    definition_patterns = [
+        r'["\']\w+["\']\s+means\b',
+        r"for purposes of this",
+        r"is defined as",
+        r"shall mean",
+        r"\bdefinition[s]?\s*:",
+    ]
+    for pattern in definition_patterns:
+        if re.search(pattern, text):
+            return "definition"
+
+    # Examples
+    example_patterns = [
+        r"\bexample\s*\d*\s*[:\.]",
+        r"\bfor example\b",
+        r"\be\.g\.\b",
+        r"\billustration\b",
+    ]
+    for pattern in example_patterns:
+        if re.search(pattern, text):
+            return "example"
+
+    # Exceptions
+    exception_patterns = [
+        r"\bdoes not (apply|include)\b",
+        r"\bexcept\s+(that|where|when|as)\b",
+        r"\bexempt from\b",
+        r"\bexclusion\b",
+        r"\bnotwithstanding\b",
+        r"\bthis section does not\b",
+    ]
+    for pattern in exception_patterns:
+        if re.search(pattern, text):
+            return "exception"
+
+    # Procedures
+    procedure_patterns = [
+        r"\bmust file\b",
+        r"\bwithin\s+\d+\s+(days?|months?|years?)\b",
+        r"\bdeadline\b",
+        r"\bsubmit\s+(a|an|the)\b",
+        r"\brequest\s+(for|a|an)\b",
+        r"\bclaim\s+(for|a|an)\b",
+        r"\bapplication\s+(for|to)\b",
+    ]
+    for pattern in procedure_patterns:
+        if re.search(pattern, text):
+            return "procedure"
+
+    # Default to rule
+    return "rule"
 
 
 if __name__ == "__main__":

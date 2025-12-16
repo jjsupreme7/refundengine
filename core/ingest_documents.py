@@ -968,6 +968,7 @@ def import_metadata_from_excel(
                                     "citation": row.get("citation", ""),
                                     "law_category": row.get("law_category", "general"),
                                     "section_title": combined_section_title,  # Now includes page numbers!
+                                    "chunk_role": chunk.get("chunk_role", "rule"),
                                     "topic_tags": parse_array(
                                         row.get("topic_tags", "")
                                     ),

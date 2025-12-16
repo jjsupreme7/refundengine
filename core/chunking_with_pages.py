@@ -76,10 +76,18 @@ def find_chunk_page_numbers(
 
 
 def chunk_document_with_pages(
-    pdf_path: str, target_words: int = 800, max_words: int = 1500, min_words: int = 150
+    pdf_path: str, target_words: int = 800, max_words: int = 1500, min_words: int = 150,
+    overlap_words: int = 50
 ) -> Tuple[List[Dict], int]:
     """
     Chunk a PDF document and include page numbers for each chunk.
+
+    Args:
+        pdf_path: Path to PDF file
+        target_words: Target chunk size in words (soft limit)
+        max_words: Maximum chunk size before forced split (hard limit)
+        min_words: Minimum chunk size (avoid tiny fragments)
+        overlap_words: Number of words to overlap between chunks (default 50 ~120 tokens)
 
     Returns:
         - chunks: List of chunk dicts with 'page_numbers' field added
@@ -89,13 +97,14 @@ def chunk_document_with_pages(
     # Extract with page tracking
     full_text, page_map, total_pages = extract_text_with_page_mapping(pdf_path)
 
-    # Chunk using canonical chunking
+    # Chunk using canonical chunking with overlap
     chunks = chunk_legal_document(
         full_text,
         target_words=target_words,
         max_words=max_words,
         min_words=min_words,
         preserve_sections=True,
+        overlap_words=overlap_words,
     )
 
     # Add page numbers to each chunk

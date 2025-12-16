@@ -192,6 +192,7 @@ def ingest_large_document(
                             "citation": citation or title,
                             "law_category": law_category,
                             "section_title": combined_section_title,  # Now includes page numbers!
+                            "chunk_role": chunk.get("chunk_role", "rule"),
                         }
                     )
                 else:  # vendor

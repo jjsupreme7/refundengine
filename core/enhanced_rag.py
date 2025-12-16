@@ -901,37 +901,53 @@ Return JSON:
 
     def search_hybrid(self, query: str, top_k: int = 5) -> List[Dict]:
         """
-        Hybrid search: Combines vector search + keyword search
-        Better for exact matches (like finding specific RCW numbers)
+        Hybrid search: Combines vector search + BM25 using RRF fusion.
+        Better for both semantic similarity and exact matches (like RCW numbers).
         """
-        print(f"🔀 Hybrid Search: {query[:100]}...")
+        print(f"🔀 Hybrid Search (RRF): {query[:100]}...")
 
-        # Step 1: Vector search (semantic similarity)
-        vector_results = self.basic_search(query, top_k=top_k)
+        # Step 1: Vector search (semantic similarity) - get more candidates
+        vector_results = self.basic_search(query, top_k=top_k * 3)
         print(f"   Vector search: {len(vector_results)} chunks")
 
-        # Step 2: Keyword search (exact matches)
-        keyword_results = self._keyword_search(query, top_k=top_k)
-        print(f"   Keyword search: {len(keyword_results)} chunks")
+        # Step 2: BM25 search (lexical/keyword matching)
+        bm25_results = self._bm25_search(query, top_k=top_k * 3)
+        print(f"   BM25 search: {len(bm25_results)} chunks")
 
-        # Step 3: Combine and deduplicate
-        all_results = vector_results + keyword_results
-        unique_results = self._deduplicate_by_id(all_results)
-        print(f"   Combined: {len(unique_results)} unique chunks")
+        # Step 3: RRF fusion to combine results
+        fused_results = self._rrf_fusion(vector_results, bm25_results)
+        print(f"   RRF fusion: {len(fused_results)} unique chunks")
 
-        # Step 4: Rerank combined results
-        reranked = self._rerank_chunks(query, unique_results)
-
-        final_results = reranked[:top_k]
+        # Step 4: Return top-k results
+        final_results = fused_results[:top_k]
         print(f"✅ Hybrid search complete: {len(final_results)} chunks")
         return final_results
 
-    def _keyword_search(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Keyword-based search using PostgreSQL full-text search"""
+    def _bm25_search(self, query: str, top_k: int = 20) -> List[Dict]:
+        """BM25-style full-text search using PostgreSQL ts_rank_cd"""
         try:
-            # Use PostgreSQL text search with ilike fallback
-            # text_search can be unreliable, so use ilike for simple keyword matching
-            search_terms = query.split()[:3]  # Take first 3 words
+            response = self.supabase.rpc(
+                "search_tax_law_fulltext",
+                {"search_query": query, "match_count": top_k}
+            ).execute()
+
+            results = response.data if response.data else []
+
+            # Add rank position for RRF calculation
+            for i, r in enumerate(results):
+                r["search_type"] = "bm25"
+                r["bm25_rank"] = i + 1  # 1-indexed rank
+
+            return results
+        except Exception as e:
+            print(f"Error in BM25 search: {e}")
+            # Fallback to simple keyword search if RPC not available
+            return self._keyword_search_fallback(query, top_k)
+
+    def _keyword_search_fallback(self, query: str, top_k: int = 5) -> List[Dict]:
+        """Fallback keyword search using ilike (for when BM25 RPC unavailable)"""
+        try:
+            search_terms = query.split()[:3]
             search_pattern = "%".join(search_terms)
 
             response = (
@@ -943,15 +959,67 @@ Return JSON:
             )
 
             results = response.data if response.data else []
-
-            # Mark as keyword search results
-            for r in results:
+            for i, r in enumerate(results):
                 r["search_type"] = "keyword"
-
+                r["bm25_rank"] = i + 1
             return results
         except Exception as e:
-            print(f"Error in keyword search: {e}")
+            print(f"Error in keyword search fallback: {e}")
             return []
+
+    def _rrf_fusion(
+        self,
+        vector_results: List[Dict],
+        bm25_results: List[Dict],
+        k: int = 60
+    ) -> List[Dict]:
+        """
+        Reciprocal Rank Fusion to combine vector and BM25 results.
+
+        Formula: RRF_score = sum(1 / (k + rank_i))
+
+        Args:
+            vector_results: Results from vector search (ordered by similarity)
+            bm25_results: Results from BM25/full-text search (ordered by ts_rank)
+            k: Constant to prevent high ranks from dominating (default 60)
+
+        Returns:
+            Combined results sorted by RRF score
+        """
+        scores = {}
+        chunk_data = {}
+
+        # Score vector results
+        for i, result in enumerate(vector_results):
+            chunk_id = result.get("id")
+            if chunk_id:
+                rank = i + 1  # 1-indexed
+                scores[chunk_id] = scores.get(chunk_id, 0) + 1 / (k + rank)
+                chunk_data[chunk_id] = result
+                chunk_data[chunk_id]["vector_rank"] = rank
+
+        # Score BM25 results
+        for i, result in enumerate(bm25_results):
+            chunk_id = result.get("id")
+            if chunk_id:
+                rank = i + 1  # 1-indexed
+                scores[chunk_id] = scores.get(chunk_id, 0) + 1 / (k + rank)
+                if chunk_id not in chunk_data:
+                    chunk_data[chunk_id] = result
+                chunk_data[chunk_id]["bm25_rank"] = rank
+
+        # Sort by RRF score
+        sorted_ids = sorted(scores.keys(), key=lambda x: scores[x], reverse=True)
+
+        # Build final results with RRF scores
+        results = []
+        for chunk_id in sorted_ids:
+            chunk = chunk_data[chunk_id]
+            chunk["rrf_score"] = scores[chunk_id]
+            chunk["search_type"] = "hybrid_rrf"
+            results.append(chunk)
+
+        return results
 
     def _deduplicate_by_id(self, chunks: List[Dict]) -> List[Dict]:
         """Remove duplicate chunks based on ID"""
@@ -1060,7 +1128,7 @@ Return JSON:
             vector_results = self.basic_search(exp_query, top_k=3)
 
             # Keyword search
-            keyword_results = self._keyword_search(exp_query, top_k=3)
+            keyword_results = self._bm25_search(exp_query, top_k=3)
 
             # Combine
             for chunk in vector_results + keyword_results:
