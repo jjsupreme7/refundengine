@@ -124,6 +124,157 @@ enhanced_rag = EnhancedRAG()
 
 
 # ==========================================
+# SITE ID LOOKUP FOR WA TAX RATES
+# ==========================================
+
+# Global site data (lazy-loaded on first use)
+_site_to_state: Dict[str, str] = {}  # site_id -> state mapping
+_wa_site_rates: Dict[str, float] = {}  # site_id -> tax rate for WA sites
+_unique_wa_rates: set = set()  # All unique WA tax rates (for non-WA quadrant detection)
+_site_location_data: Dict[str, Dict] = {}  # site_id -> {city, county, zip} for Cell Sites
+_site_data_loaded: bool = False
+
+
+def _load_site_data() -> None:
+    """Load site data from Excel files (lazy loading on first use)."""
+    global _site_to_state, _wa_site_rates, _unique_wa_rates, _site_location_data, _site_data_loaded
+
+    if _site_data_loaded:
+        return
+
+    data_folder = Path.home() / "Desktop" / "Files-Refund-Engine" / "Site IDs and rates"
+
+    # Load WA site rates
+    wa_rates_path = data_folder / "wa_sites_with_rates.xlsx"
+    if wa_rates_path.exists():
+        print(f"Loading WA site rates from {wa_rates_path.name}...")
+        df = pd.read_excel(wa_rates_path)
+        if 'Site' in df.columns and 'Current_Rate' in df.columns:
+            for _, row in df.iterrows():
+                site_id = str(row['Site']).strip().upper()
+                rate = row['Current_Rate']
+                if pd.notna(rate):
+                    _wa_site_rates[site_id] = float(rate)
+                    _unique_wa_rates.add(float(rate))
+            print(f"  Loaded {len(_wa_site_rates)} WA site rates ({len(_unique_wa_rates)} unique rates)")
+
+    # Load Site Lists for site ID -> state mapping AND location data
+    site_lists_path = data_folder / "Site Lists_match site ID to invoice description.xlsx"
+    if site_lists_path.exists():
+        print(f"Loading Site Lists from {site_lists_path.name}...")
+        try:
+            df = pd.read_excel(site_lists_path, sheet_name="Cell Sites")
+            if 'Site' in df.columns and 'State' in df.columns:
+                for _, row in df.iterrows():
+                    site_id = str(row['Site']).strip().upper()
+                    state = str(row['State']).strip().upper() if pd.notna(row['State']) else ""
+                    if site_id and state:
+                        _site_to_state[site_id] = state
+                        # Also store location data (city, county, zip)
+                        _site_location_data[site_id] = {
+                            "city": str(row.get('City', '')).strip() if pd.notna(row.get('City')) else "",
+                            "county": str(row.get('County', '')).strip() if pd.notna(row.get('County')) else "",
+                            "zip": str(row.get('ZIP', '')).strip() if pd.notna(row.get('ZIP')) else "",
+                            "state": state,
+                        }
+                print(f"  Loaded {len(_site_to_state)} site-to-state mappings")
+                print(f"  Loaded {len(_site_location_data)} site location records")
+        except Exception as e:
+            print(f"  Error loading Site Lists: {e}")
+
+    _site_data_loaded = True
+
+
+def extract_site_id(description: str) -> Optional[str]:
+    """
+    Extract T-Mobile site ID from description text.
+
+    Site IDs typically look like: SE01403, RPO03XC031, BL20511W
+    Pattern: 2-3 letters followed by 4-8 alphanumeric characters
+
+    Returns:
+        Matched site ID if found in site_to_state lookup, else None
+    """
+    _load_site_data()  # Ensure data is loaded
+
+    if not description or not _site_to_state:
+        return None
+
+    # Pattern: 2-3 letters + 4-8 alphanumeric (e.g., SE01403, RPO03XC031)
+    pattern = r'\b([A-Z]{2,3}[0-9A-Z]{4,8})\b'
+    matches = re.findall(pattern, str(description).upper())
+
+    for match in matches:
+        if match in _site_to_state:
+            return match
+
+    return None
+
+
+def get_site_rate(site_id: str) -> Optional[float]:
+    """
+    Get the expected tax rate for a WA site.
+
+    Returns:
+        Tax rate if site is in WA and has a rate, else None
+    """
+    _load_site_data()  # Ensure data is loaded
+
+    if not site_id:
+        return None
+
+    site_id = site_id.upper().strip()
+
+    # Check if it's a WA site (state could be "WA" or "WASHINGTON")
+    state = _site_to_state.get(site_id, "").upper()
+    if state not in ("WA", "WASHINGTON"):
+        return None
+
+    # Get rate from WA sites
+    return _wa_site_rates.get(site_id)
+
+
+def is_wa_rate(rate: float, tolerance: float = 0.05) -> bool:
+    """
+    Check if a tax rate matches any known Washington state rate.
+
+    Used to detect if a non-WA transaction was incorrectly charged WA rates.
+
+    Args:
+        rate: The tax rate to check (as percentage, e.g., 10.35)
+        tolerance: How close the rate must be to match (default 0.05%)
+
+    Returns:
+        True if the rate matches any known WA rate
+    """
+    _load_site_data()  # Ensure data is loaded
+
+    if not rate or not _unique_wa_rates:
+        return False
+
+    rate = float(rate)
+    for wa_rate in _unique_wa_rates:
+        if abs(rate - wa_rate) <= tolerance:
+            return True
+    return False
+
+
+def get_site_location(site_id: str) -> Optional[Dict]:
+    """
+    Get location data for a site from Cell Sites lookup.
+
+    Returns:
+        Dict with city, county, zip, state if found, else None
+    """
+    _load_site_data()  # Ensure data is loaded
+
+    if not site_id:
+        return None
+
+    return _site_location_data.get(site_id.upper().strip())
+
+
+# ==========================================
 # PATTERN QUERY FUNCTIONS
 # ==========================================
 
@@ -775,6 +926,9 @@ Return this JSON format:
                 content = content[:-3].strip()
 
         try:
+            # Fix common JSON errors: remove commas from numbers like 1,227,488.20
+            # This regex finds numbers with commas and removes the commas
+            content = re.sub(r'(?<=\d),(?=\d{3})', '', content)
             invoice_data = json.loads(content)
         except json.JSONDecodeError as json_err:
             print(f"  ⚠️ Invalid JSON from invoice extraction: {json_err}")
@@ -789,6 +943,47 @@ Return this JSON format:
     except Exception as e:
         print(f"  ❌ Error: {e}")
         return {"error": str(e)}
+
+
+def vendors_match(excel_vendor: str, invoice_vendor: str) -> bool:
+    """
+    Check if Excel vendor name matches invoice vendor name (fuzzy matching).
+
+    Returns True if they match, False if mismatch detected.
+    """
+    if not excel_vendor or not invoice_vendor:
+        return True  # Can't compare if one is missing
+
+    # Normalize both names
+    excel_norm = excel_vendor.lower().strip()
+    invoice_norm = invoice_vendor.lower().strip()
+
+    # Skip if invoice vendor is generic/unknown
+    skip_values = ["unknown", "n/a", "na", "none", ""]
+    if invoice_norm in skip_values:
+        return True
+
+    # Exact match
+    if excel_norm == invoice_norm:
+        return True
+
+    # One contains the other (handles "Company Inc" vs "Company")
+    if excel_norm in invoice_norm or invoice_norm in excel_norm:
+        return True
+
+    # Check if significant words overlap (handles word order differences)
+    # Remove common suffixes/prefixes
+    stopwords = {"inc", "llc", "ltd", "corp", "corporation", "company", "co",
+                 "the", "of", "and", "&", ",", ".", "-"}
+
+    excel_words = set(excel_norm.split()) - stopwords
+    invoice_words = set(invoice_norm.split()) - stopwords
+
+    # If any significant word matches, consider it a match
+    if excel_words & invoice_words:
+        return True
+
+    return False
 
 
 def categorize_product(description: str, vendor_info: Optional[Dict] = None) -> str:
@@ -1062,6 +1257,30 @@ def analyze_batch(
         items_text += f"   [INVOICE DATA] Tax Charged: ${item['tax']:,.2f}\n"
         items_text += f"   Category: {category}\n"
 
+        # Site ID lookup for location and WA rate validation
+        site_id = extract_site_id(product_desc)
+        if site_id:
+            items_text += f"   [SITE ID] Matched Site: {site_id}\n"
+
+            # Get location data from Cell Sites
+            site_location = get_site_location(site_id)
+            if site_location:
+                loc_parts = [site_location.get("city", ""), site_location.get("state", "")]
+                if site_location.get("county"):
+                    loc_parts.append(f"{site_location['county']} County")
+                if site_location.get("zip"):
+                    loc_parts.append(site_location["zip"])
+                items_text += f"   [SITE ID] Location: {', '.join(p for p in loc_parts if p)}\n"
+
+            # Check WA rate if applicable
+            expected_rate = get_site_rate(site_id)
+            if expected_rate is not None:
+                rate_charged = item.get("tax_rate_charged", 0)
+                items_text += f"   [WA DOR RATE] Expected Rate for {site_id}: {expected_rate}%\n"
+                if rate_charged and rate_charged > expected_rate + 0.01:
+                    rate_diff = rate_charged - expected_rate
+                    items_text += f"   [WA DOR RATE] *** OVERCHARGE: {rate_diff:.2f}% above expected rate ***\n"
+
         # Location and rate info (for Wrong Rate detection)
         ship_city = item.get("ship_to_city", "")
         ship_state = item.get("ship_to_state", "")
@@ -1098,6 +1317,22 @@ def analyze_batch(
                     # Skip columns we already show elsewhere
                     if val and len(str(val)) < 100:  # Skip very long values
                         items_text += f"   [EXCEL DATA] {col}: {val}\n"
+
+            # Check for non-WA quadrant charged WA rates (potential refund opportunity)
+            quadrant = str(excel_row_data.get("quadrant", "")).upper()
+            if "NOT" in quadrant and "WA" in quadrant:
+                # This is a "NOT in WA" transaction - check if charged WA rates
+                charged_rate = rate_charged or item.get("tax_rate_charged", 0)
+                if charged_rate and is_wa_rate(charged_rate):
+                    items_text += f"   [QUADRANT ALERT] *** POTENTIAL REFUND: Transaction is NOT in WA but charged WA rate ({charged_rate}%) ***\n"
+                    items_text += f"   [QUADRANT ALERT] This may be an incorrect tax charge - WA rates should not apply outside WA.\n"
+
+        # Check for quadrant mismatch - "In WA" quadrant but different jurisdiction
+        if item.get("quadrant_mismatch"):
+            actual_state = item.get("actual_jurisdiction", "Unknown")
+            items_text += f"   [QUADRANT MISMATCH] *** POTENTIAL REFUND: Quadrant says 'In WA' but jurisdiction is {actual_state} ***\n"
+            items_text += f"   [QUADRANT MISMATCH] WA tax may have been incorrectly charged on a {actual_state} transaction.\n"
+            items_text += f"   [QUADRANT MISMATCH] This is a REFUND OPPORTUNITY - full tax amount of ${item['tax']:,.2f} may be recoverable.\n"
 
         # Add PO context if available
         po_content = item.get("po_content", {})
@@ -1145,6 +1380,28 @@ def analyze_batch(
         if docs:
             legal_text += f"\n[LEGAL CONTEXT] {category.upper()} - Relevant Laws:\n"
             for doc in docs[:3]:  # Top 3 per category
+                # Handle structured_rules format from USE_RULES decision
+                if doc.get('source') == 'structured_rules' and doc.get('data'):
+                    rule_data = doc['data']
+                    legal_basis = rule_data.get('legal_basis', [])
+                    description = rule_data.get('description', '')
+                    taxable = rule_data.get('taxable', None)
+                    exemptions = rule_data.get('exemptions', [])
+
+                    legal_text += f"\n  [LEGAL CONTEXT] === STRUCTURED RULE: {category} ===\n"
+                    legal_text += f"  [LEGAL CONTEXT] Citations: {', '.join(legal_basis)}\n"
+                    legal_text += f"  [LEGAL CONTEXT] Taxable: {taxable}\n"
+                    legal_text += f"  [LEGAL CONTEXT] Rule: {description}\n"
+                    if exemptions:
+                        legal_text += f"  [LEGAL CONTEXT] Exemptions:\n"
+                        for ex in exemptions[:5]:
+                            ex_name = ex.get('name', 'Unknown')
+                            ex_citations = ex.get('legal_basis', [])
+                            ex_desc = ex.get('description', '')
+                            legal_text += f"    - {ex_name} ({', '.join(ex_citations)}): {ex_desc}\n"
+                    continue
+
+                # Handle regular document format
                 doc_title = doc.get('document_title', 'Unknown')
                 doc_citation = doc.get('citation', 'N/A')
                 # Get the actual document content - check multiple possible field names
@@ -1160,10 +1417,10 @@ def analyze_batch(
                 else:
                     legal_text += f"  [LEGAL CONTEXT] [No content available]\n"
 
-    # Debug: Show content status
+    # Debug: Show content status (count structured_rules as having content)
     docs_with_content = sum(1 for cat, docs in legal_context.items()
                             for doc in docs[:3]
-                            if doc.get('content') or doc.get('text') or doc.get('chunk_text') or doc.get('page_content'))
+                            if doc.get('source') == 'structured_rules' or doc.get('content') or doc.get('text') or doc.get('chunk_text') or doc.get('page_content'))
     docs_total = sum(min(len(docs), 3) for docs in legal_context.values() if docs)
     print(f"  📄 Legal docs: {docs_with_content}/{docs_total} have content")
 
@@ -1379,12 +1636,14 @@ Provide accurate analysis with legal citations and confidence scores."""
 
         # Use router for analysis task with structured outputs (guarantees valid JSON)
         # For high-stakes batches ($25k+), router automatically escalates to premium models
+        # Use 8192 tokens to avoid truncation with 15-item batches (~300 tokens per item)
         result = router.execute(
             task="analysis",
             prompt=prompt,
             system_prompt=system_msg,
             stakes=batch_stakes,
             temperature=0.2,
+            max_tokens=8192,  # Increased from default 4096 to prevent truncation
             response_format=ANALYSIS_RESPONSE_SCHEMA,  # Guarantees valid JSON
         )
 
@@ -1664,10 +1923,12 @@ def main():
     # Column name variants to support different file formats
     INV_COL_NAMES = [
         "Inv 1 File Name", "Inv-1 File Name",  # Denodo/Use Tax actual names
+        "Inv 1", "Inv-1PDF",  # Real Run / Use Tax Phase 3 names
         "Inv-1 FileName", "Inv_1_File", "Invoice_File_Name_1"
     ]
     INV2_COL_NAMES = [
         "Inv 2 File Name", "Inv-2 File Name",  # Denodo/Use Tax actual names
+        "Inv 2", "Inv-2 PDF",  # Real Run / Use Tax Phase 3 names
         "Inv-2 FileName", "Inv_2_File", "Invoice_File_Name_2"
     ]
     PO_COL_NAMES = [
@@ -1677,14 +1938,17 @@ def main():
     AMOUNT_COL_NAMES = ["Initial Amount", "Amount", "Total_Amount"]
     TAX_COL_NAMES = [
         "hwste_tax_amount_lc", "Total Tax",  # Denodo/Use Tax actual names
+        "Tax Remit",  # Use Tax Phase 3 name
         "Tax Paid", "Tax Remitted", "Tax", "Tax_Amount"
     ]
     DESC_COL_NAMES = [
         "txz01_po_description", "Description",  # Denodo/Use Tax actual names
+        "matk1_po_material_group_desc",  # Real Run description column
         "Line_Item_Description", "Product_Description"
     ]
     INV_FOLDER_COL_NAMES = [
         "Invoice Folder Path",  # Denodo/Use Tax actual name
+        "Invoice File Path", "Inv File Path",  # Real Run / Use Tax Phase 3 names
         "Invoice_Folder", "Inv_Folder", "Invoice_Path"
     ]
     PO_FOLDER_COL_NAMES = [
@@ -1705,21 +1969,28 @@ def main():
     # Essential output columns (slim output - only keep these from source + AI outputs)
     ESSENTIAL_OUTPUT_COLS = [
         # Key identifiers
-        "Vendor", "name1_po_vendor_name",
-        "Inv 1 File Name", "Inv-1 File Name",
-        "Inv 2 File Name", "Inv-2 File Name",
-        "Invoice Folder Path",
+        "Vendor", "name1_po_vendor_name", "Vendor Name",
+        "Inv 1 File Name", "Inv-1 File Name", "Inv 1", "Inv-1PDF",
+        "Inv 2 File Name", "Inv-2 File Name", "Inv 2", "Inv-2 PDF",
+        "Invoice Folder Path", "Invoice File Path", "Inv File Path",
         # Financial
         "Initial Amount", "Amount",
-        "hwste_tax_amount_lc", "Total Tax", "Tax Paid", "Tax Remitted",
+        "hwste_tax_amount_lc", "Total Tax", "Tax Paid", "Tax Remitted", "Tax Remit",
+        "rate", "hwbas_tax_base_lc",  # Real Run rate and tax base
         # Description
-        "txz01_po_description", "Description",
+        "txz01_po_description", "Description", "matk1_po_material_group_desc",
         # Location
-        "tax_jurisdiction_state", "sales_tax_state",
+        "tax_jurisdiction_state", "sales_tax_state", "STATE",
+        # Quadrant (Real Run specific)
+        "quadrant",
         # AI Analysis outputs (added by this script)
         "Product_Desc", "Product_Type", "Refund_Basis", "Citation",
-        "Confidence", "Estimated_Refund", "Explanation",
-        "Needs_Review", "Follow_Up_Questions", "AI_Reasoning",
+        "Confidence", "Estimated_Refund", "Final_Decision", "Explanation",
+        "Needs_Review", "Follow_Up_Questions", "Vendor_Mismatch", "AI_Reasoning",
+        # Human Review columns (left blank for reviewers to fill in)
+        "Review_Status", "Corrected_Product_Desc", "Corrected_Product_Type",
+        "Corrected_Refund_Basis", "Corrected_Citation", "Corrected_Estimated_Refund",
+        "Reviewer_Notes",
     ]
 
     # Get unique invoices - try multiple column names
@@ -1770,12 +2041,25 @@ def main():
         print("⚠️ No PO column found")
 
     # Helper function to resolve file paths
+    def convert_unc_to_drive(path: str) -> str:
+        """Convert UNC paths like \\\\KOMAZSRV02\\KOM-Public to P: drive."""
+        if not path:
+            return path
+        # Normalize backslashes
+        normalized = path.replace("\\\\", "\\")
+        unc_prefix = "\\KOMAZSRV02\\KOM-Public"
+        if normalized.startswith(unc_prefix):
+            return "P:" + normalized[len(unc_prefix):]
+        return path
+
     def resolve_file_path(filename: str, search_paths: list, folder_override: str = None) -> Optional[str]:
         """Find file in multiple possible locations. folder_override is checked first."""
         if not filename or pd.isna(filename):
             return None
         # Check folder override first (from Excel column)
         if folder_override and not pd.isna(folder_override):
+            # Convert UNC paths to mapped drive (e.g., P:)
+            folder_override = convert_unc_to_drive(str(folder_override))
             override_path = Path(folder_override) / filename
             if override_path.exists():
                 return str(override_path)
@@ -1956,6 +2240,10 @@ def main():
         vendor = row.get("Vendor", "Unknown")
         vendor_info = cache.get_vendor_info(vendor)
 
+        # Check for vendor name mismatch between Excel and invoice
+        invoice_vendor = inv_data.get("vendor_name", "") if inv_data else ""
+        vendor_mismatch = not vendors_match(vendor, invoice_vendor)
+
         # Use description for categorization
         category = categorize_product(description, vendor_info)
 
@@ -1966,8 +2254,15 @@ def main():
         # Consider WA if blank (default), "WA", "WASHINGTON", or empty
         is_wa_transaction = not tax_jurisdiction or tax_jurisdiction in ("WA", "WASHINGTON", "")
 
-        if not is_wa_transaction:
-            # Out-of-state transaction - add to separate queue for flagging
+        # Check for quadrant data - if we have quadrant data, analyze regardless of jurisdiction
+        # because we need to check if tax was charged correctly
+        quadrant = str(row.get("quadrant", "")).upper()
+        quadrant_in_wa = "IN WA" in quadrant and "NOT" not in quadrant
+        quadrant_not_in_wa = "NOT" in quadrant and "WA" in quadrant
+        has_quadrant_data = quadrant_in_wa or quadrant_not_in_wa
+
+        if not is_wa_transaction and not has_quadrant_data:
+            # Out-of-state transaction without quadrant data - add to separate queue for flagging
             out_of_state_queue.append({
                 "excel_row_idx": idx,
                 "tax_jurisdiction": tax_jurisdiction,
@@ -1978,6 +2273,11 @@ def main():
             })
             skipped_rows["out_of_state"].append((idx, tax_jurisdiction))
             continue  # Skip normal WA analysis
+
+        # If quadrant says "In WA" but jurisdiction is different state, flag for refund analysis
+        quadrant_mismatch = quadrant_in_wa and not is_wa_transaction
+        # If quadrant says "NOT in WA", we need to check if WA rates were incorrectly charged
+        check_for_wa_rates = quadrant_not_in_wa
 
         # Get PO data if available (po_file already retrieved above)
         po_filename = Path(po_file).name if po_file and "/" in str(po_file) else po_file
@@ -2028,6 +2328,14 @@ def main():
                 # WA DOR official rate lookup
                 "correct_rate": correct_rate,
                 "rate_difference": rate_difference,
+                # Quadrant mismatch - "In WA" quadrant but different jurisdiction
+                "quadrant_mismatch": quadrant_mismatch,
+                "actual_jurisdiction": tax_jurisdiction if quadrant_mismatch else None,
+                # "NOT in WA" quadrant - check if WA rates were incorrectly charged
+                "check_for_wa_rates": check_for_wa_rates,
+                # Vendor mismatch detection
+                "vendor_mismatch": vendor_mismatch,
+                "invoice_vendor": invoice_vendor,
                 # All Excel columns for AI context
                 "excel_row_data": excel_row_data,
             }
@@ -2165,6 +2473,9 @@ def main():
         df.loc[idx, "Product_Desc"] = line_item.get("description", "")
         df.loc[idx, "Product_Type"] = analysis.get("product_classification", "")
         df.loc[idx, "Refund_Basis"] = analysis.get("refund_basis", "")
+        # Add matched site ID if found
+        site_id = extract_site_id(line_item.get("description", ""))
+        df.loc[idx, "Site_ID"] = site_id if site_id else ""
         # Validate citations before saving (filters hallucinations, corrects known errors)
         raw_citations = analysis.get("legal_citations", [])
         valid_citations = [validate_citation(c) for c in raw_citations]
@@ -2211,13 +2522,31 @@ def main():
                     refund_amount = float(tax_paid) * 0.80  # 80% exempt for MPU
 
         df.loc[idx, "Estimated_Refund"] = f"${refund_amount:,.2f}"
+        # Final Decision: Add to Claim if refund opportunity with confidence >= 70%
+        confidence_score = analysis.get('confidence_score', 0)
+        has_refund_opp = refund_amount > 0 or (refund_basis and "non-taxable" in str(refund_basis).lower())
+        df.loc[idx, "Final_Decision"] = "Add to Claim" if has_refund_opp and confidence_score >= 70 else "NO OPP"
         df.loc[idx, "Explanation"] = analysis.get("explanation", "")
         # AI_Reasoning captures vendor research reasoning for audit trail
         if analysis.get("ai_reasoning"):
             df.loc[idx, "AI_Reasoning"] = analysis.get("ai_reasoning", "")
         # Uncertainty flagging for human review
-        df.loc[idx, "Needs_Review"] = "Yes" if analysis.get("needs_review", False) else ""
+        needs_review = analysis.get("needs_review", False)
         follow_up = analysis.get("follow_up_questions", [])
+
+        # Vendor mismatch detection - flag for review if Excel vendor doesn't match invoice
+        vendor_mismatch = queue_item.get("vendor_mismatch", False)
+        invoice_vendor = queue_item.get("invoice_vendor", "")
+        excel_vendor = queue_item.get("vendor", "")
+        if vendor_mismatch and invoice_vendor:
+            df.loc[idx, "Vendor_Mismatch"] = f"Excel: {excel_vendor} | Invoice: {invoice_vendor}"
+            needs_review = True
+            follow_up = list(follow_up) if follow_up else []
+            follow_up.append(f"VENDOR MISMATCH: Verify correct invoice attached. Excel says '{excel_vendor}' but invoice shows '{invoice_vendor}'")
+        else:
+            df.loc[idx, "Vendor_Mismatch"] = ""
+
+        df.loc[idx, "Needs_Review"] = "Yes" if needs_review else ""
         df.loc[idx, "Follow_Up_Questions"] = "; ".join(follow_up) if follow_up else ""
         matched_count += 1
 
@@ -2234,6 +2563,7 @@ def main():
         df.loc[idx, "Confidence"] = "100%"
         # Full refund since WA tax shouldn't have been charged
         df.loc[idx, "Estimated_Refund"] = f"${tax_amount:,.2f}"
+        df.loc[idx, "Final_Decision"] = "Add to Claim"  # OOS with 100% confidence
         df.loc[idx, "Explanation"] = f"Transaction in {state}, not subject to WA sales tax. Tax paid to {state} should be reviewed under {state} tax law."
         df.loc[idx, "Needs_Review"] = "Yes"
         df.loc[idx, "Follow_Up_Questions"] = f"Verify tax was paid to {state}, not WA. Review {state} exemption rules."
@@ -2253,6 +2583,16 @@ def main():
         base_name = Path(args.excel).stem
         args.output = str(Path(args.excel).parent / f"{base_name} - Analyzed.xlsx")
 
+    # Add human review columns (left blank for reviewers to fill in)
+    review_cols = [
+        "Review_Status", "Corrected_Product_Desc", "Corrected_Product_Type",
+        "Corrected_Refund_Basis", "Corrected_Citation", "Corrected_Estimated_Refund",
+        "Reviewer_Notes",
+    ]
+    for col in review_cols:
+        if col not in df.columns:
+            df[col] = ""
+
     # Slim down columns to essential output only
     output_cols = [c for c in ESSENTIAL_OUTPUT_COLS if c in df.columns]
     original_col_count = len(df.columns)
@@ -2262,16 +2602,20 @@ def main():
     # Replace NaN with empty strings so Excel shows blank cells, not "nan"
     df = df.fillna('')
 
+    output_path = args.output
     try:
-        df.to_excel(args.output, index=False)
-        print(f"\n✅ Results saved to {args.output}")
+        df.to_excel(output_path, index=False)
+        print(f"\n✅ Results saved to {output_path}")
+        apply_excel_formatting(output_path)
     except PermissionError:
         # File might be open in another program - try backup location
         backup_path = args.output.replace(".xlsx", "_backup.xlsx")
+        output_path = backup_path
         print(f"⚠️ Cannot write to {args.output} (file may be open)")
         try:
             df.to_excel(backup_path, index=False)
             print(f"✅ Results saved to backup: {backup_path}")
+            apply_excel_formatting(backup_path)
         except Exception as e:
             print(f"❌ CRITICAL: Failed to save results: {e}")
             print("   Data may be lost! Check disk space and permissions.")
@@ -2315,6 +2659,97 @@ def main():
                 "Review skipped rows above to improve results."
             )
     print("\n💡 Open the Excel file to review results!")
+
+
+def apply_excel_formatting(filepath: str) -> bool:
+    """
+    Apply SaaSRefundEngine-style formatting to the output Excel file.
+
+    Color coding:
+    - Final_Decision = "Add to Claim" → Green (#C6EFCE)
+    - Final_Decision = "NO OPP" → Red (#FFC7CE)
+    - Confidence < 60% → Yellow (#FFEB9C)
+    - Headers → Blue (#4472C4) with white text
+    """
+    try:
+        from openpyxl import load_workbook
+        from openpyxl.styles import Font, PatternFill, Alignment
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        print("⚠️ openpyxl not available for formatting")
+        return False
+
+    try:
+        wb = load_workbook(filepath)
+        ws = wb.active
+
+        # Color definitions
+        GREEN_FILL = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+        RED_FILL = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        YELLOW_FILL = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+        HEADER_FILL = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        HEADER_FONT = Font(color="FFFFFF", bold=True)
+
+        # Find column indices (1-based for openpyxl)
+        header_row = list(ws.iter_rows(min_row=1, max_row=1, values_only=True))[0]
+        decision_col = None
+        confidence_col = None
+
+        for idx, header in enumerate(header_row, 1):
+            if header == "Final_Decision":
+                decision_col = idx
+            elif header == "Confidence":
+                confidence_col = idx
+
+        # Apply header formatting
+        for col in range(1, ws.max_column + 1):
+            cell = ws.cell(row=1, column=col)
+            cell.fill = HEADER_FILL
+            cell.font = HEADER_FONT
+            cell.alignment = Alignment(horizontal="center")
+
+        # Apply row formatting based on Final_Decision and Confidence
+        for row in range(2, ws.max_row + 1):
+            # Color based on Final_Decision
+            if decision_col:
+                decision_cell = ws.cell(row=row, column=decision_col)
+                decision_value = str(decision_cell.value or "").strip()
+
+                if decision_value == "Add to Claim":
+                    decision_cell.fill = GREEN_FILL
+                elif decision_value == "NO OPP":
+                    decision_cell.fill = RED_FILL
+
+            # Highlight low confidence rows
+            if confidence_col:
+                conf_cell = ws.cell(row=row, column=confidence_col)
+                conf_value = str(conf_cell.value or "0").replace("%", "")
+                try:
+                    conf_num = float(conf_value)
+                    if conf_num < 60:
+                        conf_cell.fill = YELLOW_FILL
+                except (ValueError, TypeError):
+                    pass
+
+        # Auto-fit column widths (approximate)
+        for col in range(1, ws.max_column + 1):
+            col_letter = get_column_letter(col)
+            max_length = 0
+            for cell in ws[col_letter]:
+                try:
+                    cell_len = len(str(cell.value or ""))
+                    max_length = max(max_length, min(cell_len, 50))  # Cap at 50
+                except:
+                    pass
+            ws.column_dimensions[col_letter].width = max_length + 2
+
+        wb.save(filepath)
+        print("✨ Applied Excel formatting (colors, headers)")
+        return True
+
+    except Exception as e:
+        print(f"⚠️ Could not apply formatting: {e}")
+        return False
 
 
 if __name__ == "__main__":
