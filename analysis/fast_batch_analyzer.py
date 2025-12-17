@@ -54,6 +54,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Imports
 from dotenv import load_dotenv  # noqa: E402
 
+# Agent SDK for unknown vendor research (optional)
+from agents.vendor_researcher import (  # noqa: E402
+    is_agent_research_enabled,
+    research_vendor_with_agent_sync,
+)
 from core.database import get_supabase_client  # noqa: E402
 from core.enhanced_rag import EnhancedRAG  # noqa: E402
 from core.excel_column_definitions import INPUT_COLUMNS, is_input_column  # noqa: E402
@@ -408,7 +413,7 @@ Return brief JSON:
                     "confidence": 60,  # AI-inferred, lower confidence
                 }
 
-            return {
+            ai_result = {
                 "source": "ai_inference",
                 "business_type": vendor_info.get("business_type", "Unknown"),
                 "context": vendor_info.get("typical_services", ""),
@@ -417,7 +422,42 @@ Return brief JSON:
                 "confident": False,
                 "sources": [],
             }
+
+            # Tier 2.5: If AI inference returned Unknown, try Agent SDK
+            if ai_result["business_type"] == "Unknown" and is_agent_research_enabled():
+                print(f"  🤖 Trying Agent SDK for: {vendor_name}...")
+                agent_result = research_vendor_with_agent_sync(
+                    vendor_name, description, tax_type
+                )
+                if agent_result and agent_result.get("business_type") != "Unknown":
+                    # Cache HQ if agent found it
+                    if agent_result.get("headquarters_state"):
+                        _vendor_hq_cache[vendor_name.upper()] = {
+                            "headquarters_city": agent_result.get(
+                                "headquarters_city", ""
+                            ),
+                            "headquarters_state": agent_result[
+                                "headquarters_state"
+                            ].upper(),
+                            "confidence": int(
+                                agent_result.get("confidence_score", 0.7) * 100
+                            ),
+                        }
+                    return agent_result
+
+            return ai_result
         except Exception:
+            # Tier 2.5 fallback: Try agent if enabled before giving up
+            if is_agent_research_enabled():
+                print(
+                    f"  🤖 AI inference failed, trying Agent SDK for: {vendor_name}..."
+                )
+                agent_result = research_vendor_with_agent_sync(
+                    vendor_name, description, tax_type
+                )
+                if agent_result:
+                    return agent_result
+
             return {
                 "source": "unknown",
                 "business_type": "Unknown",
@@ -1368,6 +1408,9 @@ def repair_json(text: str) -> str:
     """
     import re
 
+    # Fix unquoted keys: {analyses: or , key: -> {"analyses": or , "key":
+    text = re.sub(r"([{,])\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:", r'\1"\2":', text)
+
     # Replace single quotes with double quotes (careful not to break contractions)
     # Only replace single quotes that look like JSON delimiters
     text = re.sub(r"(?<=[{,:\[])\s*'([^']+)'\s*(?=[},:}\]])", r'"\1"', text)
@@ -1449,11 +1492,17 @@ def analyze_batch(
     state: str = "WA",
     tax_type: str = "sales_tax",
     is_retry: bool = False,
+    retry_count: int = 0,
 ) -> List[Dict]:
     """
     Batch analyze multiple line items at once
     Now with historical pattern intelligence!
+
+    On JSON parse failures, splits batch in half and retries each half separately.
+    This helps when large prompts cause truncated responses.
     """
+    import time
+
     # Get unique vendors in this batch
     vendors_in_batch = list(set(item["vendor"] for item in items))
 
@@ -1918,26 +1967,56 @@ Provide accurate analysis with legal citations and confidence scores."""
                         break
             content = content[start_idx : end_idx + 1]
 
+        # Check for truncated response before parsing
+        stripped_content = content.strip()
+        if not stripped_content.endswith("}"):
+            print(
+                f"  ⚠️  Response appears truncated (len={len(content)}, ends with: {repr(content[-30:])})"
+            )
+
         # Try to parse JSON with repair and retry on failure
         try:
             parsed = json.loads(content)
         except json.JSONDecodeError as json_err:
-            # Try to repair the JSON
+            # Log response info for debugging
             print(f"  ⚠️  JSON parse error: {json_err}")
+            print(f"  📄 Response length: {len(content)} chars")
             print(f"  🔧 Attempting JSON repair...")
             repaired = repair_json(content)
             try:
                 parsed = json.loads(repaired)
                 print(f"  ✓ JSON repair successful")
             except json.JSONDecodeError:
-                # Repair failed - retry the batch if this is first attempt
-                if not is_retry:
-                    print(f"  🔄 Retrying batch...")
-                    return analyze_batch(
-                        items, legal_context, state, tax_type, is_retry=True
+                # Repair failed - split batch in half and retry each half
+                if len(items) > 1 and retry_count < 3:
+                    mid = len(items) // 2
+                    first_half = items[:mid]
+                    second_half = items[mid:]
+                    print(
+                        f"  🔄 Splitting batch: {len(items)} items -> {len(first_half)} + {len(second_half)} items"
                     )
+                    time.sleep(1)  # Small delay before retry
+                    results1 = analyze_batch(
+                        first_half,
+                        legal_context,
+                        state,
+                        tax_type,
+                        is_retry=True,
+                        retry_count=retry_count + 1,
+                    )
+                    results2 = analyze_batch(
+                        second_half,
+                        legal_context,
+                        state,
+                        tax_type,
+                        is_retry=True,
+                        retry_count=retry_count + 1,
+                    )
+                    return results1 + results2
                 else:
-                    print(f"  ❌ JSON repair failed, skipping batch")
+                    print(
+                        f"  ❌ JSON repair failed, skipping batch ({len(items)} items)"
+                    )
                     raise
 
         print(f"    📊 Model used: {result['model']} (stakes: ${batch_stakes:,.0f})")
