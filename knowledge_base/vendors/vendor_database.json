@@ -239,5 +239,69 @@
     "tax_notes": "Digital automated service, user location based MPU",
     "source": "pre_populated",
     "confidence": "very_high"
+  },
+
+  "CBRE INC": {
+    "industry": "Commercial Real Estate & Facilities Management",
+    "business_model": "B2B Services",
+    "headquarters": {
+      "city": "Dallas",
+      "state": "TX",
+      "note": "Moved from Los Angeles to Dallas in 2020"
+    },
+    "primary_products": {
+      "Facilities Management": {
+        "type": "professional_services",
+        "delivery": "human_delivered",
+        "typical_usage": "ongoing_contract",
+        "description": "Managing buildings, data centers, and corporate facilities"
+      },
+      "Data Center Operations": {
+        "type": "professional_services",
+        "delivery": "human_delivered",
+        "typical_usage": "ongoing_contract",
+        "description": "Operating and maintaining data center facilities"
+      },
+      "External Labor Outsourcing": {
+        "type": "staffing_services",
+        "delivery": "staff_augmentation",
+        "typical_usage": "ongoing_contract",
+        "description": "Providing contracted workers for facilities operations"
+      },
+      "Project Management": {
+        "type": "professional_services",
+        "delivery": "human_delivered",
+        "typical_usage": "project_based",
+        "description": "Managing construction and renovation projects"
+      },
+      "R&M Pass-through": {
+        "type": "repair_maintenance",
+        "delivery": "physical_services",
+        "typical_usage": "as_needed",
+        "description": "Repair & maintenance services, often passed through from subcontractors"
+      }
+    },
+    "t_mobile_context": {
+      "relationship": "Facilities management provider",
+      "services_for_tmobile": [
+        "Wireline Management (during Sprint asset transition to Cogent)",
+        "Data Center Outsourcing at Lee's Summit MO and Lenexa KS facilities",
+        "External Labor Outsourcing (staff augmentation)",
+        "Project Management",
+        "R&M third-party pass-through"
+      ],
+      "key_locations": {
+        "Lee's Summit": {"city": "Lee's Summit", "state": "MO", "type": "Data Center"},
+        "Lenexa NOB": {"city": "Lenexa", "state": "KS", "type": "Data Center"},
+        "Lenexa SOB": {"city": "Lenexa", "state": "KS", "type": "Data Center"},
+        "Snoqualmie": {"city": "Snoqualmie", "state": "WA", "type": "Engineering Office"}
+      },
+      "notes": "T-Mobile has dual HQ (Bellevue WA + Overland Park KS). KC-area facilities are in MO/KS, not WA."
+    },
+    "typical_delivery": "Human-delivered facilities management and staffing services",
+    "tax_notes": "Mixed analysis required: (1) Data center services at MO/KS locations = OOS, not WA taxable; (2) Staffing/labor outsourcing = generally not a retail sale; (3) Professional services (PM, management) = generally not retail sales; (4) R&M services = taxable, sourced to where work performed (check ship-to address on invoice)",
+    "source": "research_2026-01-09",
+    "confidence": "high",
+    "research_notes": "Analyzed 397 transactions in Use Tax 2024. T-Mobile sold Sprint wireline assets to Cogent May 2023 - CBRE Wireline Management was during transition. Lee's Summit and Lenexa are in KC metro (MO/KS), not WA."
   }
 }

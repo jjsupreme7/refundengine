@@ -42,7 +42,7 @@ pip install -r requirements.txt
 **What Gets Installed**:
 - `openai` - GPT-4o, GPT-4 Vision
 - `supabase` - Database client
-- `pandas` - Excel processing
+- `pandas` - Excel processing  
 - `pdfplumber` - PDF extraction
 - `streamlit` - Dashboard
 - `pytest` - Testing

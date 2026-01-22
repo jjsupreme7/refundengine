@@ -1,0 +1,8 @@
+{
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": false,
+    "webapp-testing@awesome-claude-skills": false,
+    "changelog-generator@awesome-claude-skills": false,
+    "skill-creator@awesome-claude-skills": false
+  }
+}

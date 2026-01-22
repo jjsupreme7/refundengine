@@ -7,265 +7,589 @@
   "local_rates_vary": true,
   "effective_date": "2025-01-01",
 
-  "product_type_rules": {
-    "saas_subscription": {
-      "taxable": true,
-      "tax_classification": "digital_automated_service",
-      "legal_basis": ["RCW 82.04.050", "WAC 458-20-15502"],
-      "description": "SaaS and cloud-based subscriptions are taxable as digital automated services",
-
-      "exemptions": [
-        {
-          "type": "primarily_human_effort",
-          "description": "Services primarily requiring human effort are exempt",
-          "citation": "RCW 82.04.050(6)",
-          "test": "Is the service primarily dependent on human effort rather than automation?",
-          "keywords": ["custom", "consulting", "professional", "advisory", "manual"]
-        },
-        {
-          "type": "multi_point_use",
-          "description": "Tax should be apportioned based on usage location",
-          "citation": "WAC 458-20-15502",
-          "calculation": "Allocate based on user location or resource deployment",
-          "keywords": ["multi-state", "distributed", "users in multiple locations"]
-        }
+  "refund_scenarios": {
+    "out_of_state_delivery": {
+      "name": "Out-of-State Delivery",
+      "description": "Tangible personal property delivered outside Washington is not subject to WA sales/use tax",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.08.0264", "82.12.0264"],
+        "wacs": ["458-20-193"],
+        "etas": []
+      },
+      "test": "Was the property delivered to a location outside Washington?",
+      "keywords": ["shipped to", "delivered to", "ship-to address", "out of state", "destination", "FOB"],
+      "what_to_look_for": [
+        "Ship-to address on invoice (different from bill-to)",
+        "Freight/shipping charges to non-WA addresses",
+        "Site ID that resolves to out-of-state location",
+        "Common carrier delivery to another state"
       ],
-
-      "refund_scenarios": [
-        {
-          "scenario": "Multi-state SaaS usage",
-          "refund_basis": "MPU",
-          "methodology": "Allocate by user location",
-          "typical_recovery": "70-90% if users mostly out-of-state",
-          "documentation_needed": ["User location data", "License assignments", "Login analytics"]
-        },
-        {
-          "scenario": "Custom professional services misclassified as SaaS",
-          "refund_basis": "Non-taxable",
-          "methodology": "Primarily human effort test",
-          "typical_recovery": "100% if properly classified",
-          "documentation_needed": ["SOW", "Service descriptions", "Human vs automated breakdown"]
-        }
+      "documentation_needed": ["Shipping records", "Bill of lading", "Delivery confirmation", "Site address verification"],
+      "typical_recovery": "100% of WA tax paid",
+      "important_notes": [
+        "Bill-to address doesn't matter - ship-to address controls",
+        "If Site ID available, use it to verify delivery location",
+        "Check if vendor HQ vs delivery location are different"
       ]
     },
 
-    "iaas_paas": {
-      "taxable": true,
-      "tax_classification": "digital_automated_service",
-      "legal_basis": ["RCW 82.04.050", "WAC 458-20-15502"],
-      "description": "Cloud infrastructure and platform services are taxable",
-
-      "exemptions": [
-        {
-          "type": "multi_point_use",
-          "description": "Tax allocated based on resource deployment location",
-          "citation": "WAC 458-20-15502",
-          "calculation": "Allocate based on where cloud resources are deployed",
-          "keywords": ["multi-region", "distributed infrastructure", "global deployment"]
-        },
-        {
-          "type": "out_of_state_use",
-          "description": "Resources deployed outside Washington may be exempt",
-          "citation": "RCW 82.08.0264",
-          "test": "Are cloud resources deployed in regions outside Washington?",
-          "keywords": ["east region", "west region", "eu", "international"]
-        }
+    "multi_point_use": {
+      "name": "Multi-Point Use (MPU)",
+      "description": "Digital goods/services used at multiple locations - tax apportioned by usage location",
+      "taxable": "partial",
+      "legal_basis": {
+        "rcws": ["82.08.0208(4)", "82.12.0208(7)"],
+        "wacs": ["458-20-15502"],
+        "etas": ["ETA 3100"]
+      },
+      "test": "Is this digital service/product used in multiple states? Allocate tax by user/resource location.",
+      "keywords": ["SaaS", "cloud", "subscription", "multi-state", "distributed users", "enterprise license", "Microsoft 365", "Azure", "AWS", "Salesforce", "Google Cloud"],
+      "what_to_look_for": [
+        "Cloud/SaaS vendors (Azure, AWS, Salesforce, ServiceNow, etc.)",
+        "Enterprise software licenses",
+        "Services used by employees in multiple states",
+        "Infrastructure deployed in multiple regions"
       ],
-
-      "refund_scenarios": [
-        {
-          "scenario": "Multi-region cloud deployment",
-          "refund_basis": "MPU",
-          "methodology": "Allocate by resource location (region/data center)",
-          "typical_recovery": "80-95% if resources mostly out-of-state",
-          "documentation_needed": ["Resource deployment logs", "Regional billing breakdown", "Data center locations"]
-        }
+      "allocation_methods": [
+        "User location (where employees access the service)",
+        "Resource location (where cloud resources are deployed)",
+        "Revenue allocation (for business services)"
+      ],
+      "documentation_needed": ["User location data", "License assignments", "Login analytics", "Resource deployment logs"],
+      "typical_recovery": "70-95% if users/resources mostly out-of-state",
+      "important_notes": [
+        "T-Mobile has nationwide employees - strong MPU candidate",
+        "Must have data to support allocation methodology",
+        "Can use reasonable estimation if exact data unavailable"
       ]
     },
 
     "professional_services": {
+      "name": "Professional Services (Human Effort Exclusion)",
+      "description": "Services primarily requiring human effort are EXCLUDED from digital automated services definition - not taxable",
       "taxable": false,
       "tax_classification": "service_primarily_human_effort",
-      "legal_basis": ["RCW 82.04.050(6)"],
-      "description": "Professional services requiring human expertise are not taxable",
-
-      "exemptions": [
-        {
-          "type": "primarily_human_effort",
-          "description": "Services requiring professional judgment, creativity, or expertise",
-          "citation": "RCW 82.04.050(6)",
-          "test": "Does the service require human professional judgment and cannot be fully automated?",
-          "keywords": ["consulting", "advisory", "expert", "professional", "custom"]
-        }
+      "legal_basis": {
+        "rcws": ["82.04.050(6)(a)", "82.04.192(3)(b)(i)"],
+        "wacs": ["458-20-15502"],
+        "etas": []
+      },
+      "test": "Is the service primarily dependent on human professional judgment, creativity, or expertise rather than automation?",
+      "keywords": ["consulting", "advisory", "professional", "custom", "engineering", "legal", "accounting", "design", "architecture", "expert"],
+      "what_to_look_for": [
+        "Consulting or advisory services",
+        "Engineering or design services",
+        "Legal or accounting services",
+        "Custom development work",
+        "Professional services firms"
       ],
-
-      "refund_scenarios": [
-        {
-          "scenario": "Consulting services incorrectly taxed",
-          "refund_basis": "Non-taxable",
-          "methodology": "Full refund - primarily human effort",
-          "typical_recovery": "100%",
-          "documentation_needed": ["SOW", "Service descriptions", "Proof of human delivery"]
-        },
-        {
-          "scenario": "Out-of-state professional services",
-          "refund_basis": "OOS Services",
-          "methodology": "Services performed outside Washington",
-          "typical_recovery": "100%",
-          "documentation_needed": ["Service location", "Where work was performed"]
-        }
+      "excludes_from_das": true,
+      "documentation_needed": ["SOW", "Service descriptions", "Breakdown of human vs automated components", "Professional qualifications"],
+      "typical_recovery": "100% - not taxable",
+      "important_notes": [
+        "Key test: Could this service be fully automated? If no, likely excluded",
+        "Mixed services: Apply to human effort portion",
+        "Web search vendor to understand their service model"
       ]
     },
 
-    "software_license": {
+    "custom_software": {
+      "name": "Custom Software Development",
+      "description": "Software developed for a specific client is EXCLUDED from retail sale definition - not taxable",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.04.050(6)(a)(i)", "82.04.050(6)(a)(ii)"],
+        "wacs": ["458-20-15502"],
+        "etas": []
+      },
+      "test": "Was the software custom-developed for this specific client, not pre-existing or off-the-shelf?",
+      "keywords": ["custom", "bespoke", "developed for", "tailored", "proprietary", "custom development", "software development"],
+      "what_to_look_for": [
+        "Custom software development contracts",
+        "Bespoke application development",
+        "Software modifications for specific client",
+        "Proprietary system development"
+      ],
+      "documentation_needed": ["Development contract", "SOW showing custom work", "Proof not pre-existing"],
+      "typical_recovery": "100% - not taxable",
+      "important_notes": [
+        "Prewritten software with customization: Only custom portion excluded",
+        "SaaS configuration is NOT custom software",
+        "Must be developed specifically for this client"
+      ]
+    },
+
+    "construction_real_property": {
+      "name": "Construction / Real Property Installation",
+      "description": "Installation that becomes part of real property (permanent fixture) is sourced to job site location",
+      "taxable": "depends_on_location",
+      "legal_basis": {
+        "rcws": ["82.08.020"],
+        "wacs": ["458-20-170", "458-20-171"],
+        "etas": ["ETA 3201"]
+      },
+      "test": "Is this installing equipment INTO a building as a permanent fixture? If yes, sourced to job site.",
+      "keywords": ["construction", "installation", "permanent", "fixture", "building", "site", "tower", "infrastructure", "real property"],
+      "what_to_look_for": [
+        "Tower construction/installation companies",
+        "HVAC installation",
+        "Electrical/plumbing installation",
+        "Network infrastructure installation",
+        "Equipment becoming permanent fixtures"
+      ],
+      "sourcing_rule": "Tax sourced to where work is physically performed, NOT where buyer is located",
+      "documentation_needed": ["Site address", "Work order", "Permit location", "Installation location proof"],
+      "typical_recovery": "100% if job site outside WA",
+      "important_notes": [
+        "T-Mobile tower work: Check if site is outside WA",
+        "Equipment becoming permanent fixture = real property",
+        "Repairs to existing fixtures also sourced to site",
+        "Use Site ID to verify job location if available"
+      ]
+    },
+
+    "resale": {
+      "name": "Resale Exemption",
+      "description": "Items purchased for resale to customers are exempt from sales tax",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.08.0251", "82.12.0251"],
+        "wacs": ["458-20-102"],
+        "etas": []
+      },
+      "test": "Was the item purchased for resale to customers rather than internal use?",
+      "keywords": ["resale", "reseller", "for resale", "wholesale", "inventory", "retail sale"],
+      "what_to_look_for": [
+        "Inventory purchases",
+        "Items purchased to resell to customers",
+        "Equipment for lease to customers"
+      ],
+      "documentation_needed": ["Reseller certificate", "Proof of resale"],
+      "typical_recovery": "100% - exempt",
+      "important_notes": [
+        "T-Mobile: Phones/devices sold to customers = resale",
+        "Must have valid resale certificate on file",
+        "Internal use items do NOT qualify"
+      ]
+    },
+
+    "manufacturing_equipment": {
+      "name": "Manufacturing & Equipment (M&E) Exemption",
+      "description": "Machinery and equipment used directly in manufacturing is exempt from sales/use tax",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.08.02565", "82.12.02565"],
+        "wacs": ["458-20-13601"],
+        "etas": ["ETA 3175"]
+      },
+      "test": "Is the equipment used DIRECTLY in a manufacturing process AND is the buyer NOT a public utility?",
+      "keywords": ["manufacturing", "production", "fabrication", "machinery", "equipment", "M&E"],
+      "what_to_look_for": [
+        "Manufacturing equipment purchases",
+        "Production line machinery",
+        "Equipment used in fabrication"
+      ],
+      "excludes": ["Public utilities", "Telecommunications companies", "Power generation/distribution", "Water/sewer utilities"],
+      "documentation_needed": ["Equipment usage documentation", "Manufacturing process proof"],
+      "typical_recovery": "100% if qualifies",
+      "CRITICAL_NOTE": "T-MOBILE AND ALL TELECOM COMPANIES CANNOT CLAIM M&E EXEMPTION - THEY ARE PUBLIC UTILITIES EXCLUDED BY THE STATUTE"
+    },
+
+    "digital_automated_services": {
+      "name": "Digital Automated Services (DAS)",
+      "description": "Remote access to digital applications via the internet - generally taxable but CHECK EXCLUSIONS FIRST",
       "taxable": true,
-      "tax_classification": "prewritten_software",
-      "legal_basis": ["RCW 82.04.050", "WAC 458-20-15502"],
-      "description": "Prewritten software is generally taxable",
-
-      "exemptions": [
-        {
-          "type": "custom_software",
-          "description": "Custom software developed for specific client may be exempt",
-          "citation": "WAC 458-20-15502",
-          "test": "Was software custom-developed for this specific client?",
-          "keywords": ["custom", "bespoke", "developed for", "tailored"]
+      "tax_classification": "digital_automated_service",
+      "legal_basis": {
+        "rcws": ["82.04.192", "82.04.050"],
+        "wacs": ["458-20-15502"],
+        "etas": ["ETA 3100"]
+      },
+      "definition": "Service transferred electronically that uses one or more software applications",
+      "IMPORTANT_EXCLUSIONS": {
+        "description": "These are EXCLUDED from DAS definition entirely - NOT taxable as retail sales",
+        "storage_hosting": {
+          "citation": "RCW 82.04.192(3)(b)(xiv)",
+          "description": "Providing space on a server for web hosting or backing up data",
+          "examples": ["AWS hosting", "Azure storage", "Cloud backup services", "Web hosting"]
         },
-        {
-          "type": "multi_point_use",
-          "description": "Software used in multiple locations may be allocated",
-          "citation": "WAC 458-20-15502",
-          "calculation": "Allocate based on usage location"
+        "data_processing": {
+          "citation": "RCW 82.04.192(3)(b)(xv)",
+          "description": "Data processing services where primary object is systematic operations on customer data",
+          "examples": ["Batch processing", "ETL services", "Form processing", "Check processing"]
+        },
+        "telecommunications": {
+          "citation": "RCW 82.04.192(3)(b)(vi)",
+          "description": "Telecommunications services and ancillary services as defined in RCW 82.04.065",
+          "examples": ["Phone services", "Network services", "Telecom infrastructure"]
+        },
+        "human_effort": {
+          "citation": "RCW 82.04.192(3)(b)(i)",
+          "description": "Services primarily dependent on human effort rather than automation",
+          "examples": ["Consulting", "Advisory", "Professional services"]
         }
+      },
+      "includes": [
+        "SaaS subscriptions (if not excluded above)",
+        "Cloud-hosted software applications",
+        "Web applications"
       ],
-
-      "refund_scenarios": [
-        {
-          "scenario": "Multi-location software deployment",
-          "refund_basis": "MPU",
-          "methodology": "Allocate by installation/usage location",
-          "typical_recovery": "Varies based on deployment",
-          "documentation_needed": ["Installation locations", "License deployment records"]
-        }
+      "keywords": ["SaaS", "cloud", "software as a service", "hosted", "subscription", "online", "web-based"],
+      "exemptions_to_check": [
+        "Multi-point use allocation (MPU) - RCW 82.08.0208(4)",
+        "Storage/hosting exclusion - RCW 82.04.192(3)(b)(xiv)",
+        "Data processing exclusion - RCW 82.04.192(3)(b)(xv)",
+        "Telecom exclusion - RCW 82.04.192(3)(b)(vi)",
+        "Human effort exclusion - RCW 82.04.192(3)(b)(i)"
+      ],
+      "typical_refund_approach": "First check if excluded from DAS; if not, MPU allocation for multi-state use",
+      "important_notes": [
+        "FIRST check if service is EXCLUDED from DAS definition (storage, data processing, telecom, human effort)",
+        "Many 'cloud' purchases are actually hosting/storage - NOT DAS",
+        "If it IS DAS, check for MPU if multi-state usage"
       ]
     },
 
-    "tangible_personal_property": {
+    "das_storage_hosting_exclusion": {
+      "name": "DAS Exclusion - Storage/Hosting",
+      "description": "Web hosting, cloud storage, and backup services are EXCLUDED from DAS - not taxable as retail sales",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.04.192(3)(b)(xiv)"],
+        "wacs": ["458-20-15503"],
+        "etas": []
+      },
+      "test": "Is the primary service providing space on a server for web hosting or backing up data?",
+      "keywords": ["hosting", "storage", "backup", "AWS hosting", "Azure storage", "cloud storage", "web hosting"],
+      "what_to_look_for": [
+        "Cloud storage services (Azure Blob, AWS S3)",
+        "Web hosting services",
+        "Backup and disaster recovery",
+        "Colocation services"
+      ],
+      "NOT_COVERED": [
+        "SaaS applications (those ARE DAS)",
+        "Software subscriptions with functionality"
+      ],
+      "documentation_needed": ["Service description showing primary purpose is storage/hosting"],
+      "typical_recovery": "100% - excluded from DAS definition, not taxable"
+    },
+
+    "das_data_processing_exclusion": {
+      "name": "DAS Exclusion - Data Processing",
+      "description": "Data processing services are EXCLUDED from DAS - not taxable as retail sales",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.04.192(3)(b)(xv)"],
+        "wacs": ["458-20-15503"],
+        "etas": []
+      },
+      "test": "Is the primary object the systematic performance of operations on data supplied by the customer?",
+      "keywords": ["data processing", "ETL", "batch processing", "form processing", "check processing"],
+      "what_to_look_for": [
+        "Batch data processing services",
+        "ETL (Extract, Transform, Load) services",
+        "Form processing services",
+        "Check/payment processing",
+        "Image processing services"
+      ],
+      "documentation_needed": ["Service description showing primary purpose is processing customer data"],
+      "typical_recovery": "100% - excluded from DAS definition, not taxable"
+    },
+
+    "das_telecom_exclusion": {
+      "name": "DAS Exclusion - Telecommunications",
+      "description": "Telecommunications and ancillary services are EXCLUDED from DAS - not taxable as retail sales",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.04.192(3)(b)(vi)", "82.04.065"],
+        "wacs": ["458-20-15503"],
+        "etas": []
+      },
+      "test": "Is this a telecommunications service or ancillary service as defined in RCW 82.04.065?",
+      "keywords": ["telecommunications", "telecom", "phone service", "network service", "ancillary"],
+      "what_to_look_for": [
+        "Telephone/voice services",
+        "Network connectivity services",
+        "Telecommunications infrastructure",
+        "Ancillary telecom services"
+      ],
+      "important_notes": [
+        "T-Mobile IS a telecom company - some services they purchase may fall under this exclusion",
+        "Separate from whether T-Mobile PROVIDES telecom services"
+      ],
+      "typical_recovery": "100% - excluded from DAS definition, not taxable"
+    },
+
+    "interstate_commerce": {
+      "name": "Interstate Commerce Exemption",
+      "description": "Items used in connection with interstate or foreign commerce carriers",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.08.0261(1)"],
+        "wacs": [],
+        "etas": []
+      },
+      "test": "Is this tangible personal property used by the purchaser in connection with operating as a private or common carrier by air, rail, or water in interstate or foreign commerce?",
+      "keywords": ["interstate", "commerce", "carrier", "transportation", "logistics"],
+      "what_to_look_for": [
+        "Equipment for interstate carriers",
+        "Property used in interstate transportation",
+        "Network equipment serving interstate commerce"
+      ],
+      "important_notes": [
+        "Actual use in WA still subject to use tax",
+        "Applies to carriers in interstate/foreign commerce"
+      ],
+      "typical_recovery": "100% if qualifies"
+    },
+
+    "digital_goods": {
+      "name": "Digital Goods",
+      "description": "Electronically transferred products like music, video, books, software",
       "taxable": true,
-      "tax_classification": "tangible_personal_property",
-      "legal_basis": ["RCW 82.08.020"],
-      "description": "Physical goods are generally taxable",
-
-      "exemptions": [
-        {
-          "type": "out_of_state_delivery",
-          "description": "Goods delivered outside Washington are exempt",
-          "citation": "RCW 82.08.0264",
-          "test": "Was the property delivered to a location outside Washington?",
-          "keywords": ["shipped to", "delivered to", "out of state"]
-        },
-        {
-          "type": "resale",
-          "description": "Items purchased for resale are exempt",
-          "citation": "RCW 82.08.0251",
-          "test": "Was the item purchased for resale?",
-          "keywords": ["resale", "reseller", "for resale"]
-        },
-        {
-          "type": "manufacturing",
-          "description": "Equipment used directly in manufacturing",
-          "citation": "RCW 82.08.02565",
-          "test": "Is equipment used directly in manufacturing process?",
-          "keywords": ["manufacturing", "production", "fabrication"]
-        }
+      "legal_basis": {
+        "rcws": ["82.04.192(3)(b)", "82.08.0208"],
+        "wacs": ["458-20-15502"],
+        "etas": ["ETA 3100"]
+      },
+      "includes": [
+        "Downloaded software",
+        "Digital music/video",
+        "E-books",
+        "Digital images/photographs",
+        "Digital games"
       ],
+      "keywords": ["download", "digital", "electronic", "e-book", "streaming", "digital content"],
+      "exemptions_to_check": [
+        "Multi-point use allocation",
+        "Business use exemption (certain categories)",
+        "Out-of-state use"
+      ]
+    },
 
-      "refund_scenarios": [
-        {
-          "scenario": "Hardware shipped out of state",
-          "refund_basis": "OOS Shipment",
-          "methodology": "Full refund for out-of-state delivery",
-          "typical_recovery": "100%",
-          "documentation_needed": ["Shipping records", "Delivery address", "Bill of lading"]
-        },
-        {
-          "scenario": "Manufacturing equipment",
-          "refund_basis": "Manufacturing Exemption",
-          "methodology": "Full refund if qualifies",
-          "typical_recovery": "100%",
-          "documentation_needed": ["Equipment usage", "Manufacturing process documentation"]
-        }
+    "digital_codes": {
+      "name": "Digital Codes",
+      "description": "Codes that provide purchaser with right to obtain digital goods/services",
+      "taxable": true,
+      "legal_basis": {
+        "rcws": ["82.04.192(3)(a)"],
+        "wacs": ["458-20-15502"],
+        "etas": []
+      },
+      "includes": ["Software license keys", "Activation codes", "Download codes", "Subscription codes"],
+      "keywords": ["license key", "activation", "code", "key", "serial number"]
+    },
+
+    "data_center_exemption": {
+      "name": "Data Center Equipment Exemption",
+      "description": "Equipment for qualifying data centers may be exempt",
+      "taxable": false,
+      "legal_basis": {
+        "rcws": ["82.08.986", "82.08.987", "82.12.986", "82.12.987"],
+        "wacs": [],
+        "etas": ["ETA 3200"]
+      },
+      "test": "Is this a qualifying data center meeting the investment/job thresholds?",
+      "keywords": ["data center", "server", "colocation", "hosting facility"],
+      "qualification_requirements": [
+        "Minimum investment threshold",
+        "Job creation requirements",
+        "Must apply for exemption certificate"
+      ],
+      "documentation_needed": ["Data center exemption certificate", "Investment documentation"],
+      "important_notes": [
+        "Exemption has specific eligibility requirements",
+        "Must have certificate before claiming"
+      ]
+    },
+
+    "telecommunications_services": {
+      "name": "Telecommunications Services",
+      "description": "Phone, internet, and telecom services",
+      "taxable": true,
+      "legal_basis": {
+        "rcws": ["82.04.065"],
+        "wacs": ["458-20-108"],
+        "etas": []
+      },
+      "classification": "Telecom companies are PUBLIC UTILITIES under WA law",
+      "what_to_look_for": [
+        "Phone services",
+        "Internet services",
+        "Network services",
+        "Telecommunications equipment"
+      ],
+      "important_notes": [
+        "T-Mobile IS a telecommunications company (public utility)",
+        "Telecom companies CANNOT claim M&E exemption",
+        "Look for MPU or OOS opportunities instead"
+      ]
+    },
+
+    "computer_hardware_software": {
+      "name": "Computer Hardware and Software",
+      "description": "Computer equipment and software purchases",
+      "taxable": true,
+      "legal_basis": {
+        "rcws": ["82.04.050"],
+        "wacs": ["458-20-15501", "458-20-15502"],
+        "etas": []
+      },
+      "classifications": {
+        "prewritten_software": "Taxable as tangible personal property",
+        "custom_software": "Excluded from retail sale - not taxable",
+        "saas": "Taxable as digital automated service",
+        "hardware": "Taxable as tangible personal property"
+      },
+      "refund_opportunities": [
+        "Custom software portions",
+        "MPU for multi-state software",
+        "OOS delivery of hardware"
+      ]
+    },
+
+    "wrong_rate_charged": {
+      "name": "Incorrect Tax Rate",
+      "description": "Vendor charged wrong local tax rate for the delivery/service location",
+      "refund_type": "rate_correction",
+      "legal_basis": {
+        "rcws": [],
+        "wacs": ["458-20-145"],
+        "etas": []
+      },
+      "test": "Does the tax rate on the invoice match the correct rate for the delivery/service location?",
+      "what_to_look_for": [
+        "Site ID in invoice data - use to look up correct rate",
+        "Ship-to address - verify rate for that jurisdiction",
+        "Vendor location vs delivery location mismatch"
+      ],
+      "how_to_verify": [
+        "If Site ID available: Look up rate in LSU rates file",
+        "If address available: Match to jurisdiction and rate",
+        "Compare invoice rate to expected rate"
+      ],
+      "rate_file": "data/wa_rates/Q424_Excel_LSU-rates.xlsx",
+      "typical_recovery": "Difference between charged rate and correct rate",
+      "important_notes": [
+        "Site ID is most reliable for rate lookup",
+        "Address matching can be imprecise",
+        "Common with vendors who don't know customer's location"
       ]
     }
   },
 
-  "allocation_methodologies": {
-    "multi_point_use": {
-      "name": "Multi-Point Use Allocation",
-      "citation": "WAC 458-20-15502",
-      "description": "Method for allocating tax when services/products are used in multiple states",
+  "contextual_analysis_guidance": {
+    "description": "How to think about each invoice - not a rigid checklist",
+    "approach": "Look at what's in front of you and think about what exemptions/issues could apply",
 
-      "methods": [
-        {
-          "method": "user_location",
-          "applies_to": ["saas_subscription", "software_license"],
-          "description": "Allocate based on where users are located",
-          "data_required": ["User addresses", "License assignments", "Login locations"],
-          "calculation": "Percentage of users in WA vs. out-of-state"
-        },
-        {
-          "method": "resource_location",
-          "applies_to": ["iaas_paas"],
-          "description": "Allocate based on where resources are deployed",
-          "data_required": ["Server locations", "Data center regions", "Resource deployment logs"],
-          "calculation": "Percentage of resources in WA vs. other regions"
-        },
-        {
-          "method": "usage_location",
-          "applies_to": ["saas_subscription", "telecommunications"],
-          "description": "Allocate based on where service is actually used",
-          "data_required": ["Usage logs", "Access locations", "Consumption data"],
-          "calculation": "Percentage of usage in WA vs. out-of-state"
-        }
+    "vendor_type_triggers": {
+      "cloud_saas_vendor": {
+        "examples": ["Microsoft", "Azure", "AWS", "Salesforce", "ServiceNow", "Google Cloud", "Oracle Cloud"],
+        "think_about": ["Multi-point use allocation", "How many WA users vs total?"]
+      },
+      "construction_tower_company": {
+        "examples": ["tower", "construction", "installation", "contractor", "infrastructure"],
+        "think_about": ["Job site location - is it outside WA?", "Real property installation?"]
+      },
+      "consulting_professional_firm": {
+        "examples": ["consulting", "advisory", "engineering", "legal", "accounting", "professional services"],
+        "think_about": ["Human effort exclusion", "Is this primarily automated or human-delivered?"]
+      },
+      "software_company": {
+        "examples": ["software", "application", "platform", "systems"],
+        "think_about": ["Custom vs prewritten?", "SaaS vs perpetual license?", "MPU if multi-state"]
+      },
+      "hardware_equipment": {
+        "examples": ["equipment", "hardware", "servers", "devices", "machinery"],
+        "think_about": ["Where delivered?", "Part of construction (real property)?"]
+      }
+    },
+
+    "opportunistic_data_use": {
+      "site_id": {
+        "when_available": "Use to verify location and look up correct tax rate",
+        "not_required": "Don't force looking for it if not in the data"
+      },
+      "ship_to_address": {
+        "when_visible": "Check if outside WA for OOS exemption",
+        "compare_to": "Vendor HQ to catch false positives"
+      },
+      "invoice_description": {
+        "when_unclear": "Web search the vendor to understand their business"
+      }
+    },
+
+    "web_search_guidance": {
+      "when_to_search": [
+        "Cryptic vendor names you don't recognize",
+        "Unclear product/service descriptions",
+        "Industry jargon you need to understand",
+        "Vendor business model unclear"
+      ],
+      "what_to_find": [
+        "What does this vendor sell/do?",
+        "Is it hardware, software, services?",
+        "Are they a consulting firm or product company?",
+        "Where are they headquartered?"
       ]
     }
   },
 
-  "documentation_requirements": {
-    "mpu_claims": [
-      "Detailed user/resource location data",
-      "Allocation methodology explanation",
-      "Supporting analytics or logs",
-      "Reasonable estimation if exact data unavailable"
-    ],
-    "primarily_human_effort": [
-      "Statement of Work (SOW)",
-      "Service description",
-      "Breakdown of human vs automated components",
-      "Professional qualifications of service providers"
-    ],
-    "out_of_state": [
-      "Shipping/delivery records",
-      "Service performance location",
-      "Customer location documentation"
-    ]
+  "citation_guidelines": {
+    "source_of_truth": {
+      "file": "knowledge_base/target_rcws.txt",
+      "description": "364 RCWs from Summary of Impacts 2024 - Retail Sales & Use Tax",
+      "rule": "Only cite RCWs from this list for exemption analysis"
+    },
+    "wacs_allowed": "Yes - can cite any relevant WAC",
+    "etas_allowed": "Yes - can cite any relevant ETA",
+    "citation_format": {
+      "exemption": "RCW 82.08.XXXXX / 82.12.XXXXX",
+      "definition": "RCW 82.04.XXX",
+      "administrative": "WAC 458-20-XXX",
+      "guidance": "ETA XXXX"
+    }
   },
 
-  "common_mistakes": [
-    {
-      "mistake": "Assuming all cloud services are 100% WA taxable",
-      "correction": "Apply MPU allocation based on actual usage/resource location",
-      "potential_recovery": "High"
-    },
-    {
-      "mistake": "Treating custom professional services as taxable digital services",
-      "correction": "Apply primarily human effort test",
-      "potential_recovery": "Very High (100% refund)"
-    },
-    {
-      "mistake": "Not allocating multi-state software/SaaS subscriptions",
-      "correction": "Track user locations and apply MPU",
-      "potential_recovery": "High"
+  "tmobile_specific_notes": {
+    "company_type": "Telecommunications company (PUBLIC UTILITY)",
+    "cannot_claim": ["M&E exemption (82.08.02565) - telecom excluded as public utility"],
+    "likely_opportunities": [
+      "Multi-point use - nationwide employees using cloud services",
+      "Out-of-state delivery - equipment shipped to non-WA sites",
+      "Construction services - tower work at non-WA sites",
+      "Professional services - consulting/advisory not taxable",
+      "Wrong rates - vendor charged incorrect local rate"
+    ],
+    "common_vendors": {
+      "tower_companies": "Check job site location for OOS",
+      "cloud_providers": "MPU allocation for multi-state usage",
+      "consultants": "Human effort exclusion",
+      "equipment_suppliers": "Check delivery location"
     }
-  ]
+  },
+
+  "file_references": {
+    "rcws": {
+      "path": "knowledge_base/wa_tax_law/rcw/title_82/",
+      "format": "HTML files",
+      "how_to_read": "Read directly when need full statutory text"
+    },
+    "wacs": {
+      "path": "knowledge_base/wa_tax_law/wac/title_458/",
+      "format": "HTML/JSON files",
+      "how_to_read": "Read directly when need administrative rule details"
+    },
+    "etas": {
+      "path": "knowledge_base/states/washington/ETAs/",
+      "format": "PDF files",
+      "how_to_read": "Read directly when need DOR guidance"
+    },
+    "rate_file": {
+      "path": "data/wa_rates/Q424_Excel_LSU-rates.xlsx",
+      "use": "Look up correct tax rate by location code"
+    }
+  }
 }

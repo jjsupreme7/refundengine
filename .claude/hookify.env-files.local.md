@@ -6,14 +6,14 @@ action: block
 pattern: (^|/)\.env$
 ---
 
-🔒 **SECURITY WARNING: Attempting to edit .env file!**
+**SECURITY WARNING: Attempting to edit .env file!**
 
 **CRITICAL:** .env files contain secrets and should NEVER be committed to git!
 
 **Before proceeding:**
-1. ✅ Verify `.env` is in `.gitignore`
-2. ✅ Use `.env.example` for templates (without real values)
-3. ✅ Never commit API keys, passwords, or tokens
+1. Verify `.env` is in `.gitignore`
+2. Use `.env.example` for templates (without real values)
+3. Never commit API keys, passwords, or tokens
 
 **What you should do:**
 - Edit `.env` locally only

@@ -10,6 +10,9 @@ email_config.json
 /test_documents/*
 !/test_documents/.gitkeep
 
+# Synthetic test PDFs
+/test_data/synthetic/*.pdf
+
 # Test Data folder (contains sensitive invoices, POs, and Excel files)
 /Test Data/*
 !/Test Data/.gitkeep
