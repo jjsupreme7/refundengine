@@ -1,0 +1,61 @@
+datasets:
+  sales_2024:
+    description: "Sales Tax 2024 source workbook"
+    source_file: "~/Desktop/Files/Files to be Analyzed/Denodo Records Not in Master Dec 15 2025 (1).xlsb"
+    output_file: "~/Desktop/Files/Analyzed_Output/Auto_Sales_Tax_2024.xlsx"
+    sheet_name: "2024 sales tax"
+    invoice_path: "~/Desktop/Invoices"
+    columns:
+      vendor: "name1_po_vendor_name"
+      tax_amount: "hwste_tax_amount_lc"
+      tax_base: "hwbas_tax_base_lc"
+      description: "txz01_po_description"
+      invoice_1: "Inv 1"
+      invoice_2: "Inv 2"
+      analysis_col: "Recon Analysis"
+      invoice_number: "belnr_max_document_number"
+      po_number: "ebeln_po_number"
+    filters:
+      - column: "Paid?"
+        op: "equals"
+        value: "PAID"
+
+  use_tax_2023:
+    description: "Use Tax 2023 source workbook"
+    source_file: "~/Desktop/Files/Files to be Analyzed/Use Tax Phase 3 2023.xlsx"
+    output_file: "~/Desktop/Files/Analyzed_Output/Auto_Use_Tax_2023.xlsx"
+    sheet_name: "2023"
+    invoice_path: "~/Desktop/Invoices"
+    columns:
+      vendor: "Vendor Name"
+      tax_amount: "Tax Remit"
+      description: "Description"
+      invoice_1: "Inv-1PDF"
+      invoice_2: "Inv-2 PDF"
+      analysis_col: "KOM Analysis & Notes"
+      invoice_number: "INVNO"
+      po_number: "PO Number"
+    filters:
+      - column: "INDICATOR"
+        op: "equals"
+        value: "Remit"
+
+  use_tax_2024:
+    description: "Use Tax 2024 source workbook"
+    source_file: "~/Desktop/Files/Files to be Analyzed/Phase 3 Use Tax 2024 Oct 17.xlsx"
+    output_file: "~/Desktop/Files/Analyzed_Output/Auto_Use_Tax_2024.xlsx"
+    sheet_name: "2024"
+    invoice_path: "~/Desktop/Invoices"
+    columns:
+      vendor: "Vendor Name"
+      tax_amount: "Tax Remit"
+      description: "Description"
+      invoice_1: "Inv-1PDF"
+      invoice_2: "Inv-2 PDF"
+      analysis_col: "KOM Analysis & Notes"
+      invoice_number: "INVNO"
+      po_number: "PO Number"
+    filters:
+      - column: "INDICATOR"
+        op: "equals"
+        value: "Remit"

@@ -14,6 +14,7 @@ Get the system running on a new machine.
 ### Optional
 - **Docker** (for containerized deployment)
 - **Redis** (for async processing - can skip for basic use)
+- **Tesseract OCR** (recommended for scanned/image-only invoice PDFs)
 
 ---
 
@@ -44,8 +45,23 @@ pip install -r requirements.txt
 - `supabase` - Database client
 - `pandas` - Excel processing  
 - `pdfplumber` - PDF extraction
+- `pytesseract` + `pypdfium2` - OCR fallback for scanned PDFs
 - `streamlit` - Dashboard
 - `pytest` - Testing
+
+### 4. Install Tesseract Binary (Recommended)
+
+`pytesseract` requires the `tesseract` system binary.
+
+macOS (Homebrew):
+```bash
+brew install tesseract
+```
+
+Verify:
+```bash
+tesseract --version
+```
 
 ---
 
@@ -63,6 +79,42 @@ cp .env.example .env
 1. Go to https://platform.openai.com/api-keys
 2. Create new secret key
 3. Copy to `.env`: `OPENAI_API_KEY=sk-...`
+
+---
+
+## New Pipeline CLI
+
+The rebuilt workflow is config-driven via `config/datasets.yaml`.
+
+List datasets:
+```bash
+venv/bin/python scripts/refund_cli.py list-datasets
+```
+
+Run preflight checks:
+```bash
+venv/bin/python scripts/refund_cli.py preflight --dataset use_tax_2024
+```
+
+Dry-run analysis (no API calls/writes):
+```bash
+venv/bin/python scripts/refund_cli.py analyze --dataset use_tax_2024 --limit 5 --dry-run
+```
+
+Run real OpenAI analysis and write updates:
+```bash
+venv/bin/python scripts/refund_cli.py analyze --dataset use_tax_2024 --limit 5 --model gpt-5.2-pro
+```
+
+Validate output workbook:
+```bash
+venv/bin/python scripts/refund_cli.py validate --dataset use_tax_2024
+```
+
+Run the local web app:
+```bash
+venv/bin/streamlit run apps/refund_webapp.py
+```
 
 #### Supabase Credentials
 1. Go to https://supabase.com/dashboard
@@ -412,6 +464,9 @@ cat .env  # Verify content
 ### "No embeddings model found"
 **Fix**: Verify OpenAI API key has GPT-4 access
 ```bash
+python scripts/openai_smoke_test.py --model gpt-5.2
+
+# If you need to inspect available models:
 python -c "from openai import OpenAI; print(OpenAI().models.list())"
 ```
 
