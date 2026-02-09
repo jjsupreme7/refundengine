@@ -1,0 +1,98 @@
+{
+  "_description": "Allocation percentages by methodology. Source: Phase 2 Master Refunds (4,156 claims). Variable cases use historical averages as defaults.",
+  "User location": {
+    "description": "Based on T-Mobile employee locations outside WA",
+    "allocation_pct": 0.6742,
+    "notes": "Historical avg from 802 claims (range: 12.7%-100%). Varies by product/period."
+  },
+  "Headcount": {
+    "description": "Based on T-Mobile headcount ratio (non-WA / total)",
+    "allocation_pct": 0.8564,
+    "notes": "Historical avg from 103 claims (range: 20%-94.9%). Headcount ratio updated periodically."
+  },
+  "Equipment Location": {
+    "description": "Based on equipment deployed outside WA",
+    "allocation_pct": 0.7056,
+    "notes": "Historical avg from 165 claims (range: 10.5%-100%). Per-vendor equipment inventory varies."
+  },
+  "Call center": {
+    "description": "Based on call center locations outside WA",
+    "allocation_pct": 0.9699,
+    "notes": "Historical avg from 260 claims (range: 94.9%-100%). Very consistent allocation."
+  },
+  "Call center Retail": {
+    "description": "Call center allocation for retail operations",
+    "allocation_pct": 0.9699,
+    "notes": "Historical avg from 260 claims. Subset of call center methodology."
+  },
+  "Retail stores": {
+    "description": "Based on retail store locations outside WA",
+    "allocation_pct": 0.9654,
+    "notes": "Historical avg from 75 claims (range: 75.9%-100%). Store count ratio."
+  },
+  "Engineering": {
+    "description": "Based on engineering staff locations outside WA",
+    "allocation_pct": 0.30,
+    "notes": "Historical avg from 24 claims. Engineering headcount subset."
+  },
+  "RF Engineering": {
+    "description": "Based on RF engineering resource locations",
+    "allocation_pct": 0.30,
+    "notes": "Similar to Engineering allocation. Small sample size."
+  },
+  "Subscribers": {
+    "description": "Based on subscriber count outside WA",
+    "allocation_pct": 0.50,
+    "notes": "Estimated from small sample. Subscriber ratio data improves accuracy."
+  },
+  "Ship-to location": {
+    "description": "100% refund when shipped outside WA",
+    "allocation_pct": 1.0,
+    "notes": "Full exemption for out-of-state shipments"
+  },
+  "Delivery out-of-state": {
+    "description": "100% refund when delivered outside WA",
+    "allocation_pct": 1.0,
+    "notes": "Full exemption for out-of-state delivery"
+  },
+  "Non-taxable": {
+    "description": "100% refund for non-taxable items (e.g., professional services)",
+    "allocation_pct": 1.0,
+    "notes": "Full exemption"
+  },
+  "Wrong rate": {
+    "description": "Refund equals difference between charged and correct rate",
+    "allocation_pct": null,
+    "notes": "Rate-dependent — calculated from actual vs expected rate variance"
+  },
+  "Resale": {
+    "description": "100% refund for resale items with valid resale certificate",
+    "allocation_pct": 1.0,
+    "notes": "Must have resale certificate on file"
+  },
+  "MPU": {
+    "description": "Multi-point use allocation (nationwide usage)",
+    "allocation_pct": 0.6742,
+    "notes": "Uses same calculation as User location. Historical avg from 284 claims."
+  },
+  "Care+Retail": {
+    "description": "Care center + retail department split",
+    "allocation_pct": 0.8934,
+    "notes": "Historical avg from 214 claims (range: 50%-97.2%)"
+  },
+  "Fraud team": {
+    "description": "Fraud team location allocation",
+    "allocation_pct": null,
+    "notes": "Small sample, variable. Falls back to LLM estimate."
+  },
+  "Project location": {
+    "description": "Allocation by project site location",
+    "allocation_pct": null,
+    "notes": "Project-specific, variable. Falls back to LLM estimate."
+  },
+  "Call center + Marketing": {
+    "description": "Call center + marketing department split",
+    "allocation_pct": 0.9699,
+    "notes": "Similar to Call center allocation. Historical avg from 26 claims."
+  }
+}

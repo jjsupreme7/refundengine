@@ -15,6 +15,8 @@ datasets:
       analysis_col: "Recon Analysis"
       invoice_number: "belnr_max_document_number"
       po_number: "ebeln_po_number"
+      rate: "rate"
+      jurisdiction: "tax_jurisdiction_state"
     filters:
       - column: "Paid?"
         op: "equals"
@@ -45,6 +47,46 @@ datasets:
     source_file: "~/Desktop/Files/Files to be Analyzed/Phase 3 Use Tax 2024 Oct 17.xlsx"
     output_file: "~/Desktop/Files/Analyzed_Output/Auto_Use_Tax_2024.xlsx"
     sheet_name: "2024"
+    invoice_path: "~/Desktop/Invoices"
+    columns:
+      vendor: "Vendor Name"
+      tax_amount: "Tax Remit"
+      description: "Description"
+      invoice_1: "Inv-1PDF"
+      invoice_2: "Inv-2 PDF"
+      analysis_col: "KOM Analysis & Notes"
+      invoice_number: "INVNO"
+      po_number: "PO Number"
+    filters:
+      - column: "INDICATOR"
+        op: "equals"
+        value: "Remit"
+
+  use_tax_2022:
+    description: "Use Tax 2022 source workbook"
+    source_file: "~/Desktop/Files/Files to be Analyzed/Use Tax Phase 3 2022.xlsx"
+    output_file: "~/Desktop/Files/Analyzed_Output/Auto_Use_Tax_2022.xlsx"
+    sheet_name: "2022"
+    invoice_path: "~/Desktop/Invoices"
+    columns:
+      vendor: "Vendor Name"
+      tax_amount: "Tax Remit - 13,842,915.90"
+      description: "Description"
+      invoice_1: "Inv-1PDF"
+      invoice_2: "Inv-2 PDF"
+      analysis_col: "KOM Analysis & Notes"
+      invoice_number: "INVNO"
+      po_number: "PO Number"
+    filters:
+      - column: "INDICATOR"
+        op: "equals"
+        value: "Remit"
+
+  use_tax_2021:
+    description: "Use Tax 2021 source workbook"
+    source_file: "~/Desktop/Files/Files to be Analyzed/Use Tax Phase 3 2021.xlsx"
+    output_file: "~/Desktop/Files/Analyzed_Output/Auto_Use_Tax_2021.xlsx"
+    sheet_name: "2021"
     invoice_path: "~/Desktop/Invoices"
     columns:
       vendor: "Vendor Name"

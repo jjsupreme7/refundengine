@@ -84,7 +84,7 @@ def _build_invoice_evidence(
         filename=filename,
         path=str(path),
         extraction_method=result.method,
-        text_preview=result.preview(max_chars=1600),
+        text_preview=result.preview(max_chars=2400),
         warnings=result.warnings,
     )
 
@@ -123,6 +123,8 @@ def _build_row_evidence(
             invoice_2_name,
             max_pages=max_invoice_pages,
         ),
+        rate=coerce_float(row.get(cols.rate)) if cols.rate else None,
+        jurisdiction=_safe_text(row.get(cols.jurisdiction)) if cols.jurisdiction else None,
     )
 
 
@@ -161,11 +163,15 @@ def _fallback_review_result(evidence: RowEvidence, reason: str) -> dict[str, Any
         "Citation_Source": "",
         "Confidence": 0.0,
         "Estimated_Refund": 0.0,
+        "Refund_Source": "",
         "Final_Decision": "REVIEW",
         "Explanation": reason,
         "Needs_Review": "Yes",
         "Follow_Up_Questions": "Please inspect invoice manually.",
         "AI_Reasoning": ensure_process_token("\n".join(lines)),
+        "Tax_Category": "",
+        "Methodology": "",
+        "Sales_Use_Tax": "",
     }
 
 

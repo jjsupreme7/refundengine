@@ -761,27 +761,91 @@ Decision: OVERPAID
 Citation: RCW 82.04.050(6)(a)
 ```
 
-**Template for AI_Reasoning:**
+## MANDATORY: ROW ANALYSIS FORM (Fill Before Writing Output)
+
+**STOP. For EACH row, fill in this form FIRST. Do not write AI_Reasoning until every field is filled.**
+
 ```
-CONTEXT: [2-3 sentence explanation of what this product/service is and why T-Mobile uses it]
+┌─────────────────────────────────────────────────────────────────┐
+│                    ROW ANALYSIS FORM                            │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. INVOICE VERIFICATION (Read the PDF first)                    │
+│    Invoice #: _______________ (from PDF, not filename)          │
+│    Invoice Date: _______________                                │
+│    PDF Filename: _______________                                │
+│                                                                 │
+│ 2. DELIVERY LOCATION (Extract from invoice)                     │
+│    Ship-To Address: _______________                             │
+│    City, State, Zip: _______________                            │
+│                                                                 │
+│ 3. LINE ITEM MATCHING                                           │
+│    Excel Description: [from txz01_po_description]               │
+│    Excel Amount: $_______________                               │
+│    Matched Invoice Line #: _______________                      │
+│    Invoice Line Text: _______________                           │
+│    Amount Match: □ Yes  □ No → explain: _______________         │
+│                                                                 │
+│ 4. VENDOR RESEARCH (WebSearch required if unfamiliar)           │
+│    What does this vendor do? _______________                    │
+│    Business model (products/services): _______________          │
+│    Company size/location: _______________                       │
+│    Research URL: _______________                                │
+│                                                                 │
+│ 5. PRODUCT/SERVICE ANALYSIS                                     │
+│    What is T-Mobile actually buying? _______________            │
+│    How does this product/service work? _______________          │
+│    Category: □ Physical goods □ Software □ Human labor □ Constr │
+│    How determined: □ Invoice clear □ Web search □ Vendor known  │
+│                                                                 │
+│ 6. WHY IS THIS TAXABLE OR NOT? (Explain reasoning)              │
+│    Is this a "retail sale" under WA law? □ Yes □ No             │
+│    Why or why not? _______________                              │
+│    If exempt, what category? _______________                    │
+│                                                                 │
+│ 7. TAX DETERMINATION                                            │
+│    Product Type: □ DAS □ TPP □ Service □ Construction □ Custom  │
+│    Applicable Exemption: _______________                        │
+│    Citation: _______________ (must be in target_rcws.txt)       │
+│                                                                 │
+│ 8. DECISION                                                     │
+│    Final Decision: □ REFUND  □ NO REFUND  □ REVIEW              │
+│    If REVIEW, what needs checking: _______________              │
+│    Confidence: ___ (0.0-1.0)                                    │
+│    Estimated Refund: $_______________                           │
+│                                                                 │
+├─────────────────────────────────────────────────────────────────┤
+│ □ ALL FIELDS FILLED → Now write AI_Reasoning from this form     │
+└─────────────────────────────────────────────────────────────────┘
+```
 
+**Why this form exists:** Rules in CLAUDE.md get forgotten during work. This form embeds the rules INTO the work. You can't skip fields - blanks mean incomplete analysis.
+
+**After filling the form, convert to AI_Reasoning:**
+```
 INVOICE VERIFIED: Invoice #[number] dated [date]
-SHIP-TO: [full address from invoice]
-MATCHED LINE ITEM: [description] @ $[amount]
+SHIP-TO: [full address]
+MATCHED LINE ITEM: [text] @ $[amount]
+---
 
-[Research/decode step - if product is unclear:]
-- What does this vendor typically sell?
-- What do these abbreviations/terms mean?
+VENDOR RESEARCH (from web search):
+[2-4 sentences: What does this company do? Business model? Size/location?]
+Source: [URL]
+
+PRODUCT/SERVICE ANALYSIS:
+[2-4 sentences: What is T-Mobile buying? How does it work?]
+
+WHY THIS IS/ISN'T TAXABLE:
+[2-4 sentences: Is this a retail sale? Why/why not? What exemption applies?]
 
 TAX ANALYSIS:
-- Tax charged: $[amount] @ [rate]%
-- Product type: [DAS/TPP/custom software/service/construction]
-- Basis: [MPU/OOS/PROFESSIONAL_SERVICES/NONE/etc.]
+- Product Type: [type]
+- Exemption Basis: [basis]
 - Citation: [RCW/WAC]
 
-DECISION: [CORRECT/OVERPAID/NO_TAX_CHARGED/REVIEW]
-[If REVIEW: specific guidance on what to check and why]
-[If OVERPAID: Estimated refund $X (calculation)]
+DECISION: [decision]
+ESTIMATED REFUND: $[amount]
+
+[ENFORCED_PROCESS|timestamp|v1]
 ```
 
 ## Citation Rules
@@ -829,6 +893,33 @@ Follow the column order specified in CLAUDE.md for each tax type.
 ```
 =HYPERLINK("http://localhost:8888/filename.pdf","filename.pdf")
 ```
+
+### Validation (BEFORE Writing to Excel)
+
+**CRITICAL**: Validate all analysis rows BEFORE writing to Excel:
+```python
+from scripts.validate_analysis import validate_row, validate_dataframe
+
+# For each row:
+is_valid, errors = validate_row(row_dict)
+if not is_valid:
+    print(f"Row failed validation: {errors}")
+    # Fix the errors before proceeding
+
+# For DataFrame:
+all_valid, error_dict = validate_dataframe(df)
+if not all_valid:
+    print(f"Validation failed for {len(error_dict)} rows")
+    # Address all errors before writing
+```
+
+**Validation checks:**
+- `INVOICE VERIFIED:` header present with invoice # and date
+- `SHIP-TO:` header present with full address
+- `MATCHED LINE ITEM:` header present with line item match
+- Citation valid against `knowledge_base/target_rcws.txt`
+- REVIEW decisions have research evidence
+- Confidence score in 0.0-1.0 range
 
 ### Excel Formatting (Apply After Analysis)
 

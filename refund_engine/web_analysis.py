@@ -97,7 +97,7 @@ def _invoice_evidence(invoice_dir: str, filename: str, max_invoice_pages: int) -
         filename=filename,
         path=result.pdf_path,
         extraction_method=result.method,
-        text_preview=result.preview(max_chars=1600),
+        text_preview=result.preview(max_chars=2400),
         warnings=result.warnings,
     )
 
@@ -141,11 +141,15 @@ def _fallback_review_row(row: pd.Series, mapping: ColumnMapping, reason: str) ->
         "Citation_Source": "",
         "Confidence": 0.0,
         "Estimated_Refund": 0.0,
+        "Refund_Source": "",
         "Final_Decision": "REVIEW",
         "Explanation": reason,
         "Needs_Review": "Yes",
         "Follow_Up_Questions": "Manual verification needed",
         "AI_Reasoning": ensure_process_token("\n".join(lines)),
+        "Tax_Category": "",
+        "Methodology": "",
+        "Sales_Use_Tax": "",
     }
 
 

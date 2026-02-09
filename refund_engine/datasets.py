@@ -21,6 +21,8 @@ class DatasetColumns:
     tax_base: str | None = None
     invoice_number: str | None = None
     po_number: str | None = None
+    rate: str | None = None
+    jurisdiction: str | None = None
 
 
 @dataclass(frozen=True)
@@ -92,8 +94,11 @@ def _excel_engine(path: Path) -> str | None:
 def read_excel_dataframe(path: Path, sheet_name: str | None) -> pd.DataFrame:
     engine = _excel_engine(path)
     if sheet_name:
-        return pd.read_excel(path, sheet_name=sheet_name, engine=engine)
-    return pd.read_excel(path, engine=engine)
+        df = pd.read_excel(path, sheet_name=sheet_name, engine=engine)
+    else:
+        df = pd.read_excel(path, engine=engine)
+    df.columns = [col.strip() if isinstance(col, str) else col for col in df.columns]
+    return df
 
 
 def read_source_dataframe(config: DatasetConfig) -> pd.DataFrame:

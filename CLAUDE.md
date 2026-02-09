@@ -270,6 +270,12 @@ When the user says "ingest the human feedback" or similar:
 - Skip rows where analysis columns are already populated
 - Only output rows with actual analysis (no empty shells)
 
+**Validate BEFORE writing:**
+- Run `scripts/validate_analysis.py` on each row before adding to output
+- Rejects rows missing INVOICE VERIFIED/SHIP-TO/MATCHED LINE ITEM headers
+- Rejects invalid citations (must be in `knowledge_base/target_rcws.txt`)
+- Rejects lazy REVIEW decisions without research evidence
+
 **Before finishing:**
 - Complete committed work (if analyzing X rows, finish X rows)
 - Verify output has actual content, not empty columns
@@ -346,6 +352,12 @@ For each row analyzed, the AI_Reasoning MUST include:
 4. **Matched Line Item** - The specific line item from the invoice that corresponds to this Excel row
 
 ### AI_Reasoning Format (MANDATORY)
+
+**CRITICAL: Fill in the ROW ANALYSIS FORM before writing AI_Reasoning.**
+
+See `.claude/skills/analyze-invoices/SKILL.md` for the full form. The form forces you to fill in every required field BEFORE writing output. This prevents skipping steps.
+
+**Output format (generated from completed form):**
 ```
 INVOICE VERIFIED: Invoice #[number] dated [date]
 SHIP-TO: [full address from invoice]
@@ -449,6 +461,7 @@ Append to existing files. Track which rows are analyzed via empty analysis colum
 | Tax scenarios & exemptions | `knowledge_base/states/washington/tax_rules.json` |
 | Valid RCWs (364 citations) | `knowledge_base/target_rcws.txt` |
 | Contextual analysis guide | `.claude/skills/analyze-invoices/analyze-invoices.md` |
+| **Analysis validator** | `scripts/validate_analysis.py` |
 | WA tax rates by location | `data/wa_rates/Q424_Excel_LSU-rates.xlsx` |
 | Invoice PDFs | `~/Desktop/Invoices/` |
 | WACs (administrative rules) | `knowledge_base/wa_tax_law/wac/title_458/` |

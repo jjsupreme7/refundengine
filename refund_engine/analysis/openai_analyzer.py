@@ -12,11 +12,15 @@ from refund_engine.rag import (
     SupabaseRAGRetriever,
     format_rag_context_for_prompt,
 )
+from refund_engine.rate_validator import validate_rate
+from refund_engine.refund_calculator import calculate_refund
 from refund_engine.validation_rules import (
     ensure_process_token,
     generate_process_token,
     normalize_final_decision,
+    normalize_methodology,
 )
+from refund_engine.vendor_profiles import load_vendor_profile
 
 
 @dataclass(frozen=True)
@@ -40,6 +44,8 @@ class RowEvidence:
     po_number: str | None
     invoice_1: InvoiceEvidence | None
     invoice_2: InvoiceEvidence | None
+    rate: float | None = None
+    jurisdiction: str | None = None
 
 
 def _safe_str(value: Any) -> str:
@@ -101,6 +107,7 @@ def _analysis_prompt(
     rag_context: RAGContext | None = None,
     max_rag_chunk_chars: int = 420,
     guidance: str | None = None,
+    vendor_profile: str | None = None,
 ) -> str:
     tax_amount_text = "N/A" if evidence.tax_amount is None else f"{evidence.tax_amount:,.2f}"
     tax_base_text = "N/A" if evidence.tax_base is None else f"{evidence.tax_base:,.2f}"
@@ -112,13 +119,38 @@ def _analysis_prompt(
         if rag_context is not None
         else "RAG legal context: none\n\nRAG vendor context: none"
     )
+    vendor_profile_section = f"\nHistorical vendor profile:\n{vendor_profile}\n" if vendor_profile else ""
     extra_guidance = f"\nValidation feedback to fix:\n{guidance}\n" if guidance else ""
+
+    rate_validation = validate_rate(
+        evidence.rate, evidence.jurisdiction, evidence.tax_base, evidence.tax_amount,
+    )
+    rate_section = ""
+    if rate_validation.actual_rate is not None and rate_validation.is_wa:
+        rate_section = f"\nRate validation context:\n{rate_validation.message}\n"
+
+    line_match_section = ""
+    if evidence.tax_base is not None:
+        line_match_section = (
+            f"\nLine item matching guidance:\n"
+            f"When the invoice has multiple line items, match this row to the line item where:\n"
+            f"1. The dollar amount matches tax_base (${evidence.tax_base:,.2f}) most closely\n"
+            f"2. The description \"{evidence.description}\" aligns with the invoice line text\n"
+            f"Report in matched_line_item as: \"[description] @ $[amount]\"\n"
+        )
 
     return f"""
 You are a Washington state sales/use tax analyst. Transactions are from 2023-2024 and must use pre-October 1, 2025 law.
 Return only a single JSON object (no markdown, no prose outside JSON).
 If uncertain, use final_decision = "REVIEW" with a specific explanation.
 If retrieved legal context conflicts with invoice evidence, explain the conflict and choose "REVIEW".
+
+Use these controlled vocabularies:
+- product_type: License, Services, DAS, Maintenance, HW maintenance, HW\\SW maintenance, Hardware, HW Maintenance, Tangible goods, Digital good, Resale
+- refund_basis: MPU, Non-taxable, Partial OOS services, Wrong rate, Partial OOS shipment, OOS services, OOS shipment, B&O tax, Resale, Discount
+- tax_category: License, Services, Software maintenance, Hardware maintenance, Hardware, Tangible goods, Digital good, DAS, Maintenance
+- methodology (how refund allocation is determined): User location, Non-taxable, Headcount, Equipment Location, Wrong rate, Call center, Call center Retail, Retail stores, Engineering, Resale, RF Engineering, Ship-to location, Delivery out-of-state, Subscribers, MPU, Care+Retail, Fraud team, Project location, Call center + Marketing
+- sales_use_tax: Sales, Use, B&O
 
 Row context:
 - dataset_id: {evidence.dataset_id}
@@ -134,10 +166,10 @@ Invoice evidence:
 {_invoice_section("invoice_1", evidence.invoice_1)}
 
 {_invoice_section("invoice_2", evidence.invoice_2)}
-
+{line_match_section}
 Internal RAG retrieval context:
 {rag_section}
-{extra_guidance}
+{vendor_profile_section}{rate_section}{extra_guidance}
 
 Required JSON fields and types:
 {{
@@ -157,7 +189,10 @@ Required JSON fields and types:
   "confidence": 0.0,
   "estimated_refund": 0.0,
   "explanation": "string",
-  "follow_up_questions": "string"
+  "follow_up_questions": "string",
+  "tax_category": "string (from controlled list)",
+  "methodology": "string (from controlled list)",
+  "sales_use_tax": "Sales|Use|B&O"
 }}
 """.strip()
 
@@ -197,7 +232,10 @@ def _build_ai_reasoning(payload: dict[str, Any], evidence: RowEvidence, process_
         "",
         "TAX ANALYSIS:",
         f"- Product Type: {product_type or 'Unknown'}",
+        f"- Tax Category: {_safe_str(payload.get('tax_category')) or 'Unknown'}",
         f"- Exemption Basis: {refund_basis}",
+        f"- Methodology: {_safe_str(payload.get('methodology')) or 'Unknown'}",
+        f"- Tax Type: {_safe_str(payload.get('sales_use_tax')) or 'Unknown'}",
         f"- Citation: {citation or 'N/A'}",
         "",
         f"DECISION: {final_decision or 'REVIEW'}",
@@ -215,6 +253,14 @@ def _to_output_row(payload: dict[str, Any], evidence: RowEvidence) -> dict[str, 
     final_decision = normalize_final_decision(payload.get("final_decision"))
     confidence = _coerce_float(payload.get("confidence"), default=0.0)
     estimated_refund = _coerce_float(payload.get("estimated_refund"), default=0.0)
+    methodology = normalize_methodology(payload.get("methodology"))
+
+    refund_amount = max(0.0, estimated_refund)
+    refund_source = "estimated"
+    if evidence.tax_amount is not None and methodology:
+        refund_amount, refund_source = calculate_refund(
+            evidence.tax_amount, methodology, estimated_refund,
+        )
 
     output = {
         "Product_Desc": _safe_str(payload.get("product_description")),
@@ -225,11 +271,15 @@ def _to_output_row(payload: dict[str, Any], evidence: RowEvidence) -> dict[str, 
         "Citation": _safe_str(payload.get("citation")),
         "Citation_Source": _safe_str(payload.get("citation_source")),
         "Confidence": confidence,
-        "Estimated_Refund": max(0.0, estimated_refund),
+        "Estimated_Refund": refund_amount,
+        "Refund_Source": refund_source,
         "Final_Decision": final_decision,
         "Explanation": _safe_str(payload.get("explanation")),
         "Needs_Review": "Yes" if final_decision == "REVIEW" else "No",
         "Follow_Up_Questions": _safe_str(payload.get("follow_up_questions")),
+        "Tax_Category": _safe_str(payload.get("tax_category")),
+        "Methodology": methodology,
+        "Sales_Use_Tax": _safe_str(payload.get("sales_use_tax")),
     }
     output["AI_Reasoning"] = _build_ai_reasoning(payload, evidence, process_token)
     return output
@@ -280,11 +330,14 @@ class OpenAIAnalyzer:
                 rag_warnings.append(f"RAG retrieval failed: {exc}")
                 rag_context = None
 
+        vendor_profile = load_vendor_profile(evidence.vendor)
+
         prompt = _analysis_prompt(
             evidence,
             rag_context=rag_context,
             max_rag_chunk_chars=self.max_rag_chunk_chars,
             guidance=guidance,
+            vendor_profile=vendor_profile,
         )
         response = self.client.responses.create(
             model=self.model,
@@ -308,5 +361,9 @@ class OpenAIAnalyzer:
             "rag_legal_chunks": len(rag_context.legal_chunks) if rag_context else 0,
             "rag_vendor_chunks": len(rag_context.vendor_chunks) if rag_context else 0,
             "rag_warnings": rag_warnings,
+            "vendor_profile_matched": vendor_profile is not None,
+            "rate_validation": validate_rate(
+                evidence.rate, evidence.jurisdiction, evidence.tax_base, evidence.tax_amount,
+            ).message,
         }
         return result, metadata

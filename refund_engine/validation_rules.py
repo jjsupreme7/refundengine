@@ -5,7 +5,15 @@ from pathlib import Path
 import re
 from typing import Any
 
-from refund_engine.constants import PROJECT_ROOT, REQUIRED_REASONING_HEADERS
+from refund_engine.constants import (
+    PROJECT_ROOT,
+    REQUIRED_REASONING_HEADERS,
+    VALID_METHODOLOGIES,
+    VALID_PRODUCT_TYPES,
+    VALID_REFUND_BASES,
+    VALID_SALES_USE_TAX,
+    VALID_TAX_CATEGORIES,
+)
 
 
 _VALID_RCWS: set[str] = set()
@@ -27,6 +35,29 @@ def ensure_process_token(reasoning: str, token: str | None = None) -> str:
         return text
     token_value = token or generate_process_token()
     return f"{text}\n\n[{token_value}]".strip()
+
+
+_METHODOLOGY_ALIASES: dict[str, str] = {
+    "equipment location": "Equipment Location",
+    "call center": "Call center",
+    "call center, retail": "Call center Retail",
+    "call center,retail": "Call center Retail",
+    "wrong rate": "Wrong rate",
+    "rf engineering": "RF Engineering",
+    "ship-to location": "Ship-to location",
+    "delivery out-of-state": "Delivery out-of-state",
+    "care + retail": "Care+Retail",
+    "care+retail": "Care+Retail",
+    "project location": "Project location",
+    "call center + marketing": "Call center + Marketing",
+}
+
+
+def normalize_methodology(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return text
+    return _METHODOLOGY_ALIASES.get(text.lower(), text)
 
 
 def normalize_final_decision(value: Any) -> str:
@@ -76,6 +107,15 @@ def is_valid_citation(citation: str) -> bool:
     return True
 
 
+def _extract_header_value(reasoning: str, header: str) -> str:
+    idx = reasoning.find(header)
+    if idx < 0:
+        return ""
+    start = idx + len(header)
+    end = reasoning.find("\n", start)
+    return reasoning[start:end].strip() if end > start else reasoning[start:].strip()
+
+
 def validate_output_row(row: dict[str, Any]) -> list[str]:
     errors: list[str] = []
 
@@ -121,5 +161,72 @@ def validate_output_row(row: dict[str, Any]) -> list[str]:
     product_desc = str(row.get("Product_Desc") or "").strip()
     if decision in {"REFUND", "NO REFUND"} and not product_desc:
         errors.append("Product_Desc is required for REFUND/NO REFUND decisions")
+
+    product_type = str(row.get("Product_Type") or "").strip()
+    if product_type and product_type not in VALID_PRODUCT_TYPES:
+        errors.append(f"Product_Type '{product_type}' not in controlled vocabulary")
+
+    refund_basis = str(row.get("Refund_Basis") or "").strip()
+    if decision == "REFUND" and refund_basis and refund_basis not in VALID_REFUND_BASES:
+        errors.append(f"Refund_Basis '{refund_basis}' not in controlled vocabulary")
+
+    tax_category = str(row.get("Tax_Category") or "").strip()
+    if tax_category and tax_category not in VALID_TAX_CATEGORIES:
+        errors.append(f"Tax_Category '{tax_category}' not in controlled vocabulary")
+
+    sales_use_tax = str(row.get("Sales_Use_Tax") or "").strip()
+    if sales_use_tax and sales_use_tax not in VALID_SALES_USE_TAX:
+        errors.append(
+            f"Sales_Use_Tax '{sales_use_tax}' not in controlled vocabulary. "
+            f"Expected one of: {', '.join(sorted(VALID_SALES_USE_TAX))}"
+        )
+
+    # 1. Methodology vocabulary check (normalize first)
+    methodology = normalize_methodology(row.get("Methodology"))
+    if methodology and methodology not in VALID_METHODOLOGIES:
+        errors.append(f"Methodology '{methodology}' not in controlled vocabulary")
+
+    # 2. REFUND requires Refund_Basis and Methodology
+    if decision == "REFUND":
+        if not refund_basis:
+            errors.append("Refund_Basis is required for REFUND decisions")
+        if not methodology:
+            errors.append("Methodology is required for REFUND decisions")
+
+    # 3. Matched line item content quality (REFUND/NO REFUND only)
+    if decision in {"REFUND", "NO REFUND"} and reasoning:
+        matched_item = _extract_header_value(reasoning, "MATCHED LINE ITEM:")
+        if not matched_item or matched_item == "UNKNOWN":
+            errors.append("MATCHED LINE ITEM must identify a specific line item, not UNKNOWN")
+        elif "$" not in matched_item:
+            errors.append("MATCHED LINE ITEM must include a dollar amount (e.g., '@ $1,000.00')")
+
+    # 4. Ship-to address quality (REFUND/NO REFUND only)
+    if decision in {"REFUND", "NO REFUND"} and reasoning:
+        ship_to = _extract_header_value(reasoning, "SHIP-TO:")
+        if len(ship_to) <= 5:
+            errors.append("SHIP-TO must be a full address, not just a state abbreviation")
+
+    # 5. Follow-up questions for REVIEW
+    if decision == "REVIEW":
+        follow_up = str(row.get("Follow_Up_Questions") or "").strip()
+        if len(follow_up) < 20:
+            errors.append("REVIEW decisions require specific follow-up questions (>20 chars)")
+
+    # 6. Confidence vs REVIEW logic
+    if decision == "REVIEW" and confidence_raw not in (None, ""):
+        try:
+            conf_val = float(confidence_raw)
+            if conf_val >= 0.85:
+                errors.append(
+                    f"Confidence {conf_val} is too high for REVIEW — commit to REFUND or NO REFUND"
+                )
+        except (TypeError, ValueError):
+            pass
+
+    # 7. Explanation required for REFUND/NO REFUND
+    explanation = str(row.get("Explanation") or "").strip()
+    if decision in {"REFUND", "NO REFUND"} and not explanation:
+        errors.append("Explanation is required for REFUND/NO REFUND decisions")
 
     return errors
